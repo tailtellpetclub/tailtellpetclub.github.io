@@ -6,9 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>尾尾道來寵物俱樂部｜美容 · 住宿 · 安親</title>
 
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+
     <!-- favicon & 觸控圖示 -->
-    <link rel="icon" type="image/png" href="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png">
-    <link rel="apple-touch-icon" href="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png">
+    <link rel="icon" type="image/png" href="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo.jpg">
+    <link rel="apple-touch-icon" href="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo.jpg">
 
     <!-- 字體：Noto Serif TC Extra Light 為主 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2270,7 +2273,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=8').then(reg => {
+                navigator.serviceWorker.register('/sw.js?v=9').then(reg => {
                     if (reg.waiting) showUpdateUI(reg.waiting);
                     reg.addEventListener('updatefound', () => {
                         const w = reg.installing;
