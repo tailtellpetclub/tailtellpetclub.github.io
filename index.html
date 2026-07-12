@@ -857,6 +857,7 @@
                 breed: '',
                 fur_color: '',
                 weight: '',
+                pet_birthday: '',
                 age_type: 'year',
                 age_value: '',
                 pet_type: 'dog',
@@ -892,6 +893,7 @@
                 is_heat: '',
                 has_surgery: '',
                 surgery_detail: '',
+                use_birthday: true,
             });
 
             const [errors, setErrors] = useState({});
@@ -1089,7 +1091,7 @@
 
             const handleApplyHistory = (record) => {
                 const { check_in_date, check_out_date, room_type, room_price, service_tags, is_owner, physical_check,
-                    social_traits, medical_tags, vaccines, has_experience, is_heat, has_surgery, surgery_detail, ...rest } = record;
+                    social_traits, medical_tags, vaccines, has_experience, is_heat, has_surgery, surgery_detail, pet_birthday, ...rest } = record;
                 setFormData(prev => ({
                     ...prev,
                     ...rest,
@@ -1110,6 +1112,8 @@
                     is_heat: is_heat || '',
                     has_surgery: has_surgery || '',
                     surgery_detail: surgery_detail || '',
+                    pet_birthday: pet_birthday || '',
+                    use_birthday: pet_birthday ? true : false,
                 }));
                 setRealtimeSig(null);
                 setShowHistoryModal(false);
@@ -1290,6 +1294,7 @@
                                 breed: '',
                                 fur_color: '',
                                 weight: '',
+                                pet_birthday: '',
                                 age_type: 'year',
                                 age_value: '',
                                 pet_type: 'dog',
@@ -1325,6 +1330,7 @@
                                 is_heat: '',
                                 has_surgery: '',
                                 surgery_detail: '',
+                                use_birthday: true,
                             });
                             setServiceType('grooming');
                             setRealtimeSig(null);
@@ -1495,47 +1501,83 @@
                                 <InputWithError label="毛色" name="fur_color" value={formData.fur_color || ''} onChange={e => handleChange('fur_color', e.target.value)} placeholder="例：黃色、黑色、虎斑" />
                                 <InputWithError label="體重 (kg) *" name="weight" type="number" value={formData.weight} onChange={e => handleChange('weight', e.target.value)} error={errors.weight} />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-[#4A6B55]">年齡 *</label>
-                                    <div className="space-y-3">
-                                        <div className={`flex gap-2 ${errors.age_type ? 'border-2 border-red-300 rounded-xl' : ''}`}>
-                                            <button onClick={() => { handleChange('age_type', 'year');
-                                                    handleChange('age_value', '');
-                                                    clearError('age_type'); }}
-                                                className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 transition-all ${formData.age_type === 'year' ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE]'}`}>
-                                                1歲以上
-                                            </button>
-                                            <button onClick={() => { handleChange('age_type', 'month');
-                                                    handleChange('age_value', '');
-                                                    clearError('age_type'); }}
-                                                className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 transition-all ${formData.age_type === 'month' ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE]'}`}>
-                                                未滿1歲
-                                            </button>
-                                        </div>
-                                        {errors.age_type && <div className="text-xs text-red-400 font-bold mt-1">{errors.age_type}</div>}
-                                        <div className="relative">
-                                            <input type="number" className={`w-full cute-input ${errors.age_value ? 'border-red-300 bg-red-50/40' : ''}`}
-                                                placeholder={formData.age_type === 'year' ? '請輸入幾歲 (例如: 8)' : '請輸入幾個月 (例如: 2)'}
-                                                value={formData.age_value} onChange={e => handleChange('age_value', e.target.value)} />
-                                            <span className="absolute right-4 top-3 text-[#B5A89C] font-bold text-sm pointer-events-none">
-                                                {formData.age_type === 'year' ? '歲' : '個月'}
-                                            </span>
-                                            {errors.age_value && <div className="text-xs text-red-400 font-bold mt-1">{errors.age_value}</div>}
-                                        </div>
+                            <div className="space-y-3">
+                                <label className="text-xs font-bold text-[#4A6B55]">生日 / 年齡 *</label>
+                                <div className="bg-[#FAF8F5] rounded-2xl p-4 border border-[#DDD6CE] space-y-4">
+                                    {/* 切換按鈕：生日 / 年齡 */}
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => { handleChange('use_birthday', true); handleChange('age_value', ''); }}
+                                            className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${formData.use_birthday !== false ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#B8A088]'}`}
+                                        >
+                                            📅 生日
+                                        </button>
+                                        <button
+                                            onClick={() => { handleChange('use_birthday', false); handleChange('pet_birthday', ''); }}
+                                            className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${formData.use_birthday === false ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#B8A088]'}`}
+                                        >
+                                            🎂 年齡（歲）
+                                        </button>
                                     </div>
+
+                                    {/* 生日模式 */}
+                                    {formData.use_birthday !== false ? (
+                                        <div className="animate-fade-in space-y-2">
+                                            <label className="text-xs font-bold text-[#4A6B55]">出生日期</label>
+                                            <input
+                                                type="date"
+                                                className="w-full cute-input"
+                                                value={formData.pet_birthday || ''}
+                                                onChange={e => handleChange('pet_birthday', e.target.value)}
+                                            />
+                                            <p className="text-[10px] text-[#B5A89C]">請填寫毛孩的出生日期</p>
+                                        </div>
+                                    ) : (
+                                        <div className="animate-fade-in space-y-3">
+                                            <div className={`flex gap-2 ${errors.age_type ? 'border-2 border-red-300 rounded-xl' : ''}`}>
+                                                <button
+                                                    onClick={() => { handleChange('age_type', 'year'); handleChange('age_value', ''); clearError('age_type'); }}
+                                                    className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 transition-all ${formData.age_type === 'year' ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE]'}`}
+                                                >
+                                                    1歲以上
+                                                </button>
+                                                <button
+                                                    onClick={() => { handleChange('age_type', 'month'); handleChange('age_value', ''); clearError('age_type'); }}
+                                                    className={`flex-1 py-2 rounded-xl text-xs font-bold border-2 transition-all ${formData.age_type === 'month' ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE]'}`}
+                                                >
+                                                    未滿1歲
+                                                </button>
+                                            </div>
+                                            {errors.age_type && <div className="text-xs text-red-400 font-bold mt-1">{errors.age_type}</div>}
+                                            <div className="relative">
+                                                <input
+                                                    type="number"
+                                                    className={`w-full cute-input ${errors.age_value ? 'border-red-300 bg-red-50/40' : ''}`}
+                                                    placeholder={formData.age_type === 'year' ? '請輸入幾歲 (例如: 8)' : '請輸入幾個月 (例如: 2)'}
+                                                    value={formData.age_value}
+                                                    onChange={e => handleChange('age_value', e.target.value)}
+                                                />
+                                                <span className="absolute right-4 top-3 text-[#B5A89C] font-bold text-sm pointer-events-none">
+                                                    {formData.age_type === 'year' ? '歲' : '個月'}
+                                                </span>
+                                                {errors.age_value && <div className="text-xs text-red-400 font-bold mt-1">{errors.age_value}</div>}
+                                            </div>
+                                            <p className="text-[10px] text-[#B5A89C]">請填寫毛孩的年齡</p>
+                                        </div>
+                                    )}
+                                    <p className="text-[10px] text-[#B5A89C] text-center border-t border-[#DDD6CE] pt-2 mt-1">請填寫出生日期或年齡（二擇一）</p>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2"><label className="text-xs font-bold text-[#4A6B55]">性別 *</label>
-                                        <div className="flex gap-2">{['公', '母'].map(v => (<button key={v} onClick={() =>
-                                                    handleChange('sex', v)}
-                                                className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${formData.sex === v ? 'bg-[#203B2A] text-white border-[#203B2A]' : (errors.sex ? 'bg-red-50 border-red-300 text-red-400' : 'bg-white/50 text-[#4A6B55] border-[#DDD6CE]')}`}>{v}</button>))}</div>
-                                    </div>
-                                    <div className="space-y-2"><label className="text-xs font-bold text-[#4A6B55]">結紮 *</label>
-                                        <div className="flex gap-2">{['是', '否'].map(v => (<button key={v} onClick={() =>
-                                                    handleChange('fix', v)}
-                                                className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${formData.fix === v ? 'bg-[#203B2A] text-white border-[#203B2A]' : (errors.fix ? 'bg-red-50 border-red-300 text-red-400' : 'bg-white/50 text-[#4A6B55] border-[#DDD6CE]')}`}>{v}</button>))}</div>
-                                    </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2"><label className="text-xs font-bold text-[#4A6B55]">性別 *</label>
+                                    <div className="flex gap-2">{['公', '母'].map(v => (<button key={v} onClick={() =>
+                                                handleChange('sex', v)}
+                                            className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${formData.sex === v ? 'bg-[#203B2A] text-white border-[#203B2A]' : (errors.sex ? 'bg-red-50 border-red-300 text-red-400' : 'bg-white/50 text-[#4A6B55] border-[#DDD6CE]')}`}>{v}</button>))}</div>
+                                </div>
+                                <div className="space-y-2"><label className="text-xs font-bold text-[#4A6B55]">結紮 *</label>
+                                    <div className="flex gap-2">{['是', '否'].map(v => (<button key={v} onClick={() =>
+                                                handleChange('fix', v)}
+                                            className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${formData.fix === v ? 'bg-[#203B2A] text-white border-[#203B2A]' : (errors.fix ? 'bg-red-50 border-red-300 text-red-400' : 'bg-white/50 text-[#4A6B55] border-[#DDD6CE]')}`}>{v}</button>))}</div>
                                 </div>
                             </div>
 
@@ -2228,7 +2270,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=7').then(reg => {
+                navigator.serviceWorker.register('/sw.js?v=8').then(reg => {
                     if (reg.waiting) showUpdateUI(reg.waiting);
                     reg.addEventListener('updatefound', () => {
                         const w = reg.installing;
