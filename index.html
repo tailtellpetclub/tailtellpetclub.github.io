@@ -1538,18 +1538,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="space-y-2"><label className="text-xs font-bold text-[#4A6B55]">性別 *</label>
-                                    <div className="flex gap-2">{['公', '母'].map(v => (<button key={v} onClick={() =>
-                                                handleChange('sex', v)}
-                                            className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${formData.sex === v ? 'bg-[#203B2A] text-white border-[#203B2A]' : (errors.sex ? 'bg-red-50 border-red-300 text-red-400' : 'bg-white/50 text-[#4A6B55] border-[#DDD6CE]')}`}>{v}</button>))}</div>
-                                </div>
-                                <div className="space-y-2"><label className="text-xs font-bold text-[#4A6B55]">結紮 *</label>
-                                    <div className="flex gap-2">{['是', '否'].map(v => (<button key={v} onClick={() =>
-                                                handleChange('fix', v)}
-                                            className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${formData.fix === v ? 'bg-[#203B2A] text-white border-[#203B2A]' : (errors.fix ? 'bg-red-50 border-red-300 text-red-400' : 'bg-white/50 text-[#4A6B55] border-[#DDD6CE]')}`}>{v}</button>))}</div>
-                                </div>
-                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-[#4A6B55]">近期健檢</label>
@@ -2239,7 +2228,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=6').then(reg => {
+                navigator.serviceWorker.register('/sw.js?v=7').then(reg => {
                     if (reg.waiting) showUpdateUI(reg.waiting);
                     reg.addEventListener('updatefound', () => {
                         const w = reg.installing;
