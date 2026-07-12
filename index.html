@@ -31,7 +31,13 @@
         }
         h1, h2, h3, h4, h5, h6, .font-bold, .font-semibold, .font-black {
             font-weight: 300 !important;
-            letter-spacing: 0.03em;
+            letter-spacing: 0.05em;
+        }
+        .section-title {
+            font-weight: 350 !important;
+        }
+        .logo-text {
+            font-weight: 250 !important;
         }
         .font-serif {
             font-family: 'Noto Serif TC', serif !important;
@@ -53,6 +59,10 @@
             --brand-gold: #B8A088;
             --brand-warm: #EDE8E0;
             --brand-muted: #8AA69B;
+            --shadow-sm: 0 1px 3px rgba(32, 59, 42, 0.06);
+            --shadow-md: 0 4px 16px rgba(32, 59, 42, 0.08);
+            --shadow-lg: 0 8px 32px rgba(32, 59, 42, 0.10);
+            --shadow-xl: 0 16px 48px rgba(32, 59, 42, 0.12);
         }
         .bg-brand {
             background-color: var(--brand-primary);
@@ -73,96 +83,158 @@
             border-color: var(--brand-primary);
         }
 
-        /* 卡片 — 輕透米白 */
+        /* 卡片 — 輕透米白，更精緻 */
         .glass-premium {
-            background: rgba(255, 252, 248, 0.85);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(200, 190, 180, 0.3);
-            box-shadow: 0 4px 24px -8px rgba(32, 59, 42, 0.08);
+            background: rgba(255, 252, 248, 0.78);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 252, 248, 0.5);
+            box-shadow: var(--shadow-md);
             border-radius: 2rem;
-            transition: box-shadow 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .glass-premium:hover {
-            box-shadow: 0 8px 32px -12px rgba(32, 59, 42, 0.14);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+            background: rgba(255, 252, 248, 0.92);
+        }
+        .glass-premium:hover .icon-hover {
+            transform: scale(1.08) rotate(-2deg);
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .icon-hover {
+            transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        /* 輸入框 */
+        /* 輸入框 — 更細緻 */
         .cute-input {
-            background: rgba(255, 252, 248, 0.7);
-            border: 1px solid #DDD6CE;
-            transition: all 0.25s ease;
+            background: rgba(255, 252, 248, 0.6);
+            border: 1px solid #E0D8D0;
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
             color: #203B2A;
             font-weight: 200;
             font-size: 0.95rem;
             backdrop-filter: blur(4px);
             border-radius: 1rem;
             padding: 0.9rem 1.2rem;
+            caret-color: var(--brand-primary);
         }
         .cute-input:focus {
             background: #ffffff;
             border-color: var(--brand-primary);
             outline: none;
-            box-shadow: 0 0 0 4px rgba(32, 59, 42, 0.10);
+            box-shadow: 0 0 0 5px rgba(32, 59, 42, 0.08);
             transform: translateY(-1px);
         }
+        /* 標籤裝飾 */
+        .input-label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .input-label::before {
+            content: '';
+            width: 3px;
+            height: 12px;
+            background: var(--brand-primary);
+            border-radius: 4px;
+            opacity: 0.6;
+        }
         .cute-input::placeholder {
-            color: #B5A89C;
+            color: #C5BAB0;
             font-weight: 200;
+            letter-spacing: 0.02em;
         }
 
-        /* 選項卡片 */
+        /* 選項卡片 — 更精緻 */
         .radio-card {
-            transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-            border: 1px solid #DDD6CE;
-            background: rgba(255, 252, 248, 0.5);
+            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            border: 1px solid #E0D8D0;
+            background: rgba(255, 252, 248, 0.4);
             border-radius: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .radio-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(32, 59, 42, 0.03), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            border-radius: inherit;
         }
         .radio-card:hover {
             border-color: var(--brand-gold);
-            background: rgba(255, 248, 240, 0.7);
+            background: rgba(255, 248, 240, 0.8);
+            transform: translateY(-1px);
+        }
+        .radio-card:hover::before {
+            opacity: 1;
         }
         .radio-card.selected {
             background-color: #ffffff;
             border-color: var(--brand-primary);
             border-width: 2px;
-            box-shadow: 0 8px 24px -8px rgba(32, 59, 42, 0.18);
+            box-shadow: 0 8px 28px -10px rgba(32, 59, 42, 0.20);
+            transform: translateY(-2px);
+        }
+        .radio-card.selected::before {
+            opacity: 1;
         }
         .radio-card.danger.selected {
             background-color: #FDF6F3;
             border-color: #DBA58B;
         }
 
-        /* Tab 切換 — 溫潤 */
+        /* Tab 切換 — 更溫潤 */
         .service-tab {
-            padding: 0.6rem 1.6rem;
+            padding: 0.7rem 1.8rem;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
             border-bottom: 3px solid transparent;
-            opacity: 0.5;
+            opacity: 0.45;
             font-size: 0.95rem;
             font-weight: 200;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.08em;
             border-radius: 0;
             background: transparent;
             color: #203B2A;
+            position: relative;
+        }
+        .service-tab::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: var(--brand-primary);
+            border-radius: 4px;
+            transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .service-tab:hover {
             opacity: 0.8;
         }
+        .service-tab:hover::after {
+            width: 40%;
+        }
         .service-tab.active {
-            border-bottom-color: var(--brand-primary);
             color: var(--brand-dark);
             opacity: 1;
             font-weight: 300;
             background: transparent;
+        }
+        .service-tab.active::after {
+            width: 60%;
         }
         .service-tab-container {
             display: flex;
             justify-content: center;
             gap: 0.25rem;
             margin: 0 0 1.5rem 0;
-            border-bottom: 1px solid #DDD6CE;
+            border-bottom: 1px solid #E8E0D8;
             padding: 0 0.5rem 0 0.5rem;
             width: 100%;
             background: transparent;
@@ -258,70 +330,39 @@
             padding-top: env(safe-area-inset-top, 0.5rem);
         }
 
-        /* 標題裝飾線 */
+        /* 標題裝飾線 — 更細緻 */
         .section-title {
             position: relative;
-            padding-bottom: 0.75rem;
-            margin-bottom: 1.25rem;
-            border-bottom: 1px solid #DDD6CE;
+            padding-bottom: 0.85rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #E8E0D8;
+            letter-spacing: 0.04em;
         }
         .section-title::after {
             content: '';
             position: absolute;
             bottom: -1px;
             left: 0;
-            width: 3rem;
-            height: 2px;
-            background: var(--brand-primary);
+            width: 3.5rem;
+            height: 2.5px;
+            background: linear-gradient(90deg, var(--brand-primary), var(--brand-gold));
+            border-radius: 4px;
+            transition: width 0.4s ease;
         }
-
-        /* 步驟指示器 */
-        .step-indicator {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.5rem 0 1rem 0;
-            flex-wrap: wrap;
+        .section-title:hover::after {
+            width: 5rem;
         }
-        .step-dot {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 300;
-            color: #B5A89C;
-            transition: all 0.3s ease;
-        }
-        .step-dot .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #DDD6CE;
-            transition: all 0.3s ease;
-        }
-        .step-dot.active .dot {
-            background: var(--brand-primary);
-            width: 10px;
-            height: 10px;
-        }
-        .step-dot.active {
-            color: var(--brand-dark);
-            font-weight: 400;
-        }
-        .step-dot.done .dot {
-            background: var(--brand-secondary);
-        }
-        .step-dot.done {
-            color: var(--brand-secondary);
-        }
-        .step-line {
-            flex: 1;
-            height: 1px;
-            background: #DDD6CE;
-            min-width: 20px;
-        }
-        .step-line.done {
-            background: var(--brand-secondary);
+                /* Scroll 進度條 */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--brand-primary), var(--brand-gold));
+            z-index: 999;
+            transition: width 0.1s linear;
+            border-radius: 0 4px 4px 0;
         }
     </style>
 
@@ -382,6 +423,7 @@
 </head>
 <body>
 
+    <div class="scroll-progress" id="scrollProgress"></div>
     <div class="bg-orb w-96 h-96 top-[-10%] left-[-10%] animate-float" style="background:#D4C9BE;"></div>
     <div class="bg-orb w-80 h-80 bottom-[-10%] right-[-10%] animate-float-delayed" style="background:#C4B8AA;"></div>
     <div class="bg-orb w-64 h-64 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse-slow" style="background:#B8A088;"></div>
@@ -474,7 +516,7 @@
 
         const InputWithError = ({ label, name, type = 'text', value, onChange, placeholder, error, className = '', ...props }) => (
             <div className="space-y-2 w-full relative z-10">
-                {label && <label className="text-xs font-bold text-[#4A6B55] ml-1 tracking-wider">{label}</label>}
+                {label && <label className="input-label text-xs font-bold text-[#4A6B55] ml-1 tracking-wider">{label}</label>}
                 <input
                     name={name}
                     type={type}
@@ -766,11 +808,18 @@
                     <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl relative overflow-hidden my-auto">
                         <div className={`p-8 text-center relative overflow-hidden transition-colors duration-500 ${hasEmail ? 'bg-[#203B2A]' : 'bg-[#B8A088]'}`}>
                             <div className="absolute top-[-50px] left-[-50px] w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                            <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 text-white shadow-lg animate-pulse-slow">
-                                <Icon name={hasEmail ? "check" : "camera"} size={48} />
+                            <div className="absolute bottom-[-30px] right-[-30px] w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
+                            <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 text-white shadow-lg animate-pulse-slow relative">
+                                <div className="absolute inset-0 rounded-full border-2 border-white/10 animate-ping" style={{ animationDuration: '2s' }}></div>
+                                <Icon name={hasEmail ? "check" : "camera"} size={48} className="relative z-10" />
                             </div>
                             <h2 className="text-2xl font-serif font-bold text-white mb-2 tracking-wide">{hasEmail ? '預約成功！' : '預約成功！請截圖'}</h2>
                             <p className="text-white/80 text-sm font-bold">{hasEmail ? '契約副本已寄至您的信箱' : '未填寫信箱，請務必保存下方副本'}</p>
+                            <div className="mt-3 flex justify-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-white/30"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-white/50"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-white/30"></span>
+                            </div>
                         </div>
                         <div className="p-6 md:p-8 space-y-6">
                             <div className={`border rounded-2xl p-5 flex gap-4 items-start shadow-sm ${hasEmail ? 'bg-[#FAF8F5] border-[#DDD6CE]' : 'bg-[#FDF6F3] border-[#DBA58B]'}`}>
@@ -806,6 +855,7 @@
                 preferred_clinic_phone: '',
                 pet_name: '',
                 breed: '',
+                fur_color: '',
                 weight: '',
                 age_type: 'year',
                 age_value: '',
@@ -837,6 +887,11 @@
                 lineAdded: false,
                 daycare_date: '',
                 pickup_time: '',
+                vaccines: [],
+                has_experience: '',
+                is_heat: '',
+                has_surgery: '',
+                surgery_detail: '',
             });
 
             const [errors, setErrors] = useState({});
@@ -1034,7 +1089,7 @@
 
             const handleApplyHistory = (record) => {
                 const { check_in_date, check_out_date, room_type, room_price, service_tags, is_owner, physical_check,
-                    social_traits, medical_tags, ...rest } = record;
+                    social_traits, medical_tags, vaccines, has_experience, is_heat, has_surgery, surgery_detail, ...rest } = record;
                 setFormData(prev => ({
                     ...prev,
                     ...rest,
@@ -1042,6 +1097,7 @@
                     physical_check: safeParse(physical_check),
                     social_traits: safeParse(social_traits),
                     medical_tags: safeParse(medical_tags),
+                    vaccines: safeParse(vaccines),
                     checkInDate: '',
                     checkOutDate: '',
                     room_type: '',
@@ -1050,6 +1106,10 @@
                     pickup_time: '',
                     is_owner: (is_owner === '是' || is_owner === true) ? '是' : '否',
                     service_tags: [],
+                    has_experience: has_experience || '',
+                    is_heat: is_heat || '',
+                    has_surgery: has_surgery || '',
+                    surgery_detail: surgery_detail || '',
                 }));
                 setRealtimeSig(null);
                 setShowHistoryModal(false);
@@ -1228,6 +1288,7 @@
                                 preferred_clinic_phone: '',
                                 pet_name: '',
                                 breed: '',
+                                fur_color: '',
                                 weight: '',
                                 age_type: 'year',
                                 age_value: '',
@@ -1259,6 +1320,11 @@
                                 lineAdded: false,
                                 daycare_date: '',
                                 pickup_time: '',
+                                vaccines: [],
+                                has_experience: '',
+                                is_heat: '',
+                                has_surgery: '',
+                                surgery_detail: '',
                             });
                             setServiceType('grooming');
                             setRealtimeSig(null);
@@ -1426,7 +1492,10 @@
                                 <InputWithError label="品種 *" name="breed" value={formData.breed} onChange={e => handleChange('breed', e.target.value)} error={errors.breed} />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <InputWithError label="毛色" name="fur_color" value={formData.fur_color || ''} onChange={e => handleChange('fur_color', e.target.value)} placeholder="例：黃色、黑色、虎斑" />
                                 <InputWithError label="體重 (kg) *" name="weight" type="number" value={formData.weight} onChange={e => handleChange('weight', e.target.value)} error={errors.weight} />
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-[#4A6B55]">年齡 *</label>
                                     <div className="space-y-3">
@@ -1454,6 +1523,18 @@
                                             </span>
                                             {errors.age_value && <div className="text-xs text-red-400 font-bold mt-1">{errors.age_value}</div>}
                                         </div>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2"><label className="text-xs font-bold text-[#4A6B55]">性別 *</label>
+                                        <div className="flex gap-2">{['公', '母'].map(v => (<button key={v} onClick={() =>
+                                                    handleChange('sex', v)}
+                                                className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${formData.sex === v ? 'bg-[#203B2A] text-white border-[#203B2A]' : (errors.sex ? 'bg-red-50 border-red-300 text-red-400' : 'bg-white/50 text-[#4A6B55] border-[#DDD6CE]')}`}>{v}</button>))}</div>
+                                    </div>
+                                    <div className="space-y-2"><label className="text-xs font-bold text-[#4A6B55]">結紮 *</label>
+                                        <div className="flex gap-2">{['是', '否'].map(v => (<button key={v} onClick={() =>
+                                                    handleChange('fix', v)}
+                                                className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-all ${formData.fix === v ? 'bg-[#203B2A] text-white border-[#203B2A]' : (errors.fix ? 'bg-red-50 border-red-300 text-red-400' : 'bg-white/50 text-[#4A6B55] border-[#DDD6CE]')}`}>{v}</button>))}</div>
                                     </div>
                                 </div>
                             </div>
@@ -1594,6 +1675,19 @@
                                         handleChange('chip_id', e.target.value)} className="animate-slide-down mt-2" />}
                             </div>
 
+                            <div className="space-y-3 pt-2 border-t border-[#DDD6CE]">
+                                <label className="text-xs font-bold text-[#4A6B55]">疫苗接種紀錄</label>
+                                <div className="flex flex-wrap gap-3">
+                                    {['狂犬病', '八合一', '十合一'].map(v => (
+                                        <button key={v} onClick={() => toggleArray('vaccines', v)}
+                                            className={`px-4 py-2.5 rounded-xl text-xs font-bold border-2 transition-all ${(formData.vaccines || []).includes(v) ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#B8A088]'}`}>
+                                            ✅ {v}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="text-[10px] text-[#B5A89C] mt-1">請點選已施打之疫苗</div>
+                            </div>
+
                             <div className="space-y-3 pt-4 border-t border-[#DDD6CE]">
                                 <label className="text-xs font-bold text-[#4A6B55]">過往病史 (可複選) *</label>
                                 <div className="flex gap-2">
@@ -1625,6 +1719,48 @@
                                                     handleChange('medical_other', e.target.value)}></textarea>}
                                     </div>
                                 )}
+                            </div>
+
+                            {/* 紙本契約額外欄位 */}
+                            <div className="space-y-3 pt-2 border-t border-[#DDD6CE]">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-[#4A6B55]">有無美容/安親/住宿經驗？</label>
+                                        <div className="flex gap-2">
+                                            {['有', '無'].map(v => (
+                                                <button key={v} onClick={() => handleChange('has_experience', v)}
+                                                    className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${formData.has_experience === v ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#B8A088]'}`}>
+                                                    {v}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-[#4A6B55]">是否正在發情期或生理期？</label>
+                                        <div className="flex gap-2">
+                                            {['是', '否'].map(v => (
+                                                <button key={v} onClick={() => handleChange('is_heat', v)}
+                                                    className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${formData.is_heat === v ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#B8A088]'}`}>
+                                                    {v}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-[#4A6B55]">是否有做過結紮以外的手術？</label>
+                                    <div className="flex gap-2 mb-2">
+                                        {['有', '無'].map(v => (
+                                            <button key={v} onClick={() => { handleChange('has_surgery', v); if (v === '無') handleChange('surgery_detail', ''); }}
+                                                className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${formData.has_surgery === v ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#B8A088]'}`}>
+                                                {v}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {formData.has_surgery === '有' && (
+                                        <InputWithError placeholder="請說明手術內容及日期（例：2023/05 膝蓋手術）" value={formData.surgery_detail || ''} onChange={e => handleChange('surgery_detail', e.target.value)} className="animate-slide-down" />
+                                    )}
+                                </div>
                             </div>
 
                             <div className="space-y-2">
@@ -1961,15 +2097,18 @@
                             </div>
 
                             <button onClick={handleSubmit} disabled={isSubmitting}
-                                className={`w-full py-5 rounded-2xl font-black text-lg shadow-xl transition-all flex items-center justify-center gap-3 ${isSubmitting ? 'bg-[#B5A89C] cursor-not-allowed text-white' : 'bg-[#203B2A] text-white shadow-[#203B2A]/30 hover:shadow-2xl active:scale-95 hover:-translate-y-1'}`}>
-                                {isSubmitting ? (
-                                    <>
-                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                        <span>系統處理中，請稍候...</span>
-                                    </>
-                                ) : (
-                                    <>確認並提交預約單 <Icon name="send" size={20} /></>
-                                )}
+                                className={`w-full py-5 rounded-2xl font-black text-lg shadow-xl transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${isSubmitting ? 'bg-[#B5A89C] cursor-not-allowed text-white' : 'bg-[#203B2A] text-white shadow-[#203B2A]/25 hover:shadow-2xl active:scale-[0.98] hover:-translate-y-1'}`}>
+                                <span className={`absolute inset-0 bg-gradient-to-r from-[#203B2A] to-[#4A6B55] opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${isSubmitting ? 'opacity-0' : ''}`}></span>
+                                <span className="relative z-10 flex items-center justify-center gap-3">
+                                    {isSubmitting ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                            <span>系統處理中，請稍候...</span>
+                                        </>
+                                    ) : (
+                                        <>確認並提交預約單 <Icon name="send" size={20} className="group-hover:translate-x-1 transition-transform duration-300" /></>
+                                    )}
+                                </span>
                             </button>
                         </section>
                     </main>
@@ -2100,7 +2239,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=4').then(reg => {
+                navigator.serviceWorker.register('/sw.js?v=6').then(reg => {
                     if (reg.waiting) showUpdateUI(reg.waiting);
                     reg.addEventListener('updatefound', () => {
                         const w = reg.installing;
@@ -2178,6 +2317,14 @@
                 });
                 if (changed) node.textContent = text;
             }
+        });
+                // Scroll 進度條
+        window.addEventListener('scroll', () => {
+            const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+            const progress = document.getElementById('scrollProgress');
+            if (progress) progress.style.width = scrolled + '%';
         });
     </script>
 
