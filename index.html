@@ -1512,7 +1512,17 @@ const SuccessView = ({ data, onReset }) => {
                     </div>
                     <div className="space-y-3">
                         <button onClick={openContract} className="w-full py-4 rounded-2xl bg-[#203B2A] text-white font-bold shadow-lg shadow-[#203B2A]/20 hover:bg-[#162B1F] active:scale-95 transition-all flex items-center justify-center gap-2"><Icon name="file-text" size={20} /> 開啟完整契約頁面 (截圖用)</button>
-                        <button onClick={onReset} className="w-full py-4 rounded-2xl bg-white text-[#203B2A] border-2 border-[#DDD6CE] font-bold shadow-sm hover:bg-[#FAF8F5] active:scale-95 transition-all flex items-center justify-center gap-2"><Icon name="home" size={20} /> 返回首頁 (完成)</button>
+                        <button 
+    onClick={(e) => {
+        const btn = e.currentTarget;
+        btn.style.transform = 'scale(0.95)';
+        setTimeout(() => btn.style.transform = 'scale(1)', 150);
+        onReset();
+    }} 
+    className="w-full py-4 rounded-2xl bg-white text-[#203B2A] border-2 border-[#DDD6CE] font-bold shadow-sm hover:bg-[#FAF8F5] active:scale-95 transition-all flex items-center justify-center gap-2"
+>
+    <Icon name="home" size={20} /> 返回首頁 (完成)
+</button>
                     </div>
                 </div>
             </div>
@@ -2329,69 +2339,76 @@ const payload = {
         return (
             <SuccessView
                 data={submittedData}
-                onReset={() => {
-                    setSubmittedData(null);
-                    setFormData({
-                        email: '',
-                        owner_name: '',
-                        phone: '',
-                        owner_id: '',
-                        address: '',
-                        emergency_name: '',
-                        emergency_phone: '',
-                        preferred_clinic_name: '',
-                        preferred_clinic_phone: '',
-                        pet_name: '',
-                        breed: '',
-                        fur_color: '',
-                        weight: '',
-                        pet_birthday: '',
-                        age_type: 'year',
-                        age_value: '',
-                        pet_type: 'dog',
-                        sex: '',
-                        fix: '',
-                        chip_status: '',
-                        chip_id: '',
-                        health_date: '',
-                        deworming_monthly: '',
-                        physical_check: [],
-                        physical_other: '',
-                        social_traits: [],
-                        personality_other: '',
-                        medical_history: '無',
-                        medical_tags: [],
-                        medical_other: '',
-                        service_tags: [],
-                        room_type: '',
-                        room_price: '',
-                        checkInDate: '',
-                        checkOutDate: '',
-                        temperament: '',
-                        note: '',
-                        signature: null,
-                        signature_time: '',
-                        legal_agree: false,
-                        service_type: 'grooming',
-                        lineAdded: false,
-                        daycare_date: '',
-                        pickup_time: '',
-                        vaccines: [],
-                        has_experience: '',
-                        is_heat: '',
-                        has_surgery: '',
-                        surgery_detail: '',
-                        use_birthday: true,
-                        image_consent: null,
-                        isFamilyRoom: false,
-                    });
-                    setServiceType('grooming');
-                    setRealtimeSig(null);
-                    setErrors({});
-                    setTermsRead({ beauty: false, boarding: false, highRiskBeauty: false,
-                    highRiskBoarding: false });
-                    window.scrollTo(0, 0);
-                }}
+onReset={() => {
+    setSubmittedData(null);
+    setIsSubmitting(false);
+    setFormData({
+        email: '',
+        owner_name: '',
+        phone: '',
+        owner_id: '',
+        address: '',
+        emergency_name: '',
+        emergency_phone: '',
+        preferred_clinic_name: '',
+        preferred_clinic_phone: '',
+        pet_name: '',
+        breed: '',
+        fur_color: '',
+        weight: '',
+        pet_birthday: '',
+        age_type: 'year',
+        age_value: '',
+        pet_type: 'dog',
+        sex: '',
+        fix: '',
+        chip_status: '',
+        chip_id: '',
+        health_date: '',
+        deworming_monthly: '',
+        physical_check: [],
+        physical_other: '',
+        social_traits: [],
+        personality_other: '',
+        medical_history: '無',
+        medical_tags: [],
+        medical_other: '',
+        service_tags: [],
+        room_type: '',
+        room_price: '',
+        checkInDate: '',
+        checkOutDate: '',
+        temperament: '',
+        note: '',
+        signature: null,
+        signature_time: '',
+        legal_agree: false,
+        service_type: 'grooming',
+        lineAdded: false,
+        daycare_date: '',
+        pickup_time: '',
+        vaccines: [],
+        has_experience: '',
+        is_heat: '',
+        has_surgery: '',
+        surgery_detail: '',
+        use_birthday: true,
+        image_consent: null,
+        isFamilyRoom: false,
+    });
+    setServiceType('grooming');
+    setRealtimeSig(null);
+    setErrors({});
+    setTermsRead({ beauty: false, boarding: false, highRiskBeauty: false,
+    highRiskBoarding: false });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => {
+        window.scrollTo(0, 0);
+    }, 100);
+    if (window.location.hash) {
+        history.pushState(null, null, ' ');
+    }
+}}
             />
         );
     }
@@ -3631,7 +3648,7 @@ if ('serviceWorker' in navigator) {
             }
         }).catch(() => {
             // 如果 getRegistration 失敗，直接註冊
-            navigator.serviceWorker.register('/sw.js?v=17').then(reg => {
+            navigator.serviceWorker.register('/sw.js?v=18').then(reg => {
                 if (reg.waiting) {
                     showUpdateUIWithDebounce(reg.waiting);
                 }
