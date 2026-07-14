@@ -586,7 +586,7 @@
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#203B2A]/40 backdrop-blur-sm animate-fade-in">
                     <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl relative max-h-[80vh] flex flex-col">
                         <div className="bg-[#203B2A] p-6 text-white text-center">
-                            <h3 className="text-xl font-bold">🐾 歡迎回來！</h3>
+                            <h3 className="text-lg font-bold">🐾 歡迎回來！</h3>
                             <p className="text-sm opacity-80 mt-1">我們找到了以下寶貝的紀錄，請選擇要帶入的資料：</p>
                         </div>
                         <div className="p-6 space-y-3 overflow-y-auto bg-[#FAF8F5] min-h-[200px]">
@@ -897,6 +897,8 @@
                 has_surgery: '',
                 surgery_detail: '',
                 use_birthday: true,
+                image_consent: null,
+
             });
 
             const [errors, setErrors] = useState({});
@@ -918,25 +920,36 @@
 
             const roomRates = {
                 dog: [
-                    { name: '小型犬標準房', price: 500, desc: '溫馨小空間' },
-                    { name: '標準房', price: 600, desc: '一般小型犬' },
-                    { name: '豪華房', price: 800, desc: '寬敞不擁擠' },
-                    { name: 'VIP房', price: 1300, desc: '特大獨立空間' }
+                    { name: '標準房', price: 800, desc: '規格:長120*寬90*高100cm' },
+                    { name: '商務房', price: 1000, desc: '規格:長130*寬90*高100cm' },
+                    { name: '豪華房', price: 1300, desc: '規格:長150*寬180*高125cm' },
+                    { 
+                        name: '家庭共宿', 
+                        price: 1500, 
+                        desc: (
+                            <div className="text-[10px] text-[#B5A89C] mt-1 font-medium leading-relaxed space-y-0.5">
+                                <div>小型犬 +$300 / 晚</div>
+                                <div>中型犬 +$500 / 晚</div>
+                                <div>大型犬 +$800 / 晚</div>
+                            </div>
+                        )
+                    }
+                ],
+                daycare: [
+                    { name: '小型犬', price: 100, desc: '' },
+                    { name: '中型犬', price: 150, desc: '' },
+                    { name: '大型犬', price: 200, desc: '' },
+                    { name: '安親評估', price:'100~200', desc: '' }
                 ]
             };
 
-            const personalityOptions = ['分離焦慮', '緊張', '膽小', '護食', '+ 其他'];
+            const personalityOptions = ['分離焦慮', '緊張', '無社會化', '護食', '+ 其他'];
 
             const checkHighRisk = useCallback((data) => {
-                if (data.medical_history === '有') return true;
-                const num = parseFloat(data.age_value);
-                if (isNaN(num)) return false;
-                if (data.age_type === 'month' && num <= 3) return true;
-                if (data.age_type === 'year' && num >= 8) return true;
-                return false;
+                return true;
             }, []);
 
-            const isHighRisk = useMemo(() => checkHighRisk(formData), [formData, checkHighRisk]);
+            const isHighRisk = true;
 
             const allTermsCompleted = useMemo(() => {
                 if (!termsRead.beauty) return false;
@@ -945,11 +958,13 @@
                     if (!termsRead.highRiskBeauty) return false;
                     if (serviceType !== 'grooming' && !termsRead.highRiskBoarding) return false;
                 }
+                // 必須選擇「同意」或「不同意」，不能是 null
+                if (formData.image_consent === null || formData.image_consent === undefined) return false;
                 return true;
-            }, [termsRead, serviceType, isHighRisk]);
+            }, [termsRead, serviceType, isHighRisk, formData.image_consent]);
 
             const validationRules = {
-                owner_name: { required: true, message: '請輸入主人姓名' },
+                owner_name: { required: true, message: '請輸入飼主姓名' },
                 phone: { required: true, pattern: /^09\d{8}$/, message: '請輸入正確的手機號碼格式 (09xxxxxxxx)' },
                 owner_id: { required: true, pattern: /^[A-Z][12]\d{8}$/, message: '請輸入正確的身分證字號格式' },
                 address: { required: true, message: '請輸入聯絡地址' },
@@ -1414,7 +1429,7 @@
                                         尾尾道來
                                     </div>
                                     <div className="logo-text-sub text-[10px] md:text-[11px] tracking-[0.4em] text-[#203B2A] mt-0.5">
-                                        TAIL TELL RIDE ECHO
+                                        TAIL TELL PET CLUB
                                     </div>
                                 </div>
                             </div>
@@ -1430,27 +1445,27 @@
                         <div className="glass-premium p-6 md:p-8 border-l-4 border-[#06C755] shadow-sm">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                                 <div>
-                                    <h3 className="font-bold text-[#203B2A] text-xl flex items-center gap-2">
+                                    <h3 className="font-bold text-[#203B2A] text-base flex items-center gap-2">
                                         <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" className="w-7 h-7" />
                                         加入官方 LINE
                                     </h3>
-                                    <p className="text-sm text-[#4A6B55] font-bold mt-1 ml-9">請加入尾尾道來官方 LINE</p>
+                                    <p className="text-xs text-[#4A6B55] font-bold mt-1 ml-9">請加入尾尾道來官方 LINE</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <a href="http://line.me/R/ti/p/@060zwrxi" className="bg-[#FAF8F5] rounded-2xl p-4 text-center border hover:bg-white transition-colors group border-[#DDD6CE]">
-                                    <div className="w-8 h-8 bg-[#06C755] text-white rounded-full flex items-center justify-center text-sm font-bold mx-auto mb-2 shadow-sm group-hover:scale-110 transition-transform">1</div>
-                                    <div className="text-base font-bold text-[#06C755]">點擊加入好友</div>
+                                    <div className="w-8 h-8 bg-[#06C755] text-white rounded-full flex items-center justify-center text-xs font-bold mx-auto mb-2 shadow-sm group-hover:scale-110 transition-transform">1</div>
+                                    <div className="text-sm font-bold text-[#06C755]">點擊加入好友</div>
                                 </a>
                                 <div className="bg-[#FDF6F3] rounded-2xl p-4 text-center border border-[#DBA58B]">
-                                    <div className="w-8 h-8 bg-[#DBA58B] text-white rounded-full flex items-center justify-center text-sm font-bold mx-auto mb-2 shadow-sm animate-pulse-slow">2</div>
-                                    <div className="text-base font-bold text-[#DBA58B]">務必「傳送貼圖」</div>
+                                    <div className="w-8 h-8 bg-[#DBA58B] text-white rounded-full flex items-center justify-center text-xs font-bold mx-auto mb-2 shadow-sm animate-pulse-slow">2</div>
+                                    <div className="text-sm font-bold text-[#DBA58B]">務必「傳送貼圖」</div>
                                 </div>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => handleChange('lineAdded', !formData.lineAdded)}
-                                className={`w-full py-4 rounded-xl font-bold text-sm border transition-all ${formData.lineAdded ? 'bg-[#06C755] text-white border-[#06C755] shadow-md' : 'bg-white text-[#B5A89C] border-[#DDD6CE] hover:bg-[#FAF8F5]'}`}
+                                className={`w-full py-4 rounded-xl font-bold text-xs border transition-all ${formData.lineAdded ? 'bg-[#06C755] text-white border-[#06C755] shadow-md' : 'bg-white text-[#B5A89C] border-[#DDD6CE] hover:bg-[#FAF8F5]'}`}
                             >
                                 {formData.lineAdded ? '✅ 我已完成上述兩步驟' : '確認：我已完成上述兩步驟'}
                             </button>
@@ -1464,7 +1479,7 @@
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <InputWithError label="電子郵件 (選填)" name="email" type="email" value={formData.email} onChange={e => handleChange('email', e.target.value)} placeholder="填寫則自動寄送契約副本" />
-                                <InputWithError label="主人姓名 *" name="owner_name" value={formData.owner_name} onChange={e => handleChange('owner_name', e.target.value)} error={errors.owner_name} />
+                                <InputWithError label="飼主姓名 *" name="owner_name" value={formData.owner_name} onChange={e => handleChange('owner_name', e.target.value)} error={errors.owner_name} />
                             </div>
                             <div className="space-y-6">
                                 <div className="space-y-2">
@@ -1815,7 +1830,7 @@
 
                             <div className="service-tab-container flex flex-nowrap overflow-x-auto no-scrollbar gap-0.5">
                                 <button
-                                    className={`service-tab flex-1 text-center px-3 py-2 whitespace-nowrap text-xs md:text-sm ${serviceType === 'grooming' ? 'active' : ''}`}
+                                    className={`service-tab flex-1 text-center px-3 py-2 whitespace-nowrap text-sm md:text-base ${serviceType === 'grooming' ? 'active' : ''}`}
                                     onClick={() => { setServiceType('grooming');
                                         setErrors({});
                                         handleChange('room_type', '');
@@ -1824,7 +1839,7 @@
                                     ✧ 美容
                                 </button>
                                 <button
-                                    className={`service-tab flex-1 text-center px-3 py-2 whitespace-nowrap text-xs md:text-sm ${serviceType === 'boarding' ? 'active' : ''}`}
+                                    className={`service-tab flex-1 text-center px-3 py-2 whitespace-nowrap text-sm md:text-base ${serviceType === 'boarding' ? 'active' : ''}`}
                                     onClick={() => { setServiceType('boarding');
                                         setErrors({});
                                         handleChange('room_type', '');
@@ -1833,7 +1848,7 @@
                                     ✧ 住宿
                                 </button>
                                 <button
-                                    className={`service-tab flex-1 text-center px-3 py-2 whitespace-nowrap text-xs md:text-sm ${serviceType === 'daycare' ? 'active' : ''}`}
+                                    className={`service-tab flex-1 text-center px-3 py-2 whitespace-nowrap text-sm md:text-base ${serviceType === 'daycare' ? 'active' : ''}`}
                                     onClick={() => { setServiceType('daycare');
                                         setErrors({});
                                         handleChange('room_type', '');
@@ -1869,8 +1884,10 @@
                                                         <span className={`font-bold text-sm ${formData.room_type === room.name ? 'text-[#203B2A]' : 'text-[#4A6B55]'}`}>{room.name}</span>
                                                         {formData.room_type === room.name && <Icon name="check-circle" size={16} className="text-[#B8A088]" />}
                                                     </div>
-                                                    <div className="text-lg font-serif font-bold text-[#203B2A]">${room.price}<span className="text-xs font-sans font-normal text-[#B5A89C]">/晚</span></div>
-                                                    <div className="text-[10px] text-[#B5A89C] mt-1 font-medium">{room.desc}</div>
+                                                    {room.name !== '家庭共宿' && (
+                                                        <div className="text-lg font-serif font-bold text-[#203B2A]">${room.price}<span className="text-xs font-sans font-normal text-[#B5A89C]">/晚</span></div>
+                                                    )}
+                                                    <div className={`text-[10px] text-[#B5A89C] mt-1 font-medium ${room.name === '家庭共宿' ? 'mt-0' : ''}`}>{room.desc}</div>
                                                 </div>
                                             ))}
                                         </div>
@@ -1901,9 +1918,9 @@
                                         </div>
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-xs font-bold text-[#4A6B55] ml-1">選擇休息區 (狗狗) *</label>
+                                        <label className="text-xs font-bold text-[#4A6B55] ml-1">服務內容 *</label>
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                            {roomRates.dog.map((room) => (
+                                            {roomRates.daycare.map((room) => (
                                                 <div key={room.name} onClick={() => { handleChange('room_type', room.name);
                                                         handleChange('room_price', room.price); }}
                                                     className={`cursor-pointer rounded-xl p-4 border-2 transition-all relative overflow-hidden group ${formData.room_type === room.name ? 'border-[#203B2A] bg-white shadow-md' : (errors.room_type ? 'border-red-300 bg-red-50/40' : 'border-[#DDD6CE] bg-white/50 hover:border-[#B8A088]')}`}>
@@ -1911,7 +1928,7 @@
                                                         <span className={`font-bold text-sm ${formData.room_type === room.name ? 'text-[#203B2A]' : 'text-[#4A6B55]'}`}>{room.name}</span>
                                                         {formData.room_type === room.name && <Icon name="check-circle" size={16} className="text-[#B8A088]" />}
                                                     </div>
-                                                    <div className="text-lg font-serif font-bold text-[#203B2A]">${room.price}<span className="text-xs font-sans font-normal text-[#B5A89C]">/日</span></div>
+                                                    <div className="text-lg font-serif font-bold text-[#203B2A]">${room.price}<span className="text-xs font-sans font-normal text-[#B5A89C]">/小時</span></div>
                                                     <div className="text-[10px] text-[#B5A89C] mt-1 font-medium">{room.desc}</div>
                                                 </div>
                                             ))}
@@ -1920,7 +1937,7 @@
                                         <div className="mt-2 p-4 bg-[#FAF8F5] rounded-xl border border-[#DDD6CE] text-xs text-[#4A6B55] leading-relaxed">
                                             <div className="flex items-start gap-2">
                                                 <Icon name="info" size={14} className="text-[#203B2A] shrink-0 mt-0.5" />
-                                                <p><span className="font-bold text-[#203B2A]">房型預約備註：</span>您選擇的房型將作為入住偏好參考，並不代表已保留該房型。實際房型將依當日房況、入住天數及毛孩的個別需求，由我們細心安排，提供舒適、最適合的住宿空間及安全的住宿體驗。</p>
+                                                <p><span className="font-bold text-[#203B2A]">安親評估說明：</span>首次住宿前請先預約安親評估，評估時間約2至4小時，僅需酌收1小時安親費。</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1952,11 +1969,11 @@
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                         {[
                                             { n: '刷牙', p: '$50' },
-                                            { n: '散步', p: '$100', note: '(請自備不會掙脫之胸背牽繩)', isRed: true },
-                                            { n: '牛奶浴', p: '$200起' },
-                                            { n: '酵素', p: '$200起' },
-                                            { n: '修頭', p: '$300起' },
-                                            { n: '全身手剪', p: '$600起' },
+                                            { n: '皮毛護理', p: '$50-300'},
+                                            { n: 'SPA', p: '$500-2000' },
+                                            { n: '除廢毛', p: '$200-800' },
+                                            { n: '修頭', p: '$200-800' },
+                                            { n: '全身手剪', p: '$500-1500' },
                                         ].map(item => (
                                             <button key={item.n} onClick={() => toggleArray('service_tags', item.n)}
                                                 className={`flex flex-col items-start p-3 md:p-4 rounded-xl border-2 text-xs font-bold transition-all relative overflow-hidden ${formData.service_tags.includes(item.n) ? 'bg-[#B8A088] text-white border-[#B8A088] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#B8A088]/50'}`}>
@@ -1987,24 +2004,35 @@
 
                         {/* 步驟 5: 乙方資訊 + 條款 + 簽名 */}
                         <section className="glass-premium p-6 md:p-8 space-y-6">
-                            <h3 className="section-title font-bold text-[#203B2A] text-lg flex items-center gap-2">
+                            <h3 className="section-title font-bold text-[#203B2A] text-base flex items-center gap-2">
                                 <span className="w-7 h-7 rounded-full bg-[#203B2A]/10 flex items-center justify-center"><Icon name="store" size={14} className="text-[#203B2A]" /></span>
                                 乙方（店家資訊）
                             </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#FAF8F5] p-5 rounded-2xl border border-[#DDD6CE]">
-                                <p className="flex items-center gap-2"><Icon name="briefcase" size={16} className="text-[#B8A088]" /><span className="font-bold text-[#203B2A]">名稱：</span>尾尾道來寵物俱樂部</p>
-                                <p className="flex items-center gap-2"><Icon name="user" size={16} className="text-[#B8A088]" /><span className="font-bold text-[#203B2A]">負責人：</span>林莉淩</p>
-                                <p className="flex items-center gap-2"><Icon name="phone" size={16} className="text-[#B8A088]" /><span className="font-bold text-[#203B2A]">電話：</span>04-24223481</p>
-                                <p className="md:col-span-2 flex items-start gap-2"><Icon name="map-pin" size={16} className="text-[#B8A088] mt-0.5 shrink-0" /><span className="font-bold text-[#203B2A]">地址：</span>臺中市北屯區崇德十路一段88號</p>
-                                <p className="flex items-center gap-2"><Icon name="file-text" size={16} className="text-[#B8A088]" /><span className="font-bold text-[#203B2A]">特寵業字第：</span>S1140049號</p>
+                            <div className="space-y-2 bg-[#FAF8F5] p-5 rounded-2xl border border-[#DDD6CE]">
+                                <p className="flex items-center gap-2 text-sm font-bold text-[#203B2A]"><Icon name="briefcase" size={16} className="text-[#B8A088] shrink-0" />尾尾道來寵物俱樂部</p>
+                                <p className="flex items-center gap-2 text-sm font-bold text-[#203B2A]"><Icon name="user" size={16} className="text-[#B8A088] shrink-0" />林莉淩</p>
+                                <p className="flex items-center gap-2 text-sm font-bold text-[#203B2A]"><Icon name="phone" size={16} className="text-[#B8A088] shrink-0" />04-24223481</p>
+                                <p className="flex items-start gap-2 text-sm font-bold text-[#203B2A]"><Icon name="map-pin" size={16} className="text-[#B8A088] shrink-0 mt-0.5" />臺中市北屯區崇德十路一段88號</p>
+                                <p className="flex items-center gap-2 text-sm font-bold text-[#203B2A]"><Icon name="file-text" size={16} className="text-[#B8A088] shrink-0" />特寵業字第：S1140049號</p>
                             </div>
-                            <div className="bg-[#FDF6F3] p-5 rounded-2xl text-[#4A6B55] text-xs border border-[#DBA58B]/40 space-y-2">
-                                <h4 className="font-bold text-[#DBA58B] text-sm flex items-center gap-2"><Icon name="ambulance" size={18} /> 乙方指定醫療院所</h4>
-                                <p><span className="font-bold">名稱：</span>夏洛克動物醫院</p>
-                                <p><span className="font-bold">電話：</span>04 2426 1608</p>
-                                <p><span className="font-bold">地址：</span>臺中市北屯區后庄里后庄路599號</p>
+                            <div className="bg-[#FDF6F3] p-5 rounded-2xl border border-[#DBA58B]/40 space-y-2">
+                                <h4 className="font-bold text-[#DBA58B] text-base flex items-center gap-2"><Icon name="ambulance" size={18} /> 乙方指定醫療院所</h4>
+                                <div className="space-y-1.5">
+                                    <p className="flex items-center gap-2 text-sm font-bold text-[#203B2A]">
+                                        <Icon name="building" size={16} className="text-[#B8A088] shrink-0" />
+                                        夏洛克動物醫院
+                                    </p>
+                                    <p className="flex items-center gap-2 text-sm font-bold text-[#203B2A]">
+                                        <Icon name="phone" size={16} className="text-[#B8A088] shrink-0" />
+                                        04 2426 1608
+                                    </p>
+                                    <p className="flex items-start gap-2 text-sm font-bold text-[#203B2A]">
+                                        <Icon name="map-pin" size={16} className="text-[#B8A088] shrink-0 mt-0.5" />
+                                        臺中市北屯區后庄里后庄路599號
+                                    </p>
+                                </div>
                                 <div className="mt-3 pt-3 border-t border-[#DBA58B]/30 text-justify">
-                                    <p className="text-[11px] leading-relaxed">若經判定情況危急或距離之限制不宜前往甲方指定之醫院，將就近由乙方指定之醫院進行救治，就醫前須先通知甲方。</p>
+                                    <p className="text-sm leading-relaxed font-bold text-[#4A6B55]">若經判定情況危急或距離之限制不宜前往甲方指定之醫院，將就近由乙方指定之醫院進行救治，就醫前須先通知甲方。</p>
                                 </div>
                             </div>
 
@@ -2082,6 +2110,33 @@
                                 </button>
                             )}
 
+                            {/* 影像使用同意欄位 */}
+                            <div className="space-y-3 pt-6 border-t border-[#DDD6CE]">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <label className="text-sm font-bold text-[#203B2A] flex items-center gap-2">
+                                        <Icon name="image" size={18} />
+                                        是否同意乙方使用寵物照片/影片於公開展示及行銷用途 <span className="text-[#DBA58B]">*</span>
+                                    </label>
+                                    <div className="flex gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleChange('image_consent', true)}
+                                            className={`px-5 py-2 rounded-full border-2 text-sm font-bold transition-all ${formData.image_consent === true ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#203B2A]/50'}`}
+                                        >
+                                            ✅ 同意
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleChange('image_consent', false)}
+                                            className={`px-5 py-2 rounded-full border-2 text-sm font-bold transition-all ${formData.image_consent === false ? 'bg-[#DBA58B] text-white border-[#DBA58B] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#DBA58B]/50'}`}
+                                        >
+                                            ❌ 不同意
+                                        </button>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-[#B5A89C] mt-1">若選擇「同意」，乙方將可能於社群平台、官方網站或行銷素材中使用寵物照片與影片；若選擇「不同意」，乙方僅將影像用於內部服務紀錄與照護回報。</p>
+                            </div>
+
                             <div className="space-y-4 pt-6 border-t border-[#DDD6CE]" id="signature">
                                 <div className="flex items-center justify-between">
                                     <label className="text-sm font-bold text-[#203B2A] flex items-center gap-2">
@@ -2149,16 +2204,52 @@
 
                     <TermsModal isOpen={activeModal === 'beauty'} onClose={() => setActiveModal(null)} title="美容服務契約條款" onAgree={() => handleTermAgree('beauty')}>
                         <div className="space-y-4">
-                            <p className="font-bold text-[#203B2A] text-lg border-b pb-2 mb-4">美容服務 簽署聲明與法律約定</p>
-                            <ol className="list-decimal pl-5 space-y-3 marker:text-[#B8A088] marker:font-bold pb-4 text-justify text-[#203B2A] text-sm">
-                                <li><strong>第一條(契約目的)：</strong>本服務為犬貓美容，<span className="text-[#DBA58B] font-bold underline">不涉及醫療行為</span>。</li>
-                                <li><strong>第五條(健康告知)：</strong>甲方應<span className="font-bold underline">誠實告知</span>寵物病史與是否具有攻擊性。若因隱瞞導致意外，<span className="text-[#DBA58B] font-bold">乙方不負責損害賠償責任</span>；因隱瞞導致乙方人員傷亡、財損等損失，<span className="text-[#DBA58B] font-bold underline">乙方將全額向甲方求償</span>。</li>
-                                <li><strong>第九條(退費規定)：</strong>包月服務終止時，預收總額扣除(<span className="font-bold text-[#203B2A]">已使用次數 X 單次原價</span>)後退費。</li>
-                                <li><strong>第十二條(逾時接回)：</strong>若於約定時間內未領回，<span className="text-[#DBA58B] font-bold">加收安親費</span>；打烊時仍未接回，則<span className="text-[#DBA58B] font-bold">視同住宿一晚計費</span>。如經通知三日內未領回，將依照<span className="font-bold underline">動保法第29條</span>移交主管機關。</li>
-                                <li><strong>第十五條(履約保障)：</strong>預收費用累積金額新台幣一萬元以下，依法免提供履約保障。</li>
-                                <li>其餘細節將依照行政院農委會定型化契約範本辦理。</li>
-                                <li>因本契約所產生之訴訟，雙方合意將以<span className="font-bold">桃園地方法院</span>為第一審管轄法院。</li>
+                            <p className="text-[#4A6B55] text-sm font-bold border-b pb-3 mb-4">飼主預約美容服務前，請詳閱以下內容。完成預約即表示已閱讀並同意遵守本服務約定。</p>
+
+                            <ol className="list-decimal pl-5 space-y-4 marker:text-[#B8A088] marker:font-bold pb-2 text-justify text-[#203B2A] text-sm leading-relaxed">
+                                <li>
+                                    <strong className="text-[#203B2A]">第一條（契約目的）：</strong>
+                                    <span className="block mt-1">本服務提供犬隻美容相關服務，包括洗澡、吹整、修剪及基礎清潔等項目。本服務屬美容照護服務，<span className="text-[#DBA58B] font-bold underline">不涉及醫療診斷、治療或其他醫療行為</span>。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第二條（健康及行為告知）：</strong>
+                                    <span className="block mt-1">甲方應於服務前誠實告知寵物之健康狀況、疾病史、特殊體質、過敏情形及是否具有攻擊性或美容抗拒行為。若甲方未告知、隱瞞相關資訊，致乙方或第三人受有損害，<span className="text-[#DBA58B] font-bold underline">甲方應負相關賠償責任</span>。</span>
+                                    <span className="block mt-1 bg-[#FFF8F5] p-2 rounded-lg border border-[#DBA58B]/30 text-[#203B2A]">若乙方已盡合理注意義務，而事故係因寵物自身健康因素或甲方未告知事項所致，<span className="text-[#DBA58B] font-bold">乙方不負因此產生之損害賠償責任</span>。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第三條（美容風險及服務調整）：</strong>
+                                    <span className="block mt-1">美容過程中，如因寵物情緒、健康狀況或安全考量，乙方得依專業判斷調整美容方式、暫停或終止服務，並依實際完成內容計費。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第四條（特殊狀況處理）：</strong>
+                                    <span className="block mt-1">若寵物有嚴重毛結、寄生蟲、皮膚異常或其他特殊狀況，乙方得視情況採取必要處理措施，相關費用另計。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第五條（緊急醫療處理）：</strong>
+                                    <span className="block mt-1">美容期間如寵物發生突發狀況，乙方將優先通知甲方；如情況緊急或無法即時聯繫，乙方得送往甲方指定或適當動物醫院處理，<span className="text-[#DBA58B] font-bold underline">相關醫療及交通費用由甲方負擔</span>。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第六條（退費規定）：</strong>
+                                    <span className="block mt-1">包月或預付型美容服務終止時，預收費用扣除已使用次數×單次原價後，退還剩餘金額；如優惠方案另有約定者，依方案規定辦理。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第七條（逾時接回）：</strong>
+                                    <span className="block mt-1">甲方應於約定時間內接回寵物，逾時未接回者，乙方得依公告標準收取安親照護費用；營業時間結束仍未接回者，<span className="text-[#DBA58B] font-bold">得視同住宿一晚計費</span>。若經通知後仍無法聯繫或逾期未處理，乙方得依相關法令通知主管機關協助處理。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第八條（履約保障）：</strong>
+                                    <span className="block mt-1">預收費用達主管機關規定之履約保障門檻時，乙方依相關規定辦理履約保障。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第九條（影像使用）：</strong>
+                                    <span className="block mt-1">乙方於服務期間可能拍攝寵物照片或影片，用於服務紀錄及照護回報；如作為公開展示、社群平台或行銷用途，依甲方授權辦理。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第十條（其他約定）：</strong>
+                                    <span className="block mt-1">本約定未盡事項，依主管機關公告之寵物美容服務定型化契約及相關法令辦理。因本契約所生爭議，雙方同意以依法有管轄權之法院為處理。</span>
+                                </li>
                             </ol>
+
                             <div className="mt-6 p-4 bg-[#FAF8F5] rounded-xl border border-[#DDD6CE] text-xs text-[#B5A89C] space-y-1">
                                 <p>■ 經甲乙雙方合意約定，由甲方即時閱讀理解本契約內容並簽署。</p>
                                 <p>■ 經甲方本人已確認預計接回時間與服務金額無誤，並同意上述條款。</p>
@@ -2167,75 +2258,159 @@
                     </TermsModal>
 
                     <TermsModal isOpen={activeModal === 'highRiskBeauty'} onClose={() => setActiveModal(null)} title="高風險美容服務風險告知暨同意聲明" onAgree={() => handleTermAgree('highRiskBeauty')}>
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <h4 className="font-bold text-[#203B2A] border-b pb-1 text-base">一、飼主誠實告知義務</h4>
-                                <p className="text-justify leading-relaxed">本人（甲方）確認，已就本人所知悉之寵物年齡、過往病史（如心臟病、癲癇、氣喘、關節問題等）、近期手術或治療紀錄、懷孕狀況、過敏反應，以及行為特性（如咬人紀錄、特定部位敏感、抗拒保定等），向 貴店（乙方）為完整且真實之說明。如因甲方未告知、未完全告知或提供不實資訊，致乙方於已盡合理專業注意義務之情形下，仍難以預見或防範風險發生者，其相關責任歸屬，雙方同意依實際情形及相關法律規定認定，且須賠償因隱瞞導致服務犬、貓隻人員受傷的相關醫療費用、精神賠償、無法工作損失之費用。</p>
-                            </div>
-                            <div className="space-y-2">
-                                <h4 className="font-bold text-[#203B2A] border-b pb-1 text-base">二、高齡與特殊健康狀況之風險告知</h4>
-                                <p className="text-justify leading-relaxed">本人知悉，高齡、幼齡或患有慢性病之寵物對壓力耐受度較低。美容過程中可能因緊張或體能負荷誘發<span className="text-[#DBA58B] font-bold underline">休克、舊疾復發或不可預期之意外</span>。本人同意：若不利結果源於寵物自身狀況且乙方無故意過失，<span className="text-[#DBA58B] font-bold">乙方不負損害賠償責任</span>。</p>
-                            </div>
-                            <div className="space-y-2">
-                                <h4 className="font-bold text-[#203B2A] border-b pb-1 text-base">三、攻擊性與行為安全防護同意</h4>
-                                <p className="text-justify leading-relaxed">如寵物於服務過程中出現高度緊張、攻擊行為、過度躁動或其他影響人員及寵物安全之情形，本人同意並授權乙方，基於安全考量，採取必要之防護與保定措施（包含但不限於牽繩保定、伊莉莎白頸圈、嘴套或雙人協同作業）。若經專業判斷認為繼續服務恐危及寵物或人員安全，乙方得隨時中止服務，並依已完成之服務內容與進度計收費用。若因高度緊張導致犬隻、貓隻在服務過程中，不幸發生任何危及生命的情況，將<span className="text-[#DBA58B] font-bold">不在賠償範圍內</span>。</p>
-                            </div>
-                            <div className="space-y-2">
-                                <h4 className="font-bold text-[#203B2A] border-b pb-1 text-base">四、緊急醫療處置同意</h4>
-                                <p className="text-justify leading-relaxed">服務期間如寵物發生身體不適或緊急狀況，本人同意乙方得優先將寵物送往本人指定或就近之合適動物醫院進行緊急處置，相關醫療及必要交通費用，由本人依法負擔。</p>
-                            </div>
-                            <div className="space-y-2">
-                                <h4 className="font-bold text-[#203B2A] border-b pb-1 text-base">五、飼主確認</h4>
-                                <p className="text-justify leading-relaxed font-bold text-[#203B2A]">本人已詳閱並充分理解上述所有內容，確認已就相關風險獲得說明，並於審慎評估後，同意將寵物交付乙方進行美容服務。</p>
+                        <div className="space-y-4">
+                            <p className="text-[#4A6B55] text-sm font-bold border-b pb-3 mb-4">飼主於預約高風險美容服務前，已閱讀並了解以下事項，並同意乙方依寵物實際狀況提供適當美容服務。</p>
+
+                            <ol className="list-decimal pl-5 space-y-4 marker:text-[#B8A088] marker:font-bold pb-2 text-justify text-[#203B2A] text-sm leading-relaxed">
+                                <li>
+                                    <strong className="text-[#203B2A]">第一條（高風險狀況告知）：</strong>
+                                    <span className="block mt-1 bg-[#FFF8F5] p-2 rounded-lg border border-[#DBA58B]/30 text-[#203B2A]">1. 甲方應主動告知寵物之疾病史、特殊體質、近期治療、攻擊行為、美容抗拒或其他可能影響美容安全之情況。</span>
+                                    <span className="block mt-1">2. 甲方了解，高齡、幼齡、患有疾病、嚴重毛結或高度緊張之寵物，於美容過程中可能因自身狀況產生壓力反應、舊疾復發或其他不可預期風險。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第二條（美容調整及中止）：</strong>
+                                    <span className="block mt-1">乙方將依專業判斷及寵物安全需求，調整美容方式、採取必要安全措施，或於繼續美容可能造成風險時停止服務。已完成之美容項目，乙方得依實際服務內容計費。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第三條（緊急處理）：</strong>
+                                    <span className="block mt-1">美容期間如寵物發生緊急狀況，乙方將優先聯繫甲方；如無法即時聯繫，甲方同意乙方送往適當動物醫院處理，<span className="text-[#DBA58B] font-bold underline">相關醫療及交通費用由甲方負擔</span>。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第四條（責任認定）：</strong>
+                                    <span className="block mt-1">乙方將盡合理專業注意義務並提供適當照護；若事故係因寵物自身疾病、體質或其他不可歸責於乙方之因素所致，依相關法律規定辦理。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第五條（甲方確認）：</strong>
+                                    <span className="block mt-1">甲方確認已了解高風險美容可能產生之相關風險，並同意乙方依專業判斷調整服務方式，以維護寵物及服務人員安全。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第六條（影像使用）：</strong>
+                                    <span className="block mt-1">乙方於服務期間可能拍攝寵物照片或影片，用於服務紀錄及照護回報；如作為公開展示、社群平台或行銷用途，依甲方授權辦理。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第七條（其他約定）：</strong>
+                                    <span className="block mt-1">本約定未盡事項，依主管機關公告之寵物美容服務定型化契約及相關法令辦理。因本契約所生爭議，雙方同意以依法有管轄權之法院為處理。</span>
+                                </li>
+                            </ol>
+
+                            <div className="mt-6 p-4 bg-[#FAF8F5] rounded-xl border border-[#DDD6CE] text-xs text-[#B5A89C] space-y-1">
+                                <p>■ 經甲乙雙方合意約定，由甲方即時閱讀理解本契約內容並簽署。</p>
+                                <p>■ 經甲方本人已確認預計接回時間與服務金額無誤，並同意上述條款。</p>
                             </div>
                         </div>
                     </TermsModal>
 
-                    <TermsModal isOpen={activeModal === 'highRiskBoarding'} onClose={() => setActiveModal(null)} title="高風險住宿/安親服務風險告知暨同意聲明" onAgree={() => handleTermAgree('highRiskBoarding')}>
-                        <div className="space-y-6">
-                            <div className="p-4 bg-[#FDF6F3] border border-[#DBA58B] rounded-xl text-justify shadow-sm">
-                                <div className="flex items-start gap-2 mb-2">
-                                    <Icon name="alert-triangle" className="text-[#DBA58B] shrink-0 mt-1" size={18} />
-                                    <h4 className="font-bold text-[#DBA58B]">健康狀況與風險承擔</h4>
-                                </div>
-                                <p className="text-sm text-[#203B2A] leading-relaxed">服務期間，因基因或本身遺傳問題造成的疾病，或寵物因天生病史、高齡、幼犬貓，因寵物持有人遺漏、隱瞞，或已知風險、仍然堅持服務，途中若有意外休克或其他等狀況，本店會立即送至附近動物醫院救治。</p>
+                    <TermsModal isOpen={activeModal === 'highRiskBoarding'} onClose={() => setActiveModal(null)} title="高風險住宿／安親服務風險告知暨同意聲明" onAgree={() => handleTermAgree('highRiskBoarding')}>
+                        <div className="space-y-4">
+                            <p className="text-[#4A6B55] text-sm font-bold border-b pb-3 mb-4">飼主於預約高風險住宿／安親服務前，已閱讀並了解以下內容，並同意乙方依寵物實際狀況提供適當照護安排。</p>
+
+                            <ol className="list-decimal pl-5 space-y-4 marker:text-[#B8A088] marker:font-bold pb-2 text-justify text-[#203B2A] text-sm leading-relaxed">
+                                <li>
+                                    <strong className="text-[#203B2A]">第一條（高風險狀況告知）：</strong>
+                                    <span className="block mt-1 bg-[#FFF8F5] p-2 rounded-lg border border-[#DBA58B]/30 text-[#203B2A]">1. 甲方應主動告知寵物之疾病史、特殊體質、近期治療、用藥情形、攻擊行為、分離焦慮、社交問題或其他可能影響住宿／安親安全之情況。</span>
+                                    <span className="block mt-1">2. 甲方了解，高齡、幼齡、患有疾病、情緒敏感或不適應群體環境之寵物，於住宿或安親期間可能因自身狀況、環境變化或活動刺激產生不可預期風險。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第二條（照護方式調整）：</strong>
+                                    <span className="block mt-1">1. 乙方將依寵物之健康、個性及當日狀況調整照護方式，包括活動安排、休息時間、社交互動或必要之個別照護。</span>
+                                    <span className="block mt-1">2. 若寵物出現高度緊張、攻擊行為、持續吠叫、無法適應環境或其他影響安全之情形，乙方得調整服務內容、限制活動或建議提前接回。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第三條（活動及社交風險）：</strong>
+                                    <span className="block mt-1">1. 甲方了解，TTPC 採開放式照護模式，寵物於活動、奔跑及與其他犬隻互動過程中，可能發生正常活動所造成之<span className="text-[#DBA58B] font-bold">輕微擦傷、碰撞或其他不可完全避免之情況</span>。</span>
+                                    <span className="block mt-1">2. 乙方將盡合理管理及照護義務，並依寵物狀況進行適當安排。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第四條（緊急醫療處理）：</strong>
+                                    <span className="block mt-1">住宿／安親期間如寵物發生疾病、受傷或其他緊急狀況，乙方將優先聯繫甲方。如無法即時取得聯繫，甲方同意乙方送往指定或適當動物醫院接受必要處置，<span className="text-[#DBA58B] font-bold underline">相關醫療、交通及後續費用由甲方負擔</span>。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第五條（責任認定）：</strong>
+                                    <span className="block mt-1">1. 乙方將盡合理專業照護義務；若事故係因寵物自身疾病、體質、既有狀況或其他不可歸責於乙方之因素所致，依相關法律規定辦理。</span>
+                                    <span className="block mt-1 bg-[#FFF8F5] p-2 rounded-lg border border-[#DBA58B]/30 text-[#203B2A]">2. 若因甲方未告知重要資訊造成損害，<span className="text-[#DBA58B] font-bold underline">甲方應負相關責任</span>。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第六條（甲方確認）：</strong>
+                                    <span className="block mt-1">甲方確認已了解高風險寵物於住宿／安親期間可能產生之相關風險，並同意乙方依專業判斷調整照護方式，以維護寵物、人員及其他動物之安全。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第七條（影像使用）：</strong>
+                                    <span className="block mt-1">乙方於服務期間可能拍攝寵物照片或影片，用於服務紀錄及照護回報；如作為公開展示、社群平台或行銷用途，依甲方授權辦理。</span>
+                                </li>
+                            </ol>
+
+                            <div className="mt-6 p-4 bg-[#FAF8F5] rounded-xl border border-[#DDD6CE] text-xs text-[#B5A89C] space-y-1">
+                                <p>■ 經甲乙雙方合意約定，由甲方即時閱讀理解本契約內容並簽署。</p>
+                                <p>■ 經甲方本人已確認預計接回時間與服務金額無誤，並同意上述條款。</p>
                             </div>
-                            <ul className="space-y-4 list-disc pl-4 marker:text-[#DBA58B] text-[#203B2A] text-justify">
-                                <li className="pl-1">寵物若因以上因素導致疾病或死亡等問題發生，都將與 <span className="font-bold text-[#203B2A]">尾尾道來寵物俱樂部</span> 無關，送醫途中或到院治療所產生之相關費用，都需由寵物持有人負擔。</li>
-                                <li className="pl-1"><span className="font-bold text-[#203B2A] border-b-2 border-[#DBA58B]/40">非 24 小時照護聲明：</span><br/>寵物持有人已知本店無 24 小時之服務，因此服務期間若於晚上無人照護時，發生問題導致無即時救治，或因服務期間寵物本身焦慮、情緒不穩造成自己有傷害發生，都將與 <span className="font-bold text-[#203B2A]">尾尾道來寵物俱樂部</span> 無關。</li>
-                                <li className="pl-1">倘若發生法律上之糾紛，訴訟等相關問題，本切結書會以證據之證明呈上相關法律部門。</li>
-                            </ul>
                         </div>
                     </TermsModal>
 
                     <TermsModal isOpen={activeModal === 'boarding'} onClose={() => setActiveModal(null)} title={serviceType === 'boarding' ? '住宿契約條款' : '安親契約條款'} onAgree={() => handleTermAgree('boarding')}>
                         <div className="space-y-4">
-                            <p className="font-bold text-[#203B2A] text-lg border-b pb-2 mb-4">{serviceType === 'boarding' ? '住宿' : '安親'} 簽署聲明與法律約定</p>
-                            <p className="text-sm font-bold text-[#4A6B55] mb-2">為確保雙方權利，以下內容請務必詳讀，一旦完成簽署即具有法律效力</p>
-                            <ol className="list-decimal pl-5 space-y-3 marker:text-[#B8A088] marker:font-bold pb-4 text-justify text-[#203B2A] text-sm">
+                            <p className="text-[#4A6B55] text-sm font-bold border-b pb-3 mb-4">飼主預約住宿或安親服務前，請詳閱以下內容。完成預約即表示已閱讀、理解並同意遵守本服務約定。</p>
+
+                            <ol className="list-decimal pl-5 space-y-4 marker:text-[#B8A088] marker:font-bold pb-2 text-justify text-[#203B2A] text-sm leading-relaxed">
                                 <li>
-                                    <strong>{serviceType === 'boarding' ? '住宿計費與進退房' : '安親計費與接回' }：</strong>{serviceType === 'boarding' ? '本館住宿服務以「晚」為計算單位。辦理入住時間為 10:00 至 18:00，退房時間應於 18:00 前。' : '本館安親服務為當日來回，請於營業時間內接回。'}
-                                    <div className="mt-2 p-3 bg-[#FAF8F5] rounded-lg border border-[#DDD6CE] space-y-1 text-[11px]">
-                                        <p className="font-bold text-[#203B2A] underline underline-offset-2">逾時費用規定：</p>
-                                        <p>• 凡於 18:00 至 19:00 間接回者，將依本館公告加收「安親費用」。</p>
-                                        <p>• 凡超過每日打烊時間 19:00 仍未接回者，不論原服務項目為何（含安親、美容、洗澡或住宿），均視同於本俱樂部「住宿一晚」，並依現場公告之住宿費率計費。</p>
-                                    </div>
+                                    <strong className="text-[#203B2A]">第一條（服務內容）：</strong>
+                                    <span className="block mt-1">乙方提供犬隻住宿及安親照護服務，包含日常照護、活動安排、飲食管理、環境維護及安全管理。本服務<span className="text-[#DBA58B] font-bold underline">不涉及醫療診斷、治療或疾病照護行為</span>。</span>
                                 </li>
-                                <li>服務期間請<span className="font-bold underline">自備飼料</span>。若無自備而由店內提供，導致換食腸胃不適（如軟便、腹瀉），<span className="text-[#DBA58B] font-bold">旅館恕不負責賠償</span>。</li>
-                                <li>入住當日需完成本館<span className="font-bold underline">美容部洗護</span>（費用另計）。若發現寄生蟲，將<span className="text-[#DBA58B] font-bold">額外收取除蟲及環境清潔費</span>。</li>
-                                <li>請提供<span className="font-bold underline">身分證件影本</span>及毛孩預防針手冊備查。</li>
-                                <li>逾期三日聯繫不上飼主，將依<span className="font-bold underline">動保法</span>交付動保處，衍生費用由<span className="text-[#DBA58B] font-bold underline">飼主全額支付</span>。</li>
-                                <li>若隱瞞攻擊行為導致傷亡或財損，<span className="text-[#DBA58B] font-bold">本館有權向飼主全額求償</span>。</li>
-                                <li>若寵物持續吠叫影響營運或安寧，本館將聯繫飼主或緊急聯絡人<span className="text-[#DBA58B] font-bold underline">先行帶回</span>。</li>
-                                <li>突發疾病須送醫時，相關<span className="text-[#DBA58B] font-bold underline">醫療及交通費用由飼主全額負擔</span>。</li>
-                                <li>隱瞞病況或本身具有高風險疾病（心臟病、癲癇等），若發生意外或死亡，經判定本館無疏失，<span className="text-[#DBA58B] font-bold">本館不負責賠償責任</span>。</li>
-                                <li>若因人為疏失導致走失、傷亡，本館依法賠償，<span className="text-[#DBA58B] font-bold underline">賠償上限為新台幣 30,000 元整</span>（玩耍小傷痕除外）。</li>
-                                <li>若店內物品（攝影機、房間隔間等）遭到破壞，<span className="text-[#DBA58B] font-bold underline">本館有權向飼主全額求償</span>。</li>
-                                <li>寵物若因年老或舊疾死亡，請於 24 小時內領回。若需鑑定死因請於 24 小時內會同辦理，<span className="font-bold underline">逾期不得異議</span>。</li>
-                                <li>散步時若因寵物掙脫牽繩導致逃跑或傷亡，<span className="text-[#DBA58B] font-bold">本館不負責相關賠償事宜</span>。</li>
-                                <li>其餘細節將依照行政院農委會定型化契約範本辦理。</li>
-                                <li>本同意書一式兩份，由飼主與本館各執乙份。因本契約所產生之訴訟，雙方合意將以桃園地方法院為第一審管轄法院。</li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第二條（入住評估及健康告知）：</strong>
+                                    <span className="block mt-1">1. 為維護所有寵物之安全，首次入住服務前，乙方得依寵物之年齡、健康狀況、個性、社交能力、行為等進行安親評估。</span>
+                                    <span className="block mt-1 bg-[#FFF8F5] p-2 rounded-lg border border-[#DBA58B]/30 text-[#203B2A]">2. 甲方應誠實告知寵物之疾病史、用藥情形、特殊體質、攻擊行為、分離焦慮或其他可能影響照護安全之事項。若因甲方未告知或隱瞞重要資訊，造成寵物、人員、其他寵物或設備損害，<span className="text-[#DBA58B] font-bold underline">甲方應負相關責任</span>。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第三條（開放式照護及活動風險告知）：</strong>
+                                    <span className="block mt-1">1. 乙方採開放式照護模式，依寵物個性、體型、活動能力及社交狀況安排適當活動。</span>
+                                    <span className="block mt-1">2. 活動內容包含多犬互動、社交及戶外草地活動。</span>
+                                    <span className="block mt-1 bg-[#FFF8F5] p-2 rounded-lg border border-[#DBA58B]/30 text-[#203B2A]">3. 甲方了解，犬隻於正常活動、奔跑、玩耍及互動過程中，可能產生<span className="text-[#DBA58B] font-bold">輕微擦傷、毛髮凌亂、腳掌磨損、玩耍碰撞</span>等正常活動可能發生之情況。</span>
+                                    <span className="block mt-1">4. 乙方將盡合理管理及照護義務，並依寵物狀況調整活動安排。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第四條（照護方式調整）：</strong>
+                                    <span className="block mt-1">1. 乙方將依寵物當日狀況調整照護方式，包括活動時間、休息安排及互動模式。</span>
+                                    <span className="block mt-1">2. 若寵物出現過度緊張、攻擊行為、持續吠叫、無法適應群體環境及其他影響安全之情況，乙方得調整照護方式、安排個別照護、限制活動或建議提前接回。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第五條（飲食及健康管理）：</strong>
+                                    <span className="block mt-1">1. 住宿期間甲方應提供足量且適合寵物之飼料。</span>
+                                    <span className="block mt-1">2. 若由乙方提供餐食，因個體差異造成腸胃不適等情況，乙方將盡合理照護義務；如非可歸責於乙方之因素所致，相關責任依法律規定辦理。</span>
+                                    <span className="block mt-1 bg-[#FFF8F5] p-2 rounded-lg border border-[#DBA58B]/30 text-[#203B2A]">3. 甲方應提供正確健康資訊，如因隱瞞疾病造成健康問題，<span className="text-[#DBA58B] font-bold underline">甲方應負相關責任</span>。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第六條（入住洗護及寄生蟲處理）：</strong>
+                                    <span className="block mt-1">入住時需依乙方規定完成洗護，若發現跳蚤、壁蝨、寄生蟲或其他可能影響環境衛生之情況，乙方得進行必要處理，<span className="text-[#DBA58B] font-bold underline">相關費用由甲方負擔</span>。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第七條（緊急醫療處理）：</strong>
+                                    <span className="block mt-1">住宿或安親期間，如寵物發生疾病、受傷或緊急狀況，乙方將優先聯繫甲方。如情況緊急或無法即時聯繫，甲方授權乙方送往指定或適當動物醫院處理；<span className="text-[#DBA58B] font-bold underline">相關醫療、交通及後續治療費用由甲方負擔</span>。若事故係因乙方故意或過失造成，依相關法律規定辦理。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第八條（逾時接回）：</strong>
+                                    <span className="block mt-1">1. 甲方應依約定時間接回寵物。</span>
+                                    <span className="block mt-1">2. 逾時接回者得依乙方公告標準收取安親照護費用。</span>
+                                    <span className="block mt-1 text-[#DBA58B] font-bold">3. 超過營業時間仍未接回者，得視同住宿一晚計費。</span>
+                                    <span className="block mt-1">4. 若經通知後三日仍無法聯繫或未處理，乙方得依相關法令通知主管機關協助處理。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第九條（設備損害）：</strong>
+                                    <span className="block mt-1">若因寵物行為造成乙方設備、用品或第三人財物損害，<span className="text-[#DBA58B] font-bold underline">甲方應依法負相關賠償責任</span>。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第十條（影像使用）：</strong>
+                                    <span className="block mt-1">乙方於服務期間可能拍攝寵物照片或影片，用於服務紀錄及照護回報；如作為公開展示、社群平台或行銷用途，依甲方授權辦理。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第十一條（履約保障）：</strong>
+                                    <span className="block mt-1">預收費用達主管機關規定之履約保障門檻時，乙方依相關規定辦理。</span>
+                                </li>
+                                <li>
+                                    <strong className="text-[#203B2A]">第十二條（其他約定）：</strong>
+                                    <span className="block mt-1">本約定未盡事項，依主管機關公告之寵物美容服務定型化契約及相關法令辦理。因本契約所生爭議，雙方同意以依法有管轄權之法院為處理。</span>
+                                </li>
                             </ol>
+
                             <div className="mt-6 p-4 bg-[#FAF8F5] rounded-xl border border-[#DDD6CE] text-xs text-[#B5A89C] space-y-1">
                                 <p>■ 經甲乙雙方合意約定，由甲方即時閱讀理解本契約內容並簽署。</p>
                                 <p>■ 經甲方本人已確認預計接回時間與服務金額無誤，並同意上述條款。</p>
@@ -2273,7 +2448,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=9').then(reg => {
+                navigator.serviceWorker.register('/sw.js?v=10').then(reg => {
                     if (reg.waiting) showUpdateUI(reg.waiting);
                     reg.addEventListener('updatefound', () => {
                         const w = reg.installing;
