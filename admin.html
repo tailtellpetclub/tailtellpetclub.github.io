@@ -165,19 +165,27 @@
             width: 5rem;
         }
         
-        .tab-btn {
-            padding: 0.7rem 1.8rem;
-            cursor: pointer;
-            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-            border-bottom: 3px solid transparent;
-            opacity: 0.45;
-            font-size: 0.95rem;
-            font-weight: 200;
-            letter-spacing: 0.08em;
-            background: transparent;
-            color: #203B2A;
-            position: relative;
-        }
+.tab-btn {
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    border-bottom: 3px solid transparent;
+    opacity: 0.45;
+    font-size: 0.85rem;
+    font-weight: 200;
+    letter-spacing: 0.08em;
+    background: transparent;
+    color: #203B2A;
+    position: relative;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+@media (min-width: 640px) {
+    .tab-btn {
+        padding: 0.7rem 1.8rem;
+        font-size: 0.95rem;
+    }
+}
         .tab-btn::after {
             content: '';
             position: absolute;
@@ -263,6 +271,12 @@
             0% { opacity: 0; transform: translateY(-20px); }
             100% { opacity: 1; transform: translateY(0); }
         }
+        @media (min-width: 480px) {
+    .xs\:inline { display: inline; }
+}
+@media (max-width: 479px) {
+    .xs\:hidden { display: none; }
+}
     </style>
 </head>
 <body>
@@ -877,8 +891,7 @@ const handleSave = () => {
 
                         {/* Tabs */}
                         <div className="px-6 pt-4 border-b border-[#DDD6CE] shrink-0">
-                            <div className="tab-container">
-                                <button className={`tab-btn ${activeTab === 'grooming' ? 'active' : ''}`} onClick={()=>setActiveTab('grooming')}>✧ 美容</button>
+                            <div className="tab-container overflow-x-auto no-scrollbar px-1 sm:px-2">                                <button className={`tab-btn ${activeTab === 'grooming' ? 'active' : ''}`} onClick={()=>setActiveTab('grooming')}>✧ 美容</button>
                                 <button className={`tab-btn ${activeTab === 'boarding' ? 'active' : ''}`} onClick={()=>setActiveTab('boarding')}>✧ 住宿</button>
                                 <button className={`tab-btn ${activeTab === 'daycare' ? 'active' : ''}`} onClick={()=>setActiveTab('daycare')}>✧ 安親</button>
                             </div>
@@ -1871,12 +1884,11 @@ const customers = useMemo(() => {
                     <ToastContainer />
                     
                     {/* Nav */}
-                    <nav className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-[#203B2A]/10 px-6 py-4 flex justify-between items-center shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <img src="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png" className="w-12 h-12 object-contain rounded-xl shadow-sm" />
+                    <nav className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-[#203B2A]/10 px-3 sm:px-6 py-3 sm:py-4 flex justify-between items-center shadow-sm safe-area-top">                        <div className="flex items-center gap-3">
+                            <img src="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png" className="w-9 h-9 sm:w-12 sm:h-12 object-contain rounded-xl shadow-sm" />
                             <div>
-                                <div className="logo-text text-xl tracking-[0.25em]">尾尾道來</div>
-                                <div className="logo-text-sub text-[9px] tracking-[0.4em]">TAIL TELL PET CLUB</div>
+<div className="logo-text text-base sm:text-xl tracking-[0.25em]">尾尾道來</div>
+<div className="logo-text-sub text-[7px] sm:text-[9px] tracking-[0.4em]">TAIL TELL PET CLUB</div>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -1896,17 +1908,17 @@ const customers = useMemo(() => {
                         </div>
                     </nav>
 
-                    <main className="max-w-4xl mx-auto p-6 space-y-6">
+                    <main className="max-w-4xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
                         {/* 搜尋 */}
                         <div className="relative group">
                             <Icon name="search" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#DDD6CE] group-focus-within:text-[#203B2A] transition-colors" />
-                            <input 
-                                type="text" 
-                                placeholder="搜尋主人姓名、電話、毛孩名字..." 
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white shadow-sm border-2 border-transparent focus:border-[#203B2A] outline-none font-bold text-sm transition-all"
-                            />
+<input 
+    type="text" 
+    placeholder="搜尋主人、電話、毛孩..." 
+    value={searchTerm}
+    onChange={e => setSearchTerm(e.target.value)}
+    className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 rounded-2xl bg-white shadow-sm border-2 border-transparent focus:border-[#203B2A] outline-none font-bold text-xs sm:text-sm transition-all"
+/>
                         </div>
 
                         {/* Tabs */}
@@ -1930,16 +1942,17 @@ const customers = useMemo(() => {
 
 {(activeTab === 'grooming' || activeTab === 'boarding' || activeTab === 'daycare') && (
     <div className="flex items-center justify-between px-1">
-        <div className="text-[11px] font-bold text-[#B5A89C] flex items-center gap-1.5">
-            <Icon name="filter" size={14}/>
-            顯示：<span className={showIncompleteOnly ? 'text-[#203B2A]' : 'text-[#B8A088]'}>
-                {showIncompleteOnly ? '未完成' : '全部'}
-            </span>
-        </div>
-        <button onClick={() => setShowIncompleteOnly(prev => !prev)} className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all flex items-center gap-1 ${showIncompleteOnly ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-sm' : 'bg-white text-[#B5A89C] border-[#DDD6CE] hover:bg-[#FAF8F5]'}`}>
-            <Icon name="sliders-horizontal" size={13}/>
-            {showIncompleteOnly ? '切換顯示全部' : '只看未完成'}
-        </button>
+<div className="text-[9px] sm:text-[11px] font-bold text-[#B5A89C] flex items-center gap-1 sm:gap-1.5">
+    <Icon name="filter" size={10} className="sm:w-3.5 sm:h-3.5"/>
+    顯示：<span className={showIncompleteOnly ? 'text-[#203B2A]' : 'text-[#B8A088]'}>
+        {showIncompleteOnly ? '未完成' : '全部'}
+    </span>
+</div>
+<button onClick={() => setShowIncompleteOnly(prev => !prev)} className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[9px] sm:text-[11px] font-bold border transition-all flex items-center gap-0.5 sm:gap-1 active:scale-95 ${showIncompleteOnly ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-sm' : 'bg-white text-[#B5A89C] border-[#DDD6CE] hover:bg-[#FAF8F5]'}`}>
+    <Icon name="sliders-horizontal" size={10} className="sm:w-3.5 sm:h-3.5"/>
+    <span className="hidden xs:inline">{showIncompleteOnly ? '切換顯示全部' : '只看未完成'}</span>
+    <span className="xs:hidden">{showIncompleteOnly ? '全部' : '未完成'}</span>
+</button>
     </div>
 )}
 
@@ -1982,21 +1995,21 @@ const customers = useMemo(() => {
 ) : (
     <div className="space-y-4">
         {sortedOrders.map(order => (
-            <div key={order.id} onClick={() => setSelectedOrder(order)} className="cute-card p-6 bg-white cursor-pointer relative overflow-hidden">
+            <div key={order.id} onClick={() => setSelectedOrder(order)} className="cute-card p-4 sm:p-6 bg-white cursor-pointer relative overflow-hidden active:scale-[0.98] transition-all">
                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${order.status === 'confirmed' ? 'bg-[#4A6B55]' : order.status === 'pending' ? 'bg-[#B8A088]' : order.status === 'cancelled' ? 'bg-[#DBA58B]' : 'bg-[#DDD6CE]'}`}></div>
                 
                 <div className="flex justify-between items-start">
                     <div>
-                        <div className="text-[10px] font-bold text-[#B5A89C] uppercase tracking-widest mb-1 flex items-center gap-2">
-                            <span className="flex items-center gap-1">
-                                <Icon name="calendar" size={12}/>
-                                {formatDisplayDate(order)}
-                            </span>
-                            {order.service_type === 'daycare' && (
-                                <span className="ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#B8A088]/20 text-[#B8A088]">安親</span>
-                            )}
-                        </div>
-                        <div className="font-bold text-2xl text-[#203B2A] flex items-center gap-2 flex-wrap">
+<div className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C] uppercase tracking-widest mb-0.5 sm:mb-1 flex items-center gap-1.5 sm:gap-2 flex-wrap">
+    <span className="flex items-center gap-1">
+        <Icon name="calendar" size={10} className="sm:w-3 sm:h-3"/>
+        {formatDisplayDate(order)}
+    </span>
+    {order.service_type === 'daycare' && (
+        <span className="text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full bg-[#B8A088]/20 text-[#B8A088]">安親</span>
+    )}
+</div>
+                        <div className="font-bold text-lg sm:text-2xl text-[#203B2A] flex items-center gap-1.5 sm:gap-2 flex-wrap">
     {getPetName(order)}
     {(() => {
         // 檢查是否為美容訂單且包含「剪毛(含洗澡)」
@@ -2004,7 +2017,7 @@ const customers = useMemo(() => {
             const tags = safeParse(order.service_tags);
             if (tags.includes('剪毛(含洗澡)')) {
                 return (
-                    <span className="inline-block text-xs font-bold bg-[#B8A088] text-white px-2.5 py-0.5 rounded-full shadow-sm">
+                    <span className="inline-block text-[9px] sm:text-xs font-bold bg-[#B8A088] text-white px-2 sm:px-2.5 py-0.5 rounded-full shadow-sm">
                         ✨大美容
                     </span>
                 );
@@ -2027,9 +2040,9 @@ const customers = useMemo(() => {
                                 return (
                                     <>
                                         {hasAggression && (
-                                            <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#DBA58B] text-white px-2 py-0.5 rounded-md shadow-sm">
-                                                <Icon name="alert-octagon" size={10}/> 有攻擊性
-                                            </span>
+<span className="inline-flex items-center gap-0.5 sm:gap-1 text-[8px] sm:text-[10px] font-bold bg-[#DBA58B] text-white px-1.5 sm:px-2 py-0.5 rounded-md shadow-sm">
+    <Icon name="alert-octagon" size={8} className="sm:w-2.5 sm:h-2.5"/> 有攻擊性
+</span>
                                         )}
                                         {isSensitive && (
                                             <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#B8A088] text-white px-2 py-0.5 rounded-md shadow-sm">
@@ -2050,22 +2063,22 @@ const customers = useMemo(() => {
                                 </span>
                             )}
                         </div>
-                        <div className="flex items-center gap-4 text-xs font-bold text-[#B5A89C] mt-2">
-                            <span className="flex items-center gap-1 text-[#4A6B55]"><Icon name="user" size={14}/>{order.owner_name || '-'}</span>
-                            <span className="flex items-center gap-1"><Icon name="phone" size={14}/>{order.phone || '-'}</span>
-                        </div>
+<div className="flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs font-bold text-[#B5A89C] mt-1.5 sm:mt-2 flex-wrap">
+    <span className="flex items-center gap-0.5 sm:gap-1 text-[#4A6B55]"><Icon name="user" size={12} className="sm:w-3.5 sm:h-3.5"/>{order.owner_name || '-'}</span>
+    <span className="flex items-center gap-0.5 sm:gap-1"><Icon name="phone" size={12} className="sm:w-3.5 sm:h-3.5"/>{order.phone || '-'}</span>
+</div>
                     </div>
-                    <div className="text-right">
-                        <span className={`status-badge block ${order.status === 'pending' ? 'status-pending' : order.status === 'confirmed' ? 'status-confirmed' : order.status === 'cancelled' ? 'status-cancelled' : 'status-completed'}`}>
-                            {getStatusText(order.status)}
-                        </span>
-                    </div>
+<div className="text-right">
+    <span className={`status-badge block text-[9px] sm:text-[11px] px-2 sm:px-3.5 py-0.5 sm:py-1 ${order.status === 'pending' ? 'status-pending' : order.status === 'confirmed' ? 'status-confirmed' : order.status === 'cancelled' ? 'status-cancelled' : 'status-completed'}`}>
+        {getStatusText(order.status)}
+    </span>
+</div>
                 </div>
 
             {(order.admin_note && order.admin_note.trim() !== '') && (
-                <div className="mt-3 pt-3 border-t border-dashed border-[#DDD6CE] text-xs text-[#B8A088]/80 truncate">
-                    <span className="font-bold">📝 備註：</span>{order.admin_note}
-                </div>
+<div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-dashed border-[#DDD6CE] text-[10px] sm:text-xs text-[#B8A088]/80 truncate">
+    <span className="font-bold">📝 備註：</span>{order.admin_note}
+</div>
             )}
             </div>
         ))}
@@ -2138,6 +2151,61 @@ const customers = useMemo(() => {
 
             return session ? <Dashboard user={session.user} /> : <LoginView onLogin={() => {}} />;
         };
+
+        // --- Admin Service Worker 註冊 ---
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        // 檢查是否已有 admin-sw.js 的註冊
+        navigator.serviceWorker.getRegistration('/admin-sw.js?v=1').then(reg => {
+            if (reg) {
+                console.log('[Admin] Service Worker 已註冊');
+                // 檢查是否有 waiting 的 worker
+                if (reg.waiting) {
+                    console.log('[Admin] 發現 waiting worker，顯示更新提示');
+                    // 觸發更新提示（如果有的話）
+                }
+                return reg;
+            }
+            // 沒有註冊，進行註冊
+            return navigator.serviceWorker.register('/admin-sw.js?v=20260714-v3', { scope: '/' })
+                .then(registration => {
+                    console.log('[Admin] Service Worker 註冊成功:', registration);
+                    // 監聽更新
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        console.log('[Admin] 發現新 Service Worker');
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('[Admin] 新 Service Worker 已安裝，準備更新');
+                                // 顯示更新提示
+                                if (window.showToast) {
+                                    window.showToast('🔄 發現新版本，請重新整理頁面', 'warning');
+                                }
+                            }
+                        });
+                    });
+                })
+                .catch(err => {
+                    console.warn('[Admin] Service Worker 註冊失敗:', err);
+                });
+        }).catch(() => {
+            // 如果 getRegistration 失敗，直接註冊
+            navigator.serviceWorker.register('/admin-sw.js?v=20260714-v3', { scope: '/' })
+                .then(reg => console.log('[Admin] Service Worker 註冊成功:', reg))
+                .catch(err => console.warn('[Admin] Service Worker 註冊失敗:', err));
+        });
+    });
+    
+    // 監聽 controller 變更，自動重新整理
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+            console.log('[Admin] Service Worker controller 變更，重新整理');
+            window.location.reload();
+            refreshing = true;
+        }
+    });
+}
 
         const rootElement = document.getElementById('root');
         if (rootElement) {
