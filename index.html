@@ -847,6 +847,22 @@ const HistoryModal = ({ records, onClose, onSelect }) => {
     );
 };
 
+// 定義房型費率（與 App 元件中的 roomRates 保持一致）
+const ROOM_RATES = {
+    dog: [
+        { name: '標準房', price: 800 },
+        { name: '商務房', price: 1000 },
+        { name: '豪華房', price: 1300 },
+        { name: '家庭共宿', price: 0 } // 家庭共宿依體重計價
+    ],
+    daycare: [
+        { name: '小型犬', price: 100 },
+        { name: '中型犬', price: 150 },
+        { name: '大型犬', price: 200 },
+        { name: '安親評估', price: 0 }
+    ]
+};
+
 const generateContractHtml = (data, signatureUrl) => {
     const isBoarding = data.service_type === 'boarding' || data.service_type === 'daycare';
     const isDaycare = data.service_type === 'daycare';
@@ -859,158 +875,594 @@ const generateContractHtml = (data, signatureUrl) => {
         }
         return val || '無';
     };
-    const labelStyle =
-        "font-size: 11px; color: #8A7A6E; font-weight: bold; display: block; margin-bottom: 3px; letter-spacing: 0.5px;";
-    const valueStyle = `font-size: 14px; color: #203B2A; font-weight: 300;`;
+    
+    // 解析疫苗資料
+    const parseVaccines = (val) => {
+        if (!val) return '無';
+        if (Array.isArray(val)) return val.length > 0 ? val.join('、') : '無';
+        if (typeof val === 'string') {
+            try { const p = JSON.parse(val); return Array.isArray(p) && p.length > 0 ? p.join('、') : '無'; } catch (_) { return val; }
+        }
+        return val;
+    };
+    
+    // 獲取影像使用同意狀態
+    const getImageConsentDisplay = (consent) => {
+        if (consent === true) return '✅ 同意 (乙方得使用於公開展示及行銷用途)';
+        if (consent === false) return '❌ 不同意 (僅限內部服務紀錄與照護回報)';
+        return '未填寫 (視同不同意)';
+    };
+    
+    const serviceTypeNames = { grooming: '美容', boarding: '住宿', daycare: '安親' };
+    const serviceLabel = serviceTypeNames[data.service_type] || '美容';
 
+    // 完整的美容條款（與填寫頁面一致）
     const groomingTerms = `
             <div style="font-weight:300; color:#203B2A; margin-bottom:12px; border-bottom:1px solid #DDD6CE; padding-bottom:8px;">✧ 美容服務 簽署聲明與法律約定</div>
             <ol style="padding-left:20px; margin:0; line-height:1.9; font-weight:200;">
-              <li><strong>第一條(契約目的)：</strong>本服務為犬貓美容，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">不涉及醫療行為</span>。</li>
-              <li><strong>第五條(健康告知)：</strong>甲方應<span style="font-weight:bold; text-decoration:underline;">誠實告知</span>寵物病史與是否具有攻擊性。若因隱瞞導致意外，<span style="color:#DBA58B; font-weight:bold;">乙方不負責損害賠償責任</span>；因隱瞞導致乙方人員傷亡、財損等損失，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">乙方將全額向甲方求償</span>。</li>
-              <li><strong>第九條(退費規定)：</strong>包月服務終止時，預收總額扣除(<span style="font-weight:bold; color:#203B2A;">已使用次數 X 單次原價</span>)後退費。</li>
-              <li><strong>第十二條(逾時接回)：</strong>若於約定時間內未領回，<span style="color:#DBA58B; font-weight:bold;">加收安親費</span>；打烊時仍未接回，則<span style="color:#DBA58B; font-weight:bold;">視同住宿一晚計費</span>。如經通知三日內未領回，將依照<span style="font-weight:bold; text-decoration:underline;">動保法第29條</span>移交主管機關。</li>
-              <li><strong>第十五條(履約保障)：</strong>預收費用累積金額新台幣一萬元以下，依法免提供履約保障。</li>
-              <li>其餘細節將依照行政院農委會定型化契約範本辦理。</li>
-              <li>因本契約所產生之訴訟，雙方合意將以<span style="font-weight:bold;">桃園地方法院</span>為第一審管轄法院。</li>
+              <li><strong>第一條（契約目的）：</strong>本服務提供犬隻美容相關服務，包括洗澡、吹整、修剪及基礎清潔等項目。本服務屬美容照護服務，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">不涉及醫療診斷、治療或其他醫療行為</span>。</li>
+              <li><strong>第二條（健康及行為告知）：</strong>甲方應於服務前誠實告知寵物之健康狀況、疾病史、特殊體質、過敏情形及是否具有攻擊性或美容抗拒行為。若甲方未告知、隱瞞相關資訊，致乙方或第三人受有損害，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">甲方應負相關賠償責任</span>。<br><span style="background:#FFF8F5; padding:4px 8px; border-radius:6px; border:1px solid #DBA58B/30; display:inline-block; margin-top:4px; font-size:12px;">若乙方已盡合理注意義務，而事故係因寵物自身健康因素或甲方未告知事項所致，<span style="color:#DBA58B; font-weight:bold;">乙方不負因此產生之損害賠償責任</span>。</span></li>
+              <li><strong>第三條（美容風險及服務調整）：</strong>美容過程中，如因寵物情緒、健康狀況或安全考量，乙方得依專業判斷調整美容方式、暫停或終止服務，並依實際完成內容計費。</li>
+              <li><strong>第四條（特殊狀況處理）：</strong>若寵物有嚴重毛結、寄生蟲、皮膚異常或其他特殊狀況，乙方得視情況採取必要處理措施，相關費用另計。</li>
+              <li><strong>第五條（緊急醫療處理）：</strong>美容期間如寵物發生突發狀況，乙方將優先通知甲方；如情況緊急或無法即時聯繫，乙方得送往甲方指定或適當動物醫院處理，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">相關醫療及交通費用由甲方負擔</span>。</li>
+              <li><strong>第六條（退費規定）：</strong>包月或預付型美容服務終止時，預收費用扣除已使用次數×單次原價後，退還剩餘金額；如優惠方案另有約定者，依方案規定辦理。</li>
+              <li><strong>第七條（逾時接回）：</strong>甲方應於約定時間內接回寵物，逾時未接回者，乙方得依公告標準收取安親照護費用；營業時間結束仍未接回者，<span style="color:#DBA58B; font-weight:bold;">得視同住宿一晚計費</span>。若經通知後仍無法聯繫或逾期未處理，乙方得依相關法令通知主管機關協助處理。</li>
+              <li><strong>第八條（履約保障）：</strong>預收費用達主管機關規定之履約保障門檻時，乙方依相關規定辦理履約保障。</li>
+              <li><strong>第九條（影像使用）：</strong>乙方於服務期間可能拍攝寵物照片或影片，用於服務紀錄及照護回報；如作為公開展示、社群平台或行銷用途，依甲方授權辦理。</li>
+              <li><strong>第十條（其他約定）：</strong>本約定未盡事項，依主管機關公告之寵物美容服務定型化契約及相關法令辦理。因本契約所生爭議，雙方同意以依法有管轄權之法院為處理。</li>
             </ol>
+            <div style="background:#FAF8F5; padding:12px; border-radius:8px; border:1px solid #DDD6CE; margin-top:12px; font-size:11px; color:#B5A89C;">
+              ■ 經甲乙雙方合意約定，由甲方即時閱讀理解本契約內容並簽署。<br>
+              ■ 經甲方本人已確認預計接回時間與服務金額無誤，並同意上述條款。
+            </div>
           `;
+
+    // 完整的高風險美容條款
+    const highRiskBeautyTerms = `
+            <div style="border:2px dashed #DBA58B; padding:16px; margin-top:16px; border-radius:10px; background:#FFF8F5;">
+              <h4 style="margin:0 0 8px 0; color:#DBA58B; font-weight:bold;">⚠️ 高風險美容服務風險告知暨同意聲明</h4>
+              <p style="font-size:11px; margin:0 0 8px 0; line-height:1.8; font-weight:300;">
+                飼主於預約高風險美容服務前，已閱讀並了解以下事項，並同意乙方依寵物實際狀況提供適當美容服務。
+              </p>
+              <ol style="padding-left:20px; margin:0; line-height:1.9; font-size:11px; font-weight:200;">
+                <li><strong>第一條（高風險狀況告知）：</strong>甲方應主動告知寵物之疾病史、特殊體質、近期治療、攻擊行為、美容抗拒或其他可能影響美容安全之情況。甲方了解，高齡、幼齡、患有疾病、嚴重毛結或高度緊張之寵物，於美容過程中可能因自身狀況產生壓力反應、舊疾復發或其他不可預期風險。</li>
+                <li><strong>第二條（美容調整及中止）：</strong>乙方將依專業判斷及寵物安全需求，調整美容方式、採取必要安全措施，或於繼續美容可能造成風險時停止服務。已完成之美容項目，乙方得依實際服務內容計費。</li>
+                <li><strong>第三條（緊急處理）：</strong>美容期間如寵物發生緊急狀況，乙方將優先聯繫甲方；如無法即時聯繫，甲方同意乙方送往適當動物醫院處理，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">相關醫療及交通費用由甲方負擔</span>。</li>
+                <li><strong>第四條（責任認定）：</strong>乙方將盡合理專業注意義務並提供適當照護；若事故係因寵物自身疾病、體質或其他不可歸責於乙方之因素所致，依相關法律規定辦理。</li>
+                <li><strong>第五條（甲方確認）：</strong>甲方確認已了解高風險美容可能產生之相關風險，並同意乙方依專業判斷調整服務方式，以維護寵物及服務人員安全。</li>
+                <li><strong>第六條（影像使用）：</strong>乙方於服務期間可能拍攝寵物照片或影片，用於服務紀錄及照護回報；如作為公開展示、社群平台或行銷用途，依甲方授權辦理。</li>
+                <li><strong>第七條（其他約定）：</strong>本約定未盡事項，依主管機關公告之寵物美容服務定型化契約及相關法令辦理。因本契約所生爭議，雙方同意以依法有管轄權之法院為處理。</li>
+              </ol>
+              <div style="background:#FAF8F5; padding:10px; border-radius:6px; border:1px solid #DDD6CE; margin-top:10px; font-size:10px; color:#B5A89C;">
+                ■ 經甲乙雙方合意約定，由甲方即時閱讀理解本契約內容並簽署。<br>
+                ■ 經甲方本人已確認預計接回時間與服務金額無誤，並同意上述條款。
+              </div>
+            </div>
+          `;
+
+    // 完整的住宿/安親條款（包含非24小時照護聲明）
     const boardingTerms = `
             <div style="font-weight:300; color:#203B2A; margin-bottom:12px; border-bottom:1px solid #DDD6CE; padding-bottom:8px;">✧ 住宿/安親 簽署聲明與法律約定</div>
             <ol style="padding-left:20px; margin:0; line-height:1.9; font-weight:200;">
-              <li>
-                <strong>計費與進退房：</strong>${isDaycare ? '安親服務為當日來回，請於營業時間內接回。' : '本館住宿服務以「晚」為計算單位。入住時間 10:00–18:00，退房時間應於 18:00 前。'}
-                <div style="margin-top:6px; padding:10px; background:#FAF8F5; border-radius:10px; border:1px solid #DDD6CE; font-size:11px;">
-                  <p style="margin:0 0 4px 0; color:#203B2A; font-weight:bold; text-decoration:underline;">逾時費用規定：</p>
-                  <p style="margin:0;">• 凡於 18:00 至 19:00 間接回者，將依本館公告加收「安親費用」。</p>
-                  <p style="margin:0;">• 凡超過每日打烊時間 19:00 仍未接回者，不論原服務項目為何，均視同於本俱樂部「住宿一晚」，並依現場公告之住宿費率計費。</p>
-                </div>
-              </li>
-              <li>住宿期間請<span style="font-weight:bold; text-decoration:underline;">自備飼料</span>。若無自備而由店內提供，導致換食腸胃不適，<span style="color:#DBA58B; font-weight:bold;">旅館恕不負責賠償</span>。</li>
-              <li>入住當日需完成本館<span style="font-weight:bold; text-decoration:underline;">美容部洗護</span>（費用另計）。若發現寄生蟲，將<span style="color:#DBA58B; font-weight:bold;">額外收取除蟲及環境清潔費</span>。</li>
-              <li>請提供<span style="font-weight:bold; text-decoration:underline;">身分證件影本</span>及毛孩預防針手冊備查。</li>
-              <li>逾期三日聯繫不上飼主，將依<span style="font-weight:bold; text-decoration:underline;">動保法</span>交付動保處，衍生費用由<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">飼主全額支付</span>。</li>
-              <li>若隱瞞攻擊行為導致傷亡或財損，<span style="color:#DBA58B; font-weight:bold;">本館有權向飼主全額求償</span>。</li>
-              <li>若寵物持續吠叫影響營運或安寧，本館將聯繫飼主或緊急聯絡人<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">先行帶回</span>。</li>
-              <li>突發疾病須送醫時，相關<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">醫療及交通費用由飼主全額負擔</span>。</li>
-              <li>隱瞞病況或本身具有高風險疾病，若發生意外或死亡，經判定本館無疏失，<span style="color:#DBA58B; font-weight:bold;">本館不負責賠償責任</span>。</li>
-              <li>若因人為疏失導致走失、傷亡，本館依法賠償，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">賠償上限為新台幣 30,000 元整</span>（玩耍小傷痕除外）。</li>
-              <li>若店內物品遭到破壞，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">本館有權向飼主全額求償</span>。</li>
-              <li>寵物若因年老或舊疾死亡，請於 24 小時內領回。若需鑑定死因請於 24 小時內會同辦理，<span style="font-weight:bold; text-decoration:underline;">逾期不得異議</span>。</li>
-              <li>散步時若因寵物掙脫牽繩導致逃跑或傷亡，<span style="color:#DBA58B; font-weight:bold;">本館不負責相關賠償事宜</span>。</li>
-              <li>其餘細節將依照行政院農委會定型化契約範本辦理。</li>
-              <li>因本契約所產生之訴訟，雙方合意將以桃園地方法院為第一審管轄法院。</li>
+              <li><strong>第一條（服務內容）：</strong>乙方提供犬隻住宿及安親照護服務，包含日常照護、活動安排、飲食管理、環境維護及安全管理。本服務<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">不涉及醫療診斷、治療或疾病照護行為</span>。</li>
+              <li><strong>第二條（入住評估及健康告知）：</strong>為維護所有寵物之安全，首次入住服務前，乙方得依寵物之年齡、健康狀況、個性、社交能力、行為等進行安親評估。甲方應誠實告知寵物之疾病史、用藥情形、特殊體質、攻擊行為、分離焦慮或其他可能影響照護安全之事項。若因甲方未告知或隱瞞重要資訊，造成寵物、人員、其他寵物或設備損害，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">甲方應負相關責任</span>。</li>
+              <li><strong>第三條（開放式照護及活動風險告知）：</strong>乙方採開放式照護模式，依寵物個性、體型、活動能力及社交狀況安排適當活動。活動內容包含多犬互動、社交及戶外草地活動。甲方了解，犬隻於正常活動、奔跑、玩耍及互動過程中，可能產生<span style="color:#DBA58B; font-weight:bold;">輕微擦傷、毛髮凌亂、腳掌磨損、玩耍碰撞</span>等正常活動可能發生之情況。乙方將盡合理管理及照護義務，並依寵物狀況調整活動安排。</li>
+              <li><strong>第四條（照護方式調整）：</strong>乙方將依寵物當日狀況調整照護方式，包括活動時間、休息安排及互動模式。若寵物出現過度緊張、攻擊行為、持續吠叫、無法適應群體環境及其他影響安全之情況，乙方得調整照護方式、安排個別照護、限制活動或建議提前接回。</li>
+              <li><strong>第五條（飲食及健康管理）：</strong>住宿期間甲方應提供足量且適合寵物之飼料。若由乙方提供餐食，因個體差異造成腸胃不適等情況，乙方將盡合理照護義務；如非可歸責於乙方之因素所致，相關責任依法律規定辦理。甲方應提供正確健康資訊，如因隱瞞疾病造成健康問題，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">甲方應負相關責任</span>。</li>
+              <li><strong>第六條（入住洗護及寄生蟲處理）：</strong>入住時需依乙方規定完成洗護，若發現跳蚤、壁蝨、寄生蟲或其他可能影響環境衛生之情況，乙方得進行必要處理，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">相關費用由甲方負擔</span>。</li>
+              <li><strong>第七條（緊急醫療處理）：</strong>住宿或安親期間，如寵物發生疾病、受傷或緊急狀況，乙方將優先聯繫甲方。如情況緊急或無法即時聯繫，甲方授權乙方送往指定或適當動物醫院處理；<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">相關醫療、交通及後續治療費用由甲方負擔</span>。若事故係因乙方故意或過失造成，依相關法律規定辦理。</li>
+              <li><strong>第八條（逾時接回）：</strong>甲方應依約定時間接回寵物。逾時接回者得依乙方公告標準收取安親照護費用。<span style="color:#DBA58B; font-weight:bold;">超過營業時間仍未接回者，得視同住宿一晚計費。</span>若經通知後三日仍無法聯繫或未處理，乙方得依相關法令通知主管機關協助處理。</li>
+              <li><strong>第九條（設備損害）：</strong>若因寵物行為造成乙方設備、用品或第三人財物損害，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">甲方應依法負相關賠償責任</span>。</li>
+              <li><strong>第十條（影像使用）：</strong>乙方於服務期間可能拍攝寵物照片或影片，用於服務紀錄及照護回報；如作為公開展示、社群平台或行銷用途，依甲方授權辦理。</li>
+              <li><strong>第十一條（履約保障）：</strong>預收費用達主管機關規定之履約保障門檻時，乙方依相關規定辦理。</li>
+              <li><strong>第十二條（其他約定）：</strong>本約定未盡事項，依主管機關公告之寵物美容服務定型化契約及相關法令辦理。因本契約所生爭議，雙方同意以依法有管轄權之法院為處理。</li>
             </ol>
-            <div style="background:#FDF6F3; padding:12px; border:1px solid #DBA58B; border-radius:10px; margin-top:16px; font-weight:bold; color:#DBA58B; font-size:11px;">
+            <div style="background:#FDF6F3; padding:12px; border:1px solid #DBA58B; border-radius:10px; margin-top:12px; font-weight:bold; color:#DBA58B; font-size:11px;">
               非24小時照護聲明：本人知悉尾尾道來寵物俱樂部無夜間駐店人員。若寵物於夜間無人時段發生突發狀況，店家可能無法即時發現或處置，本人願意承擔此風險。
             </div>
-          `;
-    const highRiskTerms = `
-            <div style="border:2px dashed #DBA58B; padding:12px; margin-top:16px; border-radius:10px;">
-              <h4 style="margin:0 0 6px 0; color:#DBA58B;">⚠️ 高風險服務同意書</h4>
-              <p style="font-size:11px; margin:0; line-height:1.7;">
-                本人確認已誠實告知寵物病史(心臟病、癲癇、年老等)。知悉服務過程中可能因緊張誘發休克或意外。若非乙方故意過失，乙方不負損害賠償責任。如發生緊急狀況，同意乙方優先送往指定醫院處置。
-                <br><br>
-                <strong>特別聲明：</strong>美容洗澡或住宿期間，因基因或本身遺傳問題造成的疾病，或寵物因天生病史、高齡、幼犬貓，因寵物持有人遺漏、隱瞞，或已知風險、仍然堅持服務，途中若有意外休克或其他等狀況，本店會立即送至附近動物醫院救治，費用由飼主負擔。
-              </p>
+            <div style="background:#FAF8F5; padding:12px; border-radius:8px; border:1px solid #DDD6CE; margin-top:12px; font-size:11px; color:#B5A89C;">
+              ■ 經甲乙雙方合意約定，由甲方即時閱讀理解本契約內容並簽署。<br>
+              ■ 經甲方本人已確認預計接回時間與服務金額無誤，並同意上述條款。
             </div>
           `;
-    const showHighRisk = (data.medical_history === '有') ||
-        (data.age_type === 'year' && parseFloat(data.age_value) >= 8) ||
-        (data.age_type === 'month' && parseFloat(data.age_value) <= 3);
 
-    const serviceLabel = isDaycare ? '安親' : (isBoarding ? '住宿' : '美容');
+    // 完整的高風險住宿/安親條款
+    const highRiskBoardingTerms = `
+            <div style="border:2px dashed #DBA58B; padding:16px; margin-top:16px; border-radius:10px; background:#FFF8F5;">
+              <h4 style="margin:0 0 8px 0; color:#DBA58B; font-weight:bold;">⚠️ 高風險住宿／安親服務風險告知暨同意聲明</h4>
+              <p style="font-size:11px; margin:0 0 8px 0; line-height:1.8; font-weight:300;">
+                飼主於預約高風險住宿／安親服務前，已閱讀並了解以下內容，並同意乙方依寵物實際狀況提供適當照護安排。
+              </p>
+              <ol style="padding-left:20px; margin:0; line-height:1.9; font-size:11px; font-weight:200;">
+                <li><strong>第一條（高風險狀況告知）：</strong>甲方應主動告知寵物之疾病史、特殊體質、近期治療、用藥情形、攻擊行為、分離焦慮、社交問題或其他可能影響住宿／安親安全之情況。甲方了解，高齡、幼齡、患有疾病、情緒敏感或不適應群體環境之寵物，於住宿或安親期間可能因自身狀況、環境變化或活動刺激產生不可預期風險。</li>
+                <li><strong>第二條（照護方式調整）：</strong>乙方將依寵物之健康、個性及當日狀況調整照護方式，包括活動安排、休息時間、社交互動或必要之個別照護。若寵物出現高度緊張、攻擊行為、持續吠叫、無法適應環境或其他影響安全之情形，乙方得調整服務內容、限制活動或建議提前接回。</li>
+                <li><strong>第三條（活動及社交風險）：</strong>甲方了解，TTPC 採開放式照護模式，寵物於活動、奔跑及與其他犬隻互動過程中，可能發生正常活動所造成之<span style="color:#DBA58B; font-weight:bold;">輕微擦傷、碰撞或其他不可完全避免之情況</span>。乙方將盡合理管理及照護義務，並依寵物狀況進行適當安排。</li>
+                <li><strong>第四條（緊急醫療處理）：</strong>住宿／安親期間如寵物發生疾病、受傷或其他緊急狀況，乙方將優先聯繫甲方。如無法即時取得聯繫，甲方同意乙方送往指定或適當動物醫院接受必要處置，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">相關醫療、交通及後續費用由甲方負擔</span>。</li>
+                <li><strong>第五條（責任認定）：</strong>乙方將盡合理專業照護義務；若事故係因寵物自身疾病、體質、既有狀況或其他不可歸責於乙方之因素所致，依相關法律規定辦理。若因甲方未告知重要資訊造成損害，<span style="color:#DBA58B; font-weight:bold; text-decoration:underline;">甲方應負相關責任</span>。</li>
+                <li><strong>第六條（甲方確認）：</strong>甲方確認已了解高風險寵物於住宿／安親期間可能產生之相關風險，並同意乙方依專業判斷調整照護方式，以維護寵物、人員及其他動物之安全。</li>
+                <li><strong>第七條（影像使用）：</strong>乙方於服務期間可能拍攝寵物照片或影片，用於服務紀錄及照護回報；如作為公開展示、社群平台或行銷用途，依甲方授權辦理。</li>
+              </ol>
+              <div style="background:#FAF8F5; padding:10px; border-radius:6px; border:1px solid #DDD6CE; margin-top:10px; font-size:10px; color:#B5A89C;">
+                ■ 經甲乙雙方合意約定，由甲方即時閱讀理解本契約內容並簽署。<br>
+                ■ 經甲方本人已確認預計接回時間與服務金額無誤，並同意上述條款。
+              </div>
+            </div>
+          `;
+
+    // 高風險條款永遠顯示（與填寫頁面一致）
+    const showHighRisk = true;
 
     return `
             <!DOCTYPE html>
             <html>
             <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>尾尾道來 · 服務契約</title>
             <style>
-              body { font-family: 'Noto Serif TC', serif; font-weight:200; color:#203B2A; background:#FAF8F5; margin:0; padding:20px; }
-              .container { max-width:800px; margin:0 auto; background:#fff; border-radius:24px; overflow:hidden; box-shadow:0 8px 40px rgba(32,59,42,0.10); }
-              .header { background:#203B2A; padding:28px; text-align:center; color:#fff; }
-              .header h1 { margin:0; font-size:22px; font-weight:300; letter-spacing:0.2em; }
-              .header p { margin:4px 0 0; font-size:12px; opacity:0.7; letter-spacing:0.1em; }
-              .body { padding:30px; }
-              .info-box { background:#FAF8F5; border:1px solid #DDD6CE; border-radius:16px; padding:18px; margin-bottom:24px; }
+              * { font-family: 'Noto Serif TC', serif; }
+              body { 
+                font-weight:200; 
+                color:#203B2A; 
+                background: #f5f1ec; 
+                margin:0; 
+                padding:20px; 
+                background-image: radial-gradient(circle at 20% 30%, rgba(184,160,136,0.05) 0%, transparent 60%);
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              }
+              .container { 
+                max-width:820px; 
+                margin:0 auto; 
+                background:#fff; 
+                border-radius:32px; 
+                overflow:hidden; 
+                box-shadow: 0 20px 60px rgba(32,59,42,0.12), 0 8px 24px rgba(32,59,42,0.06);
+                border: 1px solid rgba(221,214,206,0.3);
+              }
+              .header { 
+                background: linear-gradient(135deg, #203B2A 0%, #2a4d38 100%);
+                padding:32px 28px; 
+                text-align:center; 
+                color:#fff; 
+                position: relative;
+                overflow: hidden;
+              }
+              .header::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                right: -20%;
+                width: 300px;
+                height: 300px;
+                background: rgba(184,160,136,0.08);
+                border-radius: 50%;
+              }
+              .header::after {
+                content: '';
+                position: absolute;
+                bottom: -40%;
+                left: -10%;
+                width: 200px;
+                height: 200px;
+                background: rgba(255,255,255,0.03);
+                border-radius: 50%;
+              }
+              .header .logo { 
+                max-height:72px; 
+                margin-bottom:14px; 
+                position: relative;
+                z-index: 1;
+                filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+              }
+              .header h1 { 
+                margin:0; 
+                font-size:24px; 
+                font-weight:300; 
+                letter-spacing:0.25em;
+                position: relative;
+                z-index: 1;
+              }
+              .header p { 
+                margin:6px 0 0; 
+                font-size:13px; 
+                opacity:0.75; 
+                letter-spacing:0.15em;
+                position: relative;
+                z-index: 1;
+                font-weight:200;
+              }
+              .header .badge {
+                display: inline-block;
+                background: rgba(184,160,136,0.25);
+                padding:4px 16px;
+                border-radius:20px;
+                font-size:11px;
+                letter-spacing:0.1em;
+                margin-top:10px;
+                position: relative;
+                z-index: 1;
+                border: 1px solid rgba(184,160,136,0.2);
+              }
+              .body { padding:32px 30px; }
+              .section-card {
+                background: #faf8f5;
+                border-radius:20px;
+                padding:20px 24px;
+                margin-bottom:20px;
+                border: 1px solid #ede8e0;
+                transition: all 0.2s ease;
+              }
+              .section-card:hover {
+                border-color: #d4c9be;
+                box-shadow: 0 2px 12px rgba(32,59,42,0.04);
+              }
+              .section-card .section-title {
+                font-weight:300;
+                letter-spacing:0.08em;
+                color:#203B2A;
+                margin:0 0 14px 0;
+                padding-bottom:10px;
+                border-bottom:2px solid #ede8e0;
+                font-size:17px;
+                display: flex;
+                align-items: center;
+                gap:10px;
+              }
+              .section-card .section-title .icon {
+                font-size:20px;
+              }
               table { width:100%; font-size:13px; border-collapse:collapse; }
-              td { padding:6px 8px; vertical-align:top; }
-              .label { font-size:11px; color:#8A7A6E; font-weight:bold; letter-spacing:0.03em; display:block; }
-              .value { font-size:14px; color:#203B2A; font-weight:300; }
-              h3 { font-weight:300; letter-spacing:0.06em; border-bottom:1px solid #DDD6CE; padding-bottom:6px; margin:24px 0 12px; color:#203B2A; }
-              .terms { font-size:11px; background:#FDFBF9; border:1px solid #DDD6CE; padding:16px; border-radius:12px; }
-              .terms ol { padding-left:18px; margin:0; line-height:1.9; }
-              .sig-area { margin-top:32px; text-align:center; border-top:2px dashed #DDD6CE; padding-top:24px; }
-              .sig-area img { max-height:80px; max-width:100%; border-bottom:1px solid #203B2A; }
-              .footer { background:#203B2A; color:rgba(255,255,255,0.3); text-align:center; padding:14px; font-size:10px; letter-spacing:0.05em; }
-              @media (max-width:600px){ .body{ padding:16px; } .header{ padding:20px; } td{ display:block; width:100%!important; padding:4px 0!important; } }
+              td { padding:5px 6px; vertical-align:top; }
+              .label { 
+                font-size:10.5px; 
+                color:#8A7A6E; 
+                font-weight:bold; 
+                letter-spacing:0.04em; 
+                display:block;
+                text-transform: uppercase;
+              }
+              .value { 
+                font-size:14px; 
+                color:#203B2A; 
+                font-weight:300;
+                line-height:1.5;
+              }
+              .value .highlight {
+                background: #f0ebe4;
+                padding:0 8px;
+                border-radius:4px;
+                font-weight:300;
+              }
+              .tag-group { display:flex; flex-wrap:wrap; gap:5px; margin-top:2px; }
+              .tag { 
+                background:#ede8e0; 
+                padding:3px 14px; 
+                border-radius:16px; 
+                font-size:11px; 
+                color:#203B2A;
+                font-weight:300;
+                letter-spacing:0.03em;
+              }
+              .tag-primary {
+                background:#203B2A;
+                color:#fff;
+              }
+              .divider { border:0; border-top:1px solid #ede8e0; margin:18px 0; }
+              .divider-dashed { border:0; border-top:2px dashed #d4c9be; margin:20px 0; }
+              
+              /* 影像同意區塊 */
+              .image-consent-box {
+                  background: linear-gradient(135deg, #fdf6f3, #faf2ed);
+                  border: 2px solid #b8a088;
+                  border-radius:16px;
+                  padding:18px 22px;
+                  margin:16px 0;
+                  display: flex;
+                  align-items: center;
+                  gap:14px;
+                  box-shadow: 0 2px 8px rgba(184,160,136,0.12);
+              }
+              .image-consent-box .icon { font-size:28px; }
+              .image-consent-box .content { flex:1; }
+              .image-consent-box .content .title {
+                  font-weight:bold;
+                  color:#203B2A;
+                  font-size:15px;
+                  margin-bottom:3px;
+              }
+              .image-consent-box .content .status {
+                  font-weight:bold;
+                  color:#4A6B55;
+                  font-size:13px;
+              }
+              .image-consent-box .content .status .disagree { color:#DBA58B; }
+              
+              /* 條款區域 */
+              .terms { 
+                font-size:12.5px; 
+                background:#fdfbf9; 
+                border:1px solid #ede8e0; 
+                padding:24px 26px; 
+                border-radius:18px;
+                box-shadow: inset 0 1px 4px rgba(0,0,0,0.02);
+              }
+              .terms ol { padding-left:22px; margin:0; line-height:2; }
+              .terms ol li { margin-bottom:4px; }
+              
+              /* 簽名區域 */
+              .sig-area { 
+                margin-top:28px; 
+                text-align:center; 
+                border-top:2px dashed #d4c9be; 
+                padding-top:28px;
+                background: #faf8f5;
+                border-radius:0 0 20px 20px;
+                padding:28px 24px 20px;
+                margin:0 -30px -32px -30px;
+              }
+              .sig-area .sig-label {
+                font-size:14px;
+                font-weight:300;
+                color:#203B2A;
+                letter-spacing:0.1em;
+                margin-bottom:14px;
+              }
+              .sig-area img { 
+                max-height:80px; 
+                max-width:100%; 
+                border-bottom:2px solid #203B2A;
+                padding-bottom:4px;
+              }
+              .sig-area .sig-time {
+                font-size:10px;
+                color:#b5a89c;
+                margin-top:10px;
+                letter-spacing:0.05em;
+              }
+              
+              /* 店家資訊卡片 */
+              .store-card {
+                background: linear-gradient(135deg, #faf8f5, #f5f1ec);
+                border-radius:16px;
+                padding:18px 22px;
+                border:1px solid #ede8e0;
+                margin-top:10px;
+              }
+              .store-card table td {
+                padding:4px 6px;
+              }
+              .store-card .store-label {
+                font-weight:bold;
+                color:#203B2A;
+                font-size:12px;
+                white-space:nowrap;
+                padding-right:12px;
+              }
+              
+              .footer { 
+                background:#203B2A; 
+                color:rgba(255,255,255,0.3); 
+                text-align:center; 
+                padding:16px; 
+                font-size:10px; 
+                letter-spacing:0.08em;
+                font-weight:200;
+              }
+              
+              @media (max-width:600px){ 
+                .body{ padding:16px; } 
+                .header{ padding:24px 16px; } 
+                .header h1{ font-size:20px; }
+                td{ display:block; width:100%!important; padding:3px 0!important; }
+                .section-card{ padding:14px 16px; }
+                .terms{ padding:16px; }
+                .sig-area{ margin:0 -16px -16px -16px; padding:20px 16px; }
+                .image-consent-box{ flex-direction:column; text-align:center; padding:14px; }
+              }
             </style>
             </head>
             <body>
             <div class="container">
               <div class="header">
+                <img src="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png" alt="尾尾道來寵物俱樂部" class="logo" />
                 <h1>尾尾道來寵物俱樂部</h1>
-                <p>服務契約書 · ${serviceLabel}</p>
+                <p>TAIL TELL PET CLUB</p>
+                <div class="badge">📋 服務契約書 · ${serviceLabel}</div>
               </div>
               <div class="body">
-                <div class="info-box">
-                  <table>
-                    <tr><td><span class="label">契約編號</span><span class="value">${Date.now().toString().slice(-8)}</span></td>
-                        <td><span class="label">簽署日期</span><span class="value">${data.signature_time || new Date().toLocaleString('zh-TW')}</span></td></tr>
-                    <tr><td><span class="label">服務類別</span><span class="value">${serviceLabel}</span></td>
-                        <td><span class="label">付款資訊</span><span class="value">由店家說明</span></td></tr>
-                    ${isBoarding ? `<tr><td><span class="label">${isDaycare ? '安親日期' : '入住日期'}</span><span class="value">${show(data.check_in_date || data.checkInDate)}</span></td>
-                        <td><span class="label">${isDaycare ? '接回時間' : '退房日期'}</span><span class="value">${show(data.check_out_date || data.checkOutDate)}</span></td></tr>` : ''}
-                  </table>
-                </div>
 
-                <h3>👤 飼主資料</h3>
-                <table><tr><td><span class="label">姓名</span><span class="value">${show(data.owner_name)}</span></td>
+                <!-- 飼主資料 -->
+                <div class="section-card">
+                  <div class="section-title"><span class="icon">👤</span> 飼主資料</div>
+                  <table>
+                    <tr><td><span class="label">姓名</span><span class="value">${show(data.owner_name)}</span></td>
                         <td><span class="label">電話</span><span class="value">${show(data.phone)}</span></td></tr>
                     <tr><td><span class="label">身分證字號</span><span class="value">${show(data.owner_id)}</span></td>
-                        <td><span class="label">信箱</span><span class="value">${show(data.email)}</span></td></tr>
-                    <tr><td colspan="2"><span class="label">地址</span><span class="value">${show(data.address)}</span></td></tr>
+                        <td><span class="label">電子信箱</span><span class="value">${show(data.email)}</span></td></tr>
+                    <tr><td colspan="2"><span class="label">聯絡地址</span><span class="value">${show(data.address)}</span></td></tr>
                     <tr><td><span class="label">緊急聯絡人</span><span class="value">${show(data.emergency_name)}</span></td>
                         <td><span class="label">緊急電話</span><span class="value">${show(data.emergency_phone)}</span></td></tr>
-                </table>
-
-                <h3>🐾 寵物資料</h3>
-                <table><tr><td><span class="label">名字 / 品種</span><span class="value">${show(data.pet_name)} (狗狗 / ${show(data.breed)})</span></td>
-                        <td><span class="label">性別 / 年齡 / 體重</span><span class="value">${data.sex || ''} / ${data.age_value || ''}${data.age_type==='year'?'歲':'個月'} / ${data.weight || ''}kg</span></td></tr>
-                    <tr><td colspan="2"><span class="label">健康狀況</span><span class="value">結紮:${data.fix || ''} / 驅蟲:${data.deworming_monthly || ''} / 晶片:${data.chip_status || ''} ${data.chip_id ? `(${data.chip_id})` : ''}<br>病史: ${data.medical_history || '無'} ${data.medical_history==='有' ? `(${arr(data.medical_tags)} ${data.medical_other || ''})` : ''}</span></td></tr>
-                    <tr><td colspan="2"><span class="label">個性與外觀</span><span class="value">個性: ${arr(data.social_traits)} ${data.personality_other || ''}<br>外觀: ${arr(data.physical_check)} ${data.physical_other || ''}</span></td></tr>
-                    <tr><td colspan="2"><span class="label">指定醫院</span><span class="value">${data.preferred_clinic_name || '無'} (電話: ${data.preferred_clinic_phone || '-'})</span></td></tr>
-                </table>
-
-                <h3>🧾 服務明細</h3>
-                <table><tr><td><span class="label">服務內容</span><span class="value">${isBoarding ? serviceLabel + (Array.isArray(data.service_tags) && data.service_tags.length ? '、' + data.service_tags.join('、') : '') : arr(data.service_tags)}</span></td></tr>
-                  ${isBoarding ? `<tr><td><span class="label">${isDaycare ? '休息區' : '房型'} / 放風</span><span class="value">${data.room_type || ''} ($${data.room_price || 0}/${isDaycare ? '日' : '晚'}) / ${data.temperament || ''}</span></td></tr>` : ''}
-                  <tr><td><span class="label">備註</span><span class="value">${data.note || '無'}</span></td></tr>
-                </table>
-
-                <div class="terms">
-                  ${data.legal_agree ? groomingTerms : ''}
-                  ${isBoarding ? '<hr style="border:0;border-top:1px dashed #DDD6CE;margin:12px 0;">' + boardingTerms : ''}
-                  ${showHighRisk ? highRiskTerms : ''}
-                  <p style="color:#203B2A; font-weight:bold; margin-top:10px;">本人已詳閱並同意以上所有內容。</p>
-                </div>
-
-                <h3>乙方 (店家資訊)</h3>
-                <div style="background:#FAF8F5; padding:16px; border-radius:12px; border:1px solid #DDD6CE; font-size:13px;">
-                  <table><tr><td style="font-weight:bold;color:#203B2A;">名稱</td><td>尾尾道來寵物俱樂部</td></tr>
-                      <tr><td style="font-weight:bold;color:#203B2A;">負責人</td><td>林莉淩</td></tr>
-                      <tr><td style="font-weight:bold;color:#203B2A;">電話</td><td>04-24223481</td></tr>
-                      <tr><td style="font-weight:bold;color:#203B2A;">地址</td><td>臺中市北屯區崇德十路一段88號</td></tr>
-                      <tr><td style="font-weight:bold;color:#203B2A;">許可證號</td><td>特寵業字第：S1140049號</td></tr>
-                      <tr><td style="font-weight:bold;color:#203B2A;">指定醫院</td><td>夏洛克動物醫院 (04 2426 1608)</td></tr>
                   </table>
                 </div>
 
-                <div class="sig-area">
-                  <div style="font-size:14px; font-weight:300; margin-bottom:12px; color:#203B2A;">甲方 (客戶) 簽署確認</div>
-                  <img src="${signatureUrl || ''}" />
-                  <div style="font-size:10px; color:#B5A89C; margin-top:8px;">簽署時間：${data.signature_time || new Date().toLocaleString('zh-TW')}</div>
+                <!-- 寵物資料 -->
+                <div class="section-card">
+                  <div class="section-title"><span class="icon">🐾</span> 寵物資料</div>
+                  <table>
+                    <tr><td><span class="label">名字</span><span class="value">${show(data.pet_name)}</span></td>
+                        <td><span class="label">品種</span><span class="value">${show(data.breed)}</span></td></tr>
+    <td><span class="label">毛色</span><span class="value">${show(data.fur_color)}</span></td></tr>
+<tr><td><span class="label">性別</span><span class="value">${show(data.sex)}</span></td>
+    <td><span class="label">結紮</span><span class="value">${show(data.fix)}</span></td></tr>
+<tr><td><span class="label">年齡</span><span class="value">${(() => {
+    // 如果有生日，從生日計算年齡並顯示出生日期
+    if (data.pet_birthday) {
+        const birthDate = new Date(data.pet_birthday);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        if (age >= 1) {
+            return age + ' 歲 (生日: ' + data.pet_birthday + ')';
+        } else {
+            const monthAge = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24 * 30.44));
+            return monthAge + ' 個月 (生日: ' + data.pet_birthday + ')';
+        }
+    }
+    // 沒有生日，直接顯示 age_value + age_type
+    return (data.age_value || '未填寫') + (data.age_type === 'year' ? ' 歲' : ' 個月');
+})()}</span></td>
+    <td><span class="label">體重</span><span class="value">${data.weight || ''} kg</span></td></tr>
+<tr><td colspan="2"><span class="label">晶片狀態</span><span class="value">${data.chip_status ? (data.chip_status === '無晶片' ? '❌ 無晶片' : (data.chip_status + (data.chip_id ? ' ('+data.chip_id+')' : ''))) : '未填寫'}</span></td></tr>
+<tr><td colspan="2"><span class="label">疫苗接種</span><span class="value">${parseVaccines(data.vaccines)}</span></td></tr>
+                    <tr><td colspan="2"><span class="label">驅蟲紀錄</span><span class="value">${data.deworming_monthly === '是' ? '✅ 每月定期驅蟲' : '❌ 未定期驅蟲'}</span></td></tr>
+                    <tr><td colspan="2"><span class="label">健檢日期</span><span class="value">${show(data.health_date)}</span></td></tr>
+                    <tr><td colspan="2"><span class="label">外觀檢查</span><span class="value">${arr(data.physical_check)}${data.physical_other ? ' ('+data.physical_other+')' : ''}</span></td></tr>
+                    <tr><td colspan="2"><span class="label">個性特質</span><span class="value">${arr(data.social_traits)}${data.personality_other ? ' ('+data.personality_other+')' : ''}</span></td></tr>
+                    <tr><td colspan="2"><span class="label">過往病史</span><span class="value">${data.medical_history === '有' ? '✅ 有病史 '+(data.medical_tags && data.medical_tags.length > 0 ? '('+arr(data.medical_tags)+')' : '')+(data.medical_other ? ' ('+data.medical_other+')' : '') : '❌ 無'}</span></td></tr>
+                    <tr><td colspan="2"><span class="label">其他健康資訊</span><span class="value">${data.has_experience === '有' ? '✅ 有美容/安親/住宿經驗' : '❌ 無經驗'} ${data.is_heat === '是' ? '｜⚠️ 發情期/生理期中' : ''} ${data.has_surgery === '有' ? '｜⚠️ 曾有手術' : ''}${data.has_surgery === '有' && data.surgery_detail ? ' ('+data.surgery_detail+')' : ''}</span></td></tr>
+                    <tr><td colspan="2"><span class="label">指定醫療院所</span><span class="value">${show(data.preferred_clinic_name)}${data.preferred_clinic_phone ? ' ('+data.preferred_clinic_phone+')' : ''}</span></td></tr>
+                    ${isBoarding ? `<tr><td colspan="2"><span class="label">${isDaycare ? '安親日期' : '入住日期'}</span><span class="value">${show(data.check_in_date || data.checkInDate)}</span></td></tr>
+                    <tr><td colspan="2"><span class="label">${isDaycare ? '接回時間' : '退房日期'}</span><span class="value">${show(data.check_out_date || data.checkOutDate)}</span></td></tr>` : ''}
+                    ${!isBoarding ? `<tr><td colspan="2"><span class="label">預計接回時間</span><span class="value">${show(data.pickup_time || data.check_out_date)}</span></td></tr>` : ''}
+                  </table>
                 </div>
+
+                <!-- 服務明細 -->
+                <div class="section-card">
+                  <div class="section-title"><span class="icon">🧾</span> 服務明細</div>
+                  <table>
+                    <tr><td colspan="2"><span class="label">服務項目</span>
+                        <div class="tag-group">
+                          ${(() => {
+                            if (isBoarding) {
+                              return `<span class="tag tag-primary">${serviceLabel}</span>`;
+                            } else {
+                              const tags = typeof data.service_tags === 'string' ? JSON.parse(data.service_tags || '[]') : (data.service_tags || []);
+                              return tags.length > 0 ? tags.map(t => `<span class="tag">${t}</span>`).join('') : '<span class="value" style="font-weight:300;">無</span>';
+                            }
+                          })()}
+                        </div>
+                    </td></tr>
+                  ${isBoarding ? `<tr><td colspan="2"><span class="label">${isDaycare ? '服務內容' : '房型'}</span><span class="value">${(() => {
+                        // 統一將 room_type 轉為字串再解析
+                        let raw = data.room_type || '';
+                        if (typeof raw === 'object' && !Array.isArray(raw)) {
+                          raw = JSON.stringify(raw);
+                        }
+                        if (Array.isArray(raw)) {
+                          raw = raw.join('、');
+                        }
+                        const str = String(raw);
+                        let roomNames = [];
+                        if (str) {
+                          // 檢查是否包含 "+ 家庭共宿"
+                          if (str.includes(' + 家庭共宿')) {
+                            const parts = str.split(' + ');
+                            const normalPart = parts[0] || '';
+                            roomNames = normalPart.split(/[、,，]\s*/).filter(n => n.trim() !== '');
+                            roomNames.push('家庭共宿');
+                          } else if (str.includes('、') || str.includes(',')) {
+                            roomNames = str.split(/[、,，]\s*/).filter(n => n.trim() !== '');
+                          } else if (str.startsWith('[') && str.endsWith(']')) {
+                            try {
+                              const parsed = JSON.parse(str);
+                              if (Array.isArray(parsed)) {
+                                roomNames = parsed.filter(n => n.trim() !== '');
+                              }
+                            } catch (_) {
+                              roomNames = [str];
+                            }
+                          } else {
+                            roomNames = [str];
+                          }
+                        }
+                        if (roomNames.length === 0 || (roomNames.length === 1 && roomNames[0] === '')) return '未選擇';
+                        if (isDaycare) {
+                          // 安親模式：顯示選擇的服務內容與對應價格
+                          const validRooms = roomNames.filter(name => name !== '安親評估');
+                          const hasAssessment = roomNames.includes('安親評估');
+                          const resultParts = [];
+                          validRooms.forEach(name => {
+                            const found = ROOM_RATES.daycare.find(r => r.name === name);
+                            if (found) {
+                              resultParts.push(`${name} $${found.price}/小時`);
+                            } else {
+                              resultParts.push(name);
+                            }
+                          });
+                          if (hasAssessment) {
+                            resultParts.push('安親評估 (酌收1小時費用)');
+                          }
+                          return resultParts.length > 0 ? resultParts.join('、') : '未選擇';
+                        } else {
+                          // 住宿模式：顯示房型與對應價格
+                          const normalRooms = roomNames.filter(name => name !== '家庭共宿');
+                          const hasFamilyRoom = roomNames.includes('家庭共宿');
+                          const priceParts = [];
+                          normalRooms.forEach(name => {
+                            const found = ROOM_RATES.dog.find(r => r.name === name);
+                            if (found) priceParts.push(`${name} $${found.price}/晚`);
+                          });
+                          if (hasFamilyRoom) {
+                            priceParts.push(`家庭共宿`);
+                          }
+                          return priceParts.length > 0 ? priceParts.join('、') : '未選擇';
+                        }
+                      })()}</span></td></tr>` : ''}
+                    <tr><td colspan="2"><span class="label">備註</span><span class="value">${(() => { const notes = []; if (data.note) notes.push(data.note); if (data.temperament) notes.push('性情: ' + data.temperament); return notes.length > 0 ? notes.join('；') : '無'; })()}</span></td></tr>
+                  </table>
+                </div>
+
+                <!-- 影像使用同意 -->
+                <div class="image-consent-box">
+                  <div class="icon">📸</div>
+                  <div class="content">
+                    <div class="title">📋 影像使用同意</div>
+                    <div class="status">
+                      甲方選擇：<span class="${data.image_consent === false ? 'disagree' : ''}">${getImageConsentDisplay(data.image_consent)}</span>
+                    </div>
+                    <div style="font-size:11px; color:#B5A89C; margin-top:4px;">
+                      ${data.image_consent === true ? '✅ 同意乙方於社群平台、官方網站或行銷素材中使用寵物照片與影片。' : '❌ 不同意公開使用，乙方僅將影像用於內部服務紀錄與照護回報。'}
+                    </div>
+                  </div>
+                </div>
+
+                <hr class="divider-dashed" />
+
+                <!-- 法律條款 -->
+                <div class="terms">
+                  ${groomingTerms}
+                  ${isBoarding ? '<hr class="divider">' + boardingTerms : ''}
+                  ${'<hr class="divider">' + highRiskBeautyTerms}
+                  ${isBoarding ? '<hr class="divider">' + highRiskBoardingTerms : ''}
+                  <p style="color:#203B2A; font-weight:bold; margin-top:18px; text-align:center; letter-spacing:0.1em;">本人已詳閱並同意以上所有內容。</p>
+                </div>
+
+                <!-- 店家資訊 -->
+                <div style="margin-top:20px;">
+                  <div class="section-title" style="font-size:16px; font-weight:300; letter-spacing:0.08em; color:#203B2A; margin-bottom:12px; border-bottom:2px solid #ede8e0; padding-bottom:8px;">🏪 乙方（店家資訊）</div>
+                  <div class="store-card">
+                    <table>
+                      <tr><td class="store-label">名稱</td><td>尾尾道來寵物俱樂部</td></tr>
+                      <tr><td class="store-label">負責人</td><td>林莉淩</td></tr>
+                      <tr><td class="store-label">電話</td><td>04-24223481</td></tr>
+                      <tr><td class="store-label">地址</td><td>臺中市北屯區崇德十路一段88號</td></tr>
+                      <tr><td class="store-label">許可證號</td><td>特寵業字第：S1140049號</td></tr>
+                      <tr><td class="store-label">指定醫院</td><td>夏洛克動物醫院 (04 2426 1608)</td></tr>
+                    </table>
+                  </div>
+                </div>
+
+                <!-- 簽名區域 -->
+                <div class="sig-area">
+                  <div class="sig-label">✍️ 甲方（客戶）簽署確認</div>
+                  <img src="${signatureUrl || ''}" alt="簽名" />
+                  <div class="sig-time">簽署時間：${data.signature_time || new Date().toLocaleString('zh-TW')}</div>
+                </div>
+
               </div>
               <div class="footer">© 2026 尾尾道來寵物俱樂部 · 臺中市北屯區崇德十路一段88號</div>
             </div>
@@ -1036,7 +1488,7 @@ const SuccessView = ({ data, onReset }) => {
                         <div className="absolute inset-0 rounded-full border-2 border-[#203B2A]/10 animate-ping" style={{ animationDuration: '2s' }}></div>
                         <Icon name={hasEmail ? "check" : "camera"} size={48} className="relative z-10 text-[#203B2A]" />
                     </div>
-                    <h2 className="text-2xl font-serif font-bold text-[#203B2A] mb-2 tracking-wide">預約成功！</h2>
+                    <h2 className="text-2xl font-serif font-bold text-[#203B2A] mb-2 tracking-wide">提交成功！</h2>
                     {hasEmail ? (
                         <p className="text-sm font-bold text-[#4A6B55]">
                             契約副本已寄至 <span className="text-[#203B2A] font-bold underline decoration-[#B8A088] decoration-2 underline-offset-4">{data.email}</span>
@@ -1074,7 +1526,6 @@ const App = () => {
     const [formData, setFormData] = useState({
         email: '',
         owner_name: '',
-        is_owner: '是',
         phone: '',
         owner_id: '',
         address: '',
@@ -1199,22 +1650,25 @@ const App = () => {
         return false;
     }, [formData.medical_history, formData.age_type, formData.age_value, formData.use_birthday, formData.pet_birthday]);
 
-    // 修正點 2：正確判斷 image_consent (允許 false 為有效)
+    // 判斷所有條款與同意項目
     const allTermsCompleted = useMemo(() => {
-        // 美容條款必須閱讀
+        // 1. 美容條款：所有服務模式都必須閱讀
         if (!termsRead.beauty) return false;
-        // 住宿或安親模式必須閱讀住宿條款
+        
+        // 2. 住宿/安親條款：住宿或安親模式必須閱讀
         if (serviceType !== 'grooming' && !termsRead.boarding) return false;
-        // 高風險條款：只有在 isHighRisk 為 true 時才需要閱讀
-        if (isHighRisk) {
-            if (!termsRead.highRiskBeauty) return false;
-            if (serviceType !== 'grooming' && !termsRead.highRiskBoarding) return false;
-        }
-        // 必須選擇「同意」或「不同意」，不能是 null 或 undefined
+        
+        // 3. 高風險美容條款：所有模式都必須閱讀（因為契約中永遠顯示）
+        if (!termsRead.highRiskBeauty) return false;
+        
+        // 4. 高風險住宿/安親條款：住宿或安親模式必須閱讀（因為契約中永遠顯示）
+        if (serviceType !== 'grooming' && !termsRead.highRiskBoarding) return false;
+        
+        // 5. 影像使用同意：所有模式都必須選擇
         if (formData.image_consent === null || formData.image_consent === undefined) return false;
-        // 簽名檢查移到 validate() 中處理，這裡不檢查簽名
+        
         return true;
-    }, [termsRead, serviceType, isHighRisk, formData.image_consent]);
+    }, [termsRead, serviceType, formData.image_consent]);
 
     const validationRules = {
         owner_name: { required: true, message: '請輸入飼主姓名' },
@@ -1271,79 +1725,103 @@ const App = () => {
         setFormData(prev => ({ ...prev, legal_agree: true }));
     };
 
-    const validate = () => {
-        const newErrors = {};
-        let hasError = false;
-        Object.keys(validationRules).forEach(key => {
-            const err = validateField(key, formData[key]);
-            if (err) { newErrors[key] = err;
-                hasError = true; }
-        });
-
-        if (serviceType === 'boarding') {
-            if (!formData.checkInDate) { newErrors.checkInDate = '請選擇入住日期';
-                hasError = true; }
-            if (!formData.checkOutDate) { newErrors.checkOutDate = '請選擇退房日期';
-                hasError = true; } else if (formData.checkInDate && new Date(formData.checkOutDate) < new Date(formData
-                    .checkInDate)) {
-                newErrors.checkOutDate = '退房日期不可早於入住日期';
-                hasError = true;
-            }
-            if (!formData.room_type || formData.room_type.length === 0) { newErrors.room_type = '請至少選擇一項房型';
-                hasError = true; }
+const validate = () => {
+    const newErrors = {};
+    let hasError = false;
+    
+    // 如果使用生日模式，跳過 age_value 和 age_type 的驗證
+    const isBirthdayMode = formData.use_birthday !== false && formData.pet_birthday && formData.pet_birthday.trim() !== '';
+    
+    Object.keys(validationRules).forEach(key => {
+        // 生日模式下跳過年齡相關欄位驗證
+        if (isBirthdayMode && (key === 'age_value' || key === 'age_type')) {
+            return;
         }
-
-        if (serviceType === 'daycare') {
-            if (!formData.daycare_date) { newErrors.daycare_date = '請選擇安親日期';
-                hasError = true; }
-            if (!formData.pickup_time) { newErrors.pickup_time = '請選擇預計接回時間';
-                hasError = true; }
-            if ((!formData.room_type || formData.room_type.length === 0) && !formData.isFamilyRoom) { 
-                newErrors.room_type = '請至少選擇一項服務內容';
-                hasError = true; 
-            }
+        // 非生日模式下，如果 age_type 已有值，則跳過其驗證（因為它是按鈕選擇，必填但不會為空）
+        if (key === 'age_type' && !isBirthdayMode) {
+            // age_type 預設為 'year'，不會為空，跳過驗證避免干擾
+            return;
         }
+        const err = validateField(key, formData[key]);
+        if (err) { newErrors[key] = err;
+            hasError = true; }
+    });
 
-        if (serviceType === 'grooming' && (!formData.service_tags || formData.service_tags.length === 0)) {
-            newErrors.service_tags = '請至少選擇一項美容服務';
+    // 非生日模式下驗證 age_value
+    if (!isBirthdayMode && !formData.age_value) {
+        newErrors.age_value = '請輸入年齡';
+        hasError = true;
+    }
+    // 非生日模式下驗證 age_type（但實際上已有預設值，此為安全檢查）
+    if (!isBirthdayMode && !formData.age_type) {
+        newErrors.age_type = '請選擇年齡單位';
+        hasError = true;
+    }
+
+    if (serviceType === 'boarding') {
+        if (!formData.checkInDate) { newErrors.checkInDate = '請選擇入住日期';
+            hasError = true; }
+        if (!formData.checkOutDate) { newErrors.checkOutDate = '請選擇退房日期';
+            hasError = true; } else if (formData.checkInDate && new Date(formData.checkOutDate) < new Date(formData
+                .checkInDate)) {
+            newErrors.checkOutDate = '退房日期不可早於入住日期';
             hasError = true;
         }
+        if (!formData.room_type || formData.room_type.length === 0) { newErrors.room_type = '請至少選擇一項房型';
+            hasError = true; }
+    }
 
-        // 簽名驗證：必須有簽名資料
-        if (!formData.signature) { 
-            newErrors.signature = '請完成數位簽名';
+    if (serviceType === 'daycare') {
+        if (!formData.daycare_date) { newErrors.daycare_date = '請選擇安親日期';
+            hasError = true; }
+        if (!formData.pickup_time) { newErrors.pickup_time = '請選擇預計接回時間';
+            hasError = true; }
+        if ((!formData.room_type || formData.room_type.length === 0) && !formData.isFamilyRoom) { 
+            newErrors.room_type = '請至少選擇一項服務內容';
             hasError = true; 
         }
+    }
 
-        // 額外驗證：確保簽名不是空字串或只有空白
-        if (formData.signature && formData.signature.trim() === '') {
-            newErrors.signature = '請完成數位簽名';
-            hasError = true;
-        }
+    if (serviceType === 'grooming' && (!formData.service_tags || formData.service_tags.length === 0)) {
+        newErrors.service_tags = '請至少選擇一項美容服務';
+        hasError = true;
+    }
 
-        setErrors(newErrors);
-        if (hasError) {
-            const keys = Object.keys(newErrors);
-            // 如果簽名有錯誤，優先滾動到簽名區塊
-            let targetKey = keys[0];
-            if (keys.includes('signature')) {
-                targetKey = 'signature';
-            }
-            const top = keys.slice(0, 3).map(k => newErrors[k]);
-            const msg = '請修正以下錯誤：\n' + top.join('\n') + (keys.length > 3 ? `\n\n還有 ${keys.length-3} 個欄位需要修正` :
-            '');
-            window.showToast(msg, 'error');
-            // 滾動到簽名區塊或第一個錯誤欄位
-            if (targetKey === 'signature') {
-                const sigEl = document.getElementById('signature');
-                if (sigEl) sigEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else {
-                const first = document.querySelector(`[name="${targetKey}"]`);
-                if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+    // 簽名驗證：必須有簽名資料
+    if (!formData.signature) { 
+        newErrors.signature = '請完成數位簽名';
+        hasError = true; 
+    }
+
+    // 額外驗證：確保簽名不是空字串或只有空白
+    if (formData.signature && formData.signature.trim() === '') {
+        newErrors.signature = '請完成數位簽名';
+        hasError = true;
+    }
+
+    setErrors(newErrors);
+    if (hasError) {
+        const keys = Object.keys(newErrors);
+        // 如果簽名有錯誤，優先滾動到簽名區塊
+        let targetKey = keys[0];
+        if (keys.includes('signature')) {
+            targetKey = 'signature';
         }
-        return !hasError;
-    };
+        const top = keys.slice(0, 3).map(k => newErrors[k]);
+        const msg = '請修正以下錯誤：\n' + top.join('\n') + (keys.length > 3 ? `\n\n還有 ${keys.length-3} 個欄位需要修正` :
+        '');
+        window.showToast(msg, 'error');
+        // 滾動到簽名區塊或第一個錯誤欄位
+        if (targetKey === 'signature') {
+            const sigEl = document.getElementById('signature');
+            if (sigEl) sigEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            const first = document.querySelector(`[name="${targetKey}"]`);
+            if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+    return !hasError;
+};
 
     const handleSearchHistory = async () => {
         const phone = formData.phone;
@@ -1505,35 +1983,33 @@ const App = () => {
     // 切換服務 Tab 到對應的服務類型
     setServiceType(recordServiceType);
     
-    setFormData(prev => ({
-        ...prev,
-        ...rest,
-        phone: formData.phone,
-        physical_check: safeParse(physical_check),
-        social_traits: safeParse(social_traits),
-        medical_tags: safeParse(medical_tags),
-        vaccines: parsedVaccines,
-        fur_color: fur_color || '',
-        // 根據紀錄的服務類型導入對應欄位
-        service_tags: recordServiceType === 'grooming' ? parsedServiceTags : [],
-        room_type: (recordServiceType === 'boarding' || recordServiceType === 'daycare') ? parsedRoomType : '',
-        room_price: (recordServiceType === 'boarding' || recordServiceType === 'daycare') ? parsedRoomPrice : 0,
-        checkInDate: recordServiceType === 'boarding' ? parsedCheckInDate : '',
-        checkOutDate: recordServiceType === 'boarding' ? parsedCheckOutDate : '',
-        daycare_date: recordServiceType === 'daycare' ? parsedDaycareDate : '',
-        pickup_time: recordServiceType === 'daycare' ? parsedPickupTime : '',
-        is_owner: (is_owner === '是' || is_owner === true) ? '是' : '否',
-        has_experience: normalizeHasExperience(has_experience),
-        is_heat: normalizeYesNo(is_heat),
-        has_surgery: normalizeYesNo(has_surgery),
-        surgery_detail: surgery_detail || '',
-        pet_birthday: pet_birthday || '',
-        use_birthday: pet_birthday ? true : false,
-        // 強制清除簽名相關欄位，避免舊簽名被導入
-        signature: null,
-        signature_time: '',
-        legal_agree: false,
-    }));
+setFormData(prev => ({
+    ...prev,
+    ...rest,
+    phone: formData.phone,
+    physical_check: safeParse(physical_check),
+    social_traits: safeParse(social_traits),
+    medical_tags: safeParse(medical_tags),
+    vaccines: parsedVaccines,
+    fur_color: fur_color || '',
+    service_tags: recordServiceType === 'grooming' ? parsedServiceTags : [],
+    room_type: (recordServiceType === 'boarding' || recordServiceType === 'daycare') ? parsedRoomType : '',
+    room_price: (recordServiceType === 'boarding' || recordServiceType === 'daycare') ? parsedRoomPrice : 0,
+    checkInDate: recordServiceType === 'boarding' ? parsedCheckInDate : '',
+    checkOutDate: recordServiceType === 'boarding' ? parsedCheckOutDate : '',
+    daycare_date: recordServiceType === 'daycare' ? parsedDaycareDate : '',
+    pickup_time: recordServiceType === 'daycare' ? parsedPickupTime : '',
+    has_experience: normalizeHasExperience(has_experience),
+    is_heat: normalizeYesNo(is_heat),
+    has_surgery: normalizeYesNo(has_surgery),
+    surgery_detail: surgery_detail || '',
+    pet_birthday: pet_birthday || '',
+    use_birthday: pet_birthday ? true : false,
+    signature: null,
+    signature_time: '',
+    legal_agree: false,
+    image_consent: null,
+}));
     setRealtimeSig(null);
     setShowHistoryModal(false);
     // 清除錯誤（因為切換 Tab 可能會產生新的錯誤狀態）
@@ -1635,57 +2111,56 @@ const App = () => {
                 signatureUrl = pubData.publicUrl;
             }
 
-            const payload = {
-                service_type: serviceType,
-                owner_name: formData.owner_name,
-                phone: formData.phone,
-                email: formData.email,
-                owner_id: formData.owner_id,
-                address: formData.address,
-                emergency_name: formData.emergency_name,
-                emergency_phone: formData.emergency_phone,
-                pet_name: formData.pet_name,
-                pet_type: 'dog',
-                breed: formData.breed,
-                fur_color: formData.fur_color,
-                weight: parseFloat(formData.weight) || 0,
-                age_type: formData.age_type,
-                age_value: formData.age_value,
-                pet_birthday: formData.pet_birthday || null,
-                sex: formData.sex,
-                fix: formData.fix,
-                chip_status: formData.chip_status,
-                chip_id: formData.chip_id,
-                health_date: formData.health_date || null,
-                vaccines: JSON.stringify(formData.vaccines),
-                deworming_monthly: formData.deworming_monthly,
-                physical_check: formData.physical_check,
-                physical_other: formData.physical_other,
-                social_traits: formData.social_traits,
-                personality_other: formData.personality_other,
-                medical_history: formData.medical_history,
-                medical_tags: formData.medical_tags,
-                medical_other: formData.medical_other,
-                has_experience: formData.has_experience,
-                is_heat: formData.is_heat,
-                has_surgery: formData.has_surgery,
-                surgery_detail: formData.surgery_detail,
-                preferred_clinic_name: formData.preferred_clinic_name,
-                preferred_clinic_phone: formData.preferred_clinic_phone,
-                check_in_date: serviceType === 'boarding' ? (formData.checkInDate || null) : (serviceType === 'daycare' ?
-                    (formData.daycare_date || null) : null),
-                check_out_date: serviceType === 'boarding' ? (formData.checkOutDate || null) : (serviceType === 'daycare' ?
-                    (formData.pickup_time || null) : null),
-                room_type: formData.isFamilyRoom ? (formData.room_type ? `${formData.room_type} + 家庭共宿` : '家庭共宿') : formData.room_type,
-                room_price: parseFloat(formData.room_price) || 0,
-                temperament: formData.temperament,
-                service_tags: JSON.stringify(formData.service_tags),
-                note: formData.note,
-                signature: signatureUrl,
-                signature_time: formData.signature_time,
-                legal_agree: formData.legal_agree,
-                status: 'pending'
-            };
+const payload = {
+    service_type: serviceType,
+    owner_name: formData.owner_name,
+    phone: formData.phone,
+    email: formData.email,
+    owner_id: formData.owner_id,
+    address: formData.address,
+    emergency_name: formData.emergency_name,
+    emergency_phone: formData.emergency_phone,
+    pet_name: formData.pet_name,
+    pet_type: 'dog',
+    breed: formData.breed,
+    fur_color: formData.fur_color,
+    weight: parseFloat(formData.weight) || 0,
+    age_type: formData.age_type,
+    age_value: formData.age_value,
+    pet_birthday: formData.pet_birthday || null,
+    sex: formData.sex,
+    fix: formData.fix,
+    chip_status: formData.chip_status,
+    chip_id: formData.chip_id,
+    health_date: formData.health_date || null,
+    vaccines: JSON.stringify(formData.vaccines),
+    deworming_monthly: formData.deworming_monthly,
+    physical_check: formData.physical_check,
+    physical_other: formData.physical_other,
+    social_traits: formData.social_traits,
+    personality_other: formData.personality_other,
+    medical_history: formData.medical_history,
+    medical_tags: formData.medical_tags,
+    medical_other: formData.medical_other,
+    has_experience: formData.has_experience,
+    is_heat: formData.is_heat,
+    has_surgery: formData.has_surgery,
+    surgery_detail: formData.surgery_detail,
+    preferred_clinic_name: formData.preferred_clinic_name,
+    preferred_clinic_phone: formData.preferred_clinic_phone,
+    check_in_date: serviceType === 'boarding' ? (formData.checkInDate || null) : (serviceType === 'daycare' ? (formData.daycare_date || null) : null),
+    check_out_date: serviceType === 'boarding' ? (formData.checkOutDate || null) : (serviceType === 'daycare' ? (formData.pickup_time || null) : null),
+    room_type: formData.isFamilyRoom ? (formData.room_type ? `${formData.room_type} + 家庭共宿` : '家庭共宿') : formData.room_type,
+    room_price: parseFloat(formData.room_price) || 0,
+    temperament: formData.temperament,
+    service_tags: JSON.stringify(formData.service_tags),
+    note: formData.note,
+    signature: signatureUrl,
+    signature_time: formData.signature_time,
+    legal_agree: formData.legal_agree,
+    image_consent: formData.image_consent,
+    status: 'pending'
+};
 
             const { error: dbErr } = await window.supabaseClient.from('bookings').insert([payload]);
             if (dbErr) throw dbErr;
@@ -1732,7 +2207,6 @@ const App = () => {
                     setFormData({
                         email: '',
                         owner_name: '',
-                        is_owner: '是',
                         phone: '',
                         owner_id: '',
                         address: '',
@@ -2943,7 +3417,7 @@ root.render(<App />);
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=15').then(reg => {
+                navigator.serviceWorker.register('/sw.js?v=16').then(reg => {
                     if (reg.waiting) showUpdateUI(reg.waiting);
                     reg.addEventListener('updatefound', () => {
                         const w = reg.installing;
