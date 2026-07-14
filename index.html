@@ -1566,7 +1566,17 @@ useEffect(() => {
                             { name: '標準房', price: 800, desc: '規格:長120*寬90*高100cm' },
                             { name: '商務房', price: 1000, desc: '規格:長130*寬90*高100cm' },
                             { name: '豪華房', price: 1300, desc: '規格:長150*寬180*高125cm' },
-                            { name: '家庭共宿', price: 0, desc: '小型犬 +$300 / 晚\n中型犬 +$500 / 晚\n大型犬 +$800 / 晚' }
+                            { 
+    name: '家庭共宿', 
+    price: 0, 
+    desc: (
+        <div className="text-[10px] text-[#B5A89C] mt-1 font-medium leading-relaxed space-y-0.5">
+            <div>小型犬 +$300 / 晚</div>
+            <div>中型犬 +$500 / 晚</div>
+            <div>大型犬 +$800 / 晚</div>
+        </div>
+    )
+}
                         ]
                     },
                     daycare: {
@@ -1737,16 +1747,16 @@ const [formData, setFormData] = useState({
             { name: '標準房', price: 800, desc: '規格:長120*寬90*高100cm' },
             { name: '商務房', price: 1000, desc: '規格:長130*寬90*高100cm' },
             { name: '豪華房', price: 1300, desc: '規格:長150*寬180*高125cm' },
-            { 
-                name: '家庭共宿', 
-                desc: (
-                    <div className="text-[10px] text-[#B5A89C] mt-1 font-medium leading-relaxed space-y-0.5">
-                        <div>小型犬 +$300 / 晚</div>
-                        <div>中型犬 +$500 / 晚</div>
-                        <div>大型犬 +$800 / 晚</div>
-                    </div>
-                )
-            }
+{ 
+    name: '家庭共宿', 
+    desc: (
+        <div className="text-[10px] text-[#B5A89C] mt-1 font-medium leading-relaxed space-y-0.5">
+            <div>小型犬 +$300 / 晚</div>
+            <div>中型犬 +$500 / 晚</div>
+            <div>大型犬 +$800 / 晚</div>
+        </div>
+    )
+}
         ],
         daycare: [
             { name: '小型犬', price: 100, desc: '' },
@@ -2966,7 +2976,15 @@ onReset={() => {
             {room.name !== '家庭共宿' && (
                 <div className="text-lg font-serif font-bold text-[#203B2A]">${room.price}<span className="text-xs font-sans font-normal text-[#B5A89C]">/晚</span></div>
             )}
-            <div className={`text-[10px] text-[#B5A89C] mt-1 font-medium ${room.name === '家庭共宿' ? 'mt-0' : ''}`}>{room.desc}</div>
+            <div className={`text-[10px] text-[#B5A89C] mt-1 font-medium ${room.name === '家庭共宿' ? 'mt-0' : ''}`}>
+    {typeof room.desc === 'string' && room.desc.includes('\n') ? (
+        room.desc.split('\n').map((line, idx) => (
+            <div key={idx}>{line}</div>
+        ))
+    ) : (
+        room.desc
+    )}
+</div>
         </div>
     );
 })}
@@ -3648,7 +3666,7 @@ if ('serviceWorker' in navigator) {
             }
         }).catch(() => {
             // 如果 getRegistration 失敗，直接註冊
-            navigator.serviceWorker.register('/sw.js?v=18').then(reg => {
+            navigator.serviceWorker.register('/sw.js?v=19').then(reg => {
                 if (reg.waiting) {
                     showUpdateUIWithDebounce(reg.waiting);
                 }
