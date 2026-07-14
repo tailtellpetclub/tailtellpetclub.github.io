@@ -2153,10 +2153,11 @@ const customers = useMemo(() => {
         };
 
         // --- Admin Service Worker 註冊 ---
+        const ADMIN_SW_VERSION = '20260714-v3';
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         // 檢查是否已有 admin-sw.js 的註冊
-        navigator.serviceWorker.getRegistration('/admin-sw.js?v=1').then(reg => {
+        navigator.serviceWorker.getRegistration(`/admin-sw.js?v=${ADMIN_SW_VERSION}`).then(reg => {
             if (reg) {
                 console.log('[Admin] Service Worker 已註冊');
                 // 檢查是否有 waiting 的 worker
@@ -2167,7 +2168,7 @@ if ('serviceWorker' in navigator) {
                 return reg;
             }
             // 沒有註冊，進行註冊
-            return navigator.serviceWorker.register('/admin-sw.js?v=20260714-v3', { scope: '/' })
+            return navigator.serviceWorker.register(`/admin-sw.js?v=${ADMIN_SW_VERSION}`, { scope: '/' })
                 .then(registration => {
                     console.log('[Admin] Service Worker 註冊成功:', registration);
                     // 監聽更新
@@ -2190,7 +2191,7 @@ if ('serviceWorker' in navigator) {
                 });
         }).catch(() => {
             // 如果 getRegistration 失敗，直接註冊
-            navigator.serviceWorker.register('/admin-sw.js?v=20260714-v3', { scope: '/' })
+            navigator.serviceWorker.register(`/admin-sw.js?v=${ADMIN_SW_VERSION}`, { scope: '/' })
                 .then(reg => console.log('[Admin] Service Worker 註冊成功:', reg))
                 .catch(err => console.warn('[Admin] Service Worker 註冊失敗:', err));
         });

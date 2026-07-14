@@ -3615,7 +3615,7 @@ if ('serviceWorker' in navigator) {
                 });
             } else {
                 // 沒有註冊，執行註冊
-                navigator.serviceWorker.register('/sw.js?v=18').then(newReg => {
+                navigator.serviceWorker.register(`/sw.js?v=${ADMIN_SW_VERSION}`).then(newReg => {
                     if (newReg.waiting) {
                         showUpdateUIWithDebounce(newReg.waiting);
                     }
