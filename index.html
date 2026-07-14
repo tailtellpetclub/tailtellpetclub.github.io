@@ -585,10 +585,35 @@ const HistoryModal = ({ records, onClose, onSelect }) => {
     const [selectedPet, setSelectedPet] = useState(null);
     const [petRecords, setPetRecords] = useState([]);
 
-    // 當點擊毛孩時，過濾出該毛孩的所有紀錄
+    // 當點擊毛孩時，過濾出該毛孩的所有紀錄，並按服務類型分組去重
     const handlePetSelect = (petName) => {
         const filtered = records.filter(r => r.pet_name === petName);
-        setPetRecords(filtered);
+        // 按服務類型去重，保留最新的紀錄
+        const groupedByService = {};
+        filtered.forEach(rec => {
+            // 確保 service_type 有效，如果無效則預設為 'grooming'
+            const key = rec.service_type || 'grooming';
+            // 如果該服務類型尚未存在，或當前記錄比已存在的記錄更新，則替換
+            if (!groupedByService[key]) {
+                groupedByService[key] = rec;
+            } else {
+                const existingDate = new Date(groupedByService[key].created_at);
+                const currentDate = new Date(rec.created_at);
+                if (currentDate > existingDate) {
+                    groupedByService[key] = rec;
+                }
+            }
+        });
+        // 將分組後的記錄轉為陣列，並按服務類型排序（確保顯示順序一致）
+        const result = Object.values(groupedByService);
+        // 按服務類型排序：美容 -> 住宿 -> 安親
+        const sortOrder = { grooming: 0, boarding: 1, daycare: 2 };
+        result.sort((a, b) => {
+            const orderA = sortOrder[a.service_type || 'grooming'] ?? 3;
+            const orderB = sortOrder[b.service_type || 'grooming'] ?? 3;
+            return orderA - orderB;
+        });
+        setPetRecords(result);
         setSelectedPet(petName);
     };
 
@@ -600,9 +625,9 @@ const HistoryModal = ({ records, onClose, onSelect }) => {
 
     // 獲取服務類型標籤
     const getServiceLabel = (type) => {
-        if (type === 'boarding') return '住宿';
-        if (type === 'daycare') return '安親';
-        return '美容';
+        if (type === 'boarding') return '🏠 住宿';
+        if (type === 'daycare') return '☀️ 安親';
+        return '✂️ 美容';
     };
 
     // 獲取服務類型圖示
@@ -610,6 +635,13 @@ const HistoryModal = ({ records, onClose, onSelect }) => {
         if (type === 'boarding') return '🏠';
         if (type === 'daycare') return '☀️';
         return '✂️';
+    };
+
+    // 獲取服務類型顏色
+    const getServiceColor = (type) => {
+        if (type === 'boarding') return 'border-[#4A6B55] bg-[#4A6B55]/10';
+        if (type === 'daycare') return 'border-[#B8A088] bg-[#B8A088]/10';
+        return 'border-[#203B2A] bg-[#203B2A]/10';
     };
 
     // 獲取唯一的毛孩列表 (每個毛孩只顯示一次)
@@ -630,7 +662,7 @@ const HistoryModal = ({ records, onClose, onSelect }) => {
                 <div className="bg-[#203B2A] p-6 text-white text-center">
                     <h3 className="text-lg font-bold">🐾 歡迎回來！</h3>
                     <p className="text-sm opacity-80 mt-1">
-                        {selectedPet ? `選擇 ${selectedPet} 的紀錄` : '請選擇要帶入的毛孩：'}
+                        {selectedPet ? `選擇 ${selectedPet} 的服務紀錄` : '請選擇要帶入的毛孩：'}
                     </p>
                 </div>
 
@@ -650,6 +682,15 @@ const HistoryModal = ({ records, onClose, onSelect }) => {
                                 if (hasGrooming) serviceTags.push('美容');
                                 if (hasBoarding) serviceTags.push('住宿');
                                 if (hasDaycare) serviceTags.push('安親');
+                                // 獲取最近一次服務日期
+                                let lastDate = '無紀錄';
+                                const sorted = [...petRecords].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                                if (sorted.length > 0 && sorted[0].created_at) {
+                                    try {
+                                        const d = new Date(sorted[0].created_at);
+                                        if (!isNaN(d.getTime())) lastDate = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+                                    } catch (_) {}
+                                }
                                 return (
                                     <button
                                         key={record.id || petName}
@@ -665,6 +706,7 @@ const HistoryModal = ({ records, onClose, onSelect }) => {
                                                 {serviceTags.map(tag => (
                                                     <span key={tag} className="bg-[#EDE8E0] px-2 py-0.5 rounded-full text-[10px]">{tag}</span>
                                                 ))}
+                                                <span className="text-[#B5A89C] ml-1">· 最近 {lastDate}</span>
                                             </div>
                                         </div>
                                         <div className="text-[#203B2A] opacity-0 group-hover:opacity-100 transition-opacity">
@@ -704,16 +746,60 @@ const HistoryModal = ({ records, onClose, onSelect }) => {
                     ) : (
                         // 第二層：服務類型選擇
                         <>
+                            <div className="text-xs text-[#B5A89C] text-center mb-2">選擇要帶入的服務類型資料：</div>
                             {petRecords.map((record, idx) => {
-                                const serviceType = record.service_type;
+                                const serviceType = record.service_type || 'grooming';
                                 const label = getServiceLabel(serviceType);
                                 const icon = getServiceIcon(serviceType);
+                                const color = getServiceColor(serviceType);
                                 let dateStr = '無日期紀錄';
                                 if (record.created_at) {
                                     try {
                                         const d = new Date(record.created_at);
                                         if (!isNaN(d.getTime())) dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
                                     } catch (_) {}
+                                }
+                                // 顯示該服務的額外資訊
+                                let extraInfo = '';
+                                if (serviceType === 'boarding' && record.room_type) {
+                                    // 房型可能是陣列或字串，統一處理
+                                    let roomDisplay = record.room_type;
+                                    try {
+                                        if (typeof roomDisplay === 'string' && roomDisplay.startsWith('[')) {
+                                            const parsed = JSON.parse(roomDisplay);
+                                            if (Array.isArray(parsed)) {
+                                                roomDisplay = parsed.join('、');
+                                            }
+                                        } else if (Array.isArray(roomDisplay)) {
+                                            roomDisplay = roomDisplay.join('、');
+                                        }
+                                    } catch (_) {}
+                                    extraInfo = `房型: ${roomDisplay}`;
+                                } else if (serviceType === 'grooming' && record.service_tags) {
+                                    try {
+                                        const tags = typeof record.service_tags === 'string' ? JSON.parse(record.service_tags) : record.service_tags;
+                                        if (Array.isArray(tags) && tags.length > 0) {
+                                            // 過濾掉分類標題
+                                            const filteredTags = tags.filter(t => !['基礎服務', '加購與升級', '其他項目'].includes(t));
+                                            if (filteredTags.length > 0) {
+                                                extraInfo = `服務: ${filteredTags.slice(0, 3).join('、')}${filteredTags.length > 3 ? '...' : ''}`;
+                                            }
+                                        }
+                                    } catch (_) {}
+                                } else if (serviceType === 'daycare' && record.room_type) {
+                                    // 安親的 room_type 可能是陣列，解析後顯示
+                                    let roomDisplay = record.room_type;
+                                    try {
+                                        if (typeof roomDisplay === 'string' && roomDisplay.startsWith('[')) {
+                                            const parsed = JSON.parse(roomDisplay);
+                                            if (Array.isArray(parsed)) {
+                                                roomDisplay = parsed.join('、');
+                                            }
+                                        } else if (Array.isArray(roomDisplay)) {
+                                            roomDisplay = roomDisplay.join('、');
+                                        }
+                                    } catch (_) {}
+                                    extraInfo = `服務: ${roomDisplay}`;
                                 }
                                 return (
                                     <button
@@ -722,14 +808,17 @@ const HistoryModal = ({ records, onClose, onSelect }) => {
                                             onSelect(record);
                                             onClose();
                                         }}
-                                        className="w-full bg-white p-4 rounded-2xl border border-[#DDD6CE] shadow-sm hover:border-[#B8A088] hover:shadow-md transition-all text-left flex items-center gap-4 group"
+                                        className={`w-full bg-white p-4 rounded-2xl border-2 shadow-sm hover:shadow-md transition-all text-left flex items-center gap-4 group ${color}`}
                                     >
                                         <div className="w-10 h-10 rounded-full bg-[#203B2A]/10 flex items-center justify-center text-lg">
                                             {icon}
                                         </div>
                                         <div className="flex-1">
-                                            <div className="font-bold text-[#203B2A] text-base">帶入【{label}】資料</div>
-                                            <div className="text-xs text-[#B5A89C]">上次：{dateStr}</div>
+                                            <div className="font-bold text-[#203B2A] text-base">{label}</div>
+                                            <div className="text-xs text-[#B5A89C]">
+                                                {dateStr}
+                                                {extraInfo && <span className="ml-2 text-[#4A6B55]">· {extraInfo}</span>}
+                                            </div>
                                         </div>
                                         <div className="text-[#203B2A] opacity-0 group-hover:opacity-100 transition-opacity">
                                             <Icon name="arrow-right" size={20} />
@@ -1265,20 +1354,27 @@ const App = () => {
                 .order('created_at', { ascending: false });
             if (error) throw error;
             if (!data || data.length === 0) { window.showToast('🔍 查無此電話的過往紀錄', 'error'); } else {
+                // 保留所有紀錄，不要只保留一筆
+                // 但為了顯示毛孩列表，我們先按毛孩名稱分組，保留每個毛孩的最近一筆紀錄用於列表顯示
+                // 實際的紀錄會在 HistoryModal 中按服務類型分組
                 const unique = new Map();
                 data.forEach(rec => {
                     if (!rec.pet_name) return;
                     const name = rec.pet_name;
-                    if (!unique.has(name)) { unique.set(name, rec); } else {
+                    // 只保留每個毛孩的最新一筆紀錄用於列表顯示（但不丟棄其他紀錄）
+                    if (!unique.has(name)) {
+                        unique.set(name, rec);
+                    } else {
                         const existing = unique.get(name);
-                        const existingBoarding = existing.service_type === 'boarding';
-                        const isBoarding = rec.service_type === 'boarding';
-                        if (serviceType !== 'grooming' && !existingBoarding && isBoarding) {
+                        const existingDate = new Date(existing.created_at);
+                        const currentDate = new Date(rec.created_at);
+                        if (currentDate > existingDate) {
                             unique.set(name, rec);
                         }
                     }
                 });
-                setHistoryRecords(Array.from(unique.values()));
+                // 將所有原始資料傳遞給 HistoryModal，讓它自己過濾和分組
+                setHistoryRecords(data);
                 setShowHistoryModal(true);
             }
         } catch (err) { console.error(err);
@@ -1298,9 +1394,13 @@ const App = () => {
     // 明確排除簽名相關欄位，避免舊簽名被導入
     const { check_in_date, check_out_date, room_type, room_price, service_tags, is_owner, physical_check,
         social_traits, medical_tags, vaccines, has_experience, is_heat, has_surgery, surgery_detail, pet_birthday, fur_color, signature, signature_time, ...rest } = record;
+    
+    // 獲取該筆紀錄的服務類型，用於切換 Tab
+    const recordServiceType = record.service_type || 'grooming';
+    
+    // 解析服務項目（僅美容模式導入）
     let parsedServiceTags = [];
-    // 只有當當前服務類型不是美容時，才導入 service_tags
-    if (serviceType !== 'grooming' && service_tags) {
+    if (recordServiceType === 'grooming' && service_tags) {
         try {
             parsedServiceTags = typeof service_tags === 'string' 
                 ? JSON.parse(service_tags) 
@@ -1315,6 +1415,66 @@ const App = () => {
             parsedServiceTags = [];
         }
     }
+    
+    // 解析住宿房型（住宿模式）
+    let parsedRoomType = '';
+    let parsedRoomPrice = 0;
+    let parsedCheckInDate = '';
+    let parsedCheckOutDate = '';
+    // 解析安親內容（安親模式）
+    let parsedDaycareDate = '';
+    let parsedPickupTime = '';
+    
+    if (recordServiceType === 'boarding') {
+        // 房型解析
+        if (room_type) {
+            try {
+                if (typeof room_type === 'string' && room_type.startsWith('[')) {
+                    const parsed = JSON.parse(room_type);
+                    if (Array.isArray(parsed)) {
+                        parsedRoomType = parsed.join('、');
+                    } else {
+                        parsedRoomType = room_type;
+                    }
+                } else if (Array.isArray(room_type)) {
+                    parsedRoomType = room_type.join('、');
+                } else {
+                    parsedRoomType = room_type;
+                }
+            } catch (_) {
+                parsedRoomType = room_type;
+            }
+        }
+        parsedRoomPrice = room_price || 0;
+        parsedCheckInDate = check_in_date || '';
+        parsedCheckOutDate = check_out_date || '';
+    }
+    
+    if (recordServiceType === 'daycare') {
+        // 安親 room_type 解析
+        if (room_type) {
+            try {
+                if (typeof room_type === 'string' && room_type.startsWith('[')) {
+                    const parsed = JSON.parse(room_type);
+                    if (Array.isArray(parsed)) {
+                        parsedRoomType = parsed.join('、');
+                    } else {
+                        parsedRoomType = room_type;
+                    }
+                } else if (Array.isArray(room_type)) {
+                    parsedRoomType = room_type.join('、');
+                } else {
+                    parsedRoomType = room_type;
+                }
+            } catch (_) {
+                parsedRoomType = room_type;
+            }
+        }
+        parsedRoomPrice = room_price || 0;
+        parsedDaycareDate = check_in_date || '';
+        parsedPickupTime = check_out_date || '';
+    }
+    
     // has_experience 使用 "有"/"無"
     const normalizeHasExperience = (val) => {
         if (val === true || val === 'true' || val === 1 || val === '1' || val === '有') return '有';
@@ -1341,6 +1501,10 @@ const App = () => {
             parsedVaccines = [];
         }
     }
+    
+    // 切換服務 Tab 到對應的服務類型
+    setServiceType(recordServiceType);
+    
     setFormData(prev => ({
         ...prev,
         ...rest,
@@ -1350,15 +1514,15 @@ const App = () => {
         medical_tags: safeParse(medical_tags),
         vaccines: parsedVaccines,
         fur_color: fur_color || '',
-        checkInDate: '',
-        checkOutDate: '',
-        room_type: room_type || '',
-        room_price: room_price || 0,
-        daycare_date: '',
-        pickup_time: '',
+        // 根據紀錄的服務類型導入對應欄位
+        service_tags: recordServiceType === 'grooming' ? parsedServiceTags : [],
+        room_type: (recordServiceType === 'boarding' || recordServiceType === 'daycare') ? parsedRoomType : '',
+        room_price: (recordServiceType === 'boarding' || recordServiceType === 'daycare') ? parsedRoomPrice : 0,
+        checkInDate: recordServiceType === 'boarding' ? parsedCheckInDate : '',
+        checkOutDate: recordServiceType === 'boarding' ? parsedCheckOutDate : '',
+        daycare_date: recordServiceType === 'daycare' ? parsedDaycareDate : '',
+        pickup_time: recordServiceType === 'daycare' ? parsedPickupTime : '',
         is_owner: (is_owner === '是' || is_owner === true) ? '是' : '否',
-        // 美容服務不導入 service_tags，保留使用者手動選擇
-        service_tags: serviceType === 'grooming' ? [] : parsedServiceTags,
         has_experience: normalizeHasExperience(has_experience),
         is_heat: normalizeYesNo(is_heat),
         has_surgery: normalizeYesNo(has_surgery),
@@ -1372,15 +1536,11 @@ const App = () => {
     }));
     setRealtimeSig(null);
     setShowHistoryModal(false);
+    // 清除錯誤（因為切換 Tab 可能會產生新的錯誤狀態）
+    setErrors({});
+    
     // 顯示載入摘要
-    let summary = [];
-    if (serviceType !== 'grooming' && parsedServiceTags.length > 0) summary.push(`服務: ${parsedServiceTags.join('、')}`);
-    if (fur_color) summary.push(`毛色: ${fur_color}`);
-    if (parsedVaccines.length > 0) summary.push(`疫苗: ${parsedVaccines.join('、')}`);
-    if (has_surgery) summary.push(`手術: ${has_surgery}`);
-    if (summary.length > 0) {
-        window.showToast(`✅ 已載入 ${record.pet_name} 的歷史資料`, 'success');
-    }
+    window.showToast(`✅ 已載入 ${record.pet_name} 的歷史資料`, 'success');
 };
 
     // 修正點 5：更穩定的 canvas 初始化
@@ -1936,24 +2096,6 @@ const App = () => {
                         </div>
                         {errors.social_traits && <div className="text-xs text-red-400 font-bold mt-1">{errors.social_traits}</div>}
                     </div>
-
-                    {(serviceType === 'boarding' || serviceType === 'daycare') && (
-                        <div className="space-y-3 pt-2 border-t border-[#DDD6CE]">
-                            <label className="text-xs font-bold text-[#4A6B55] ml-1">放風模式 *</label>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div onClick={() => { handleChange('temperament', '共同放風'); clearError('temperament'); }}
-                                    className={`radio-card p-4 rounded-xl cursor-pointer flex items-center justify-between group ${formData.temperament === '共同放風' ? 'selected' : ''}`}>
-                                    <div><div className="font-bold text-sm text-[#203B2A]">共同放風</div><div className="text-[10px] text-[#B5A89C] mt-1">無攻擊性、無傳染疾病，可與其他夥伴相處</div></div>
-                                    {formData.temperament === '共同放風' && <Icon name="check-circle" className="text-[#203B2A]" size={18} />}
-                                </div>
-                                <div onClick={() => { handleChange('temperament', '獨立放風'); clearError('temperament'); }}
-                                    className={`radio-card p-4 rounded-xl cursor-pointer flex items-center justify-between group ${formData.temperament === '獨立放風' ? 'selected' : ''}`}>
-                                    <div><div className="font-bold text-sm text-[#203B2A]">獨立放風</div><div className="text-[10px] text-[#B5A89C] mt-1">由店家安排特定時間單獨活動</div></div>
-                                    {formData.temperament === '獨立放風' && <Icon name="check-circle" className="text-[#203B2A]" size={18} />}
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-[#4A6B55] ml-1">晶片狀態</label>
@@ -2801,7 +2943,7 @@ root.render(<App />);
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=14').then(reg => {
+                navigator.serviceWorker.register('/sw.js?v=15').then(reg => {
                     if (reg.waiting) showUpdateUI(reg.waiting);
                     reg.addEventListener('updatefound', () => {
                         const w = reg.installing;
