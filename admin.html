@@ -1,0 +1,2413 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 只在 HTTPS 或 localhost 環境載入 manifest -->
+<script>
+    if (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        document.write('<link rel="manifest" href="manifest-admin.json">');
+    }
+</script>
+    <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="尾尾道來 Admin">
+    <link rel="apple-touch-icon" href="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo.jpg">
+    <link rel="icon" type="image/png" href="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo.jpg">
+    <meta name="theme-color" content="#203B2A">
+    <title>尾尾道來寵物俱樂部 · 後台管理</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        * {
+            font-family: 'Noto Serif TC', serif !important;
+        }
+        body {
+            font-weight: 200 !important;
+            background-color: #FAF8F5;
+            color: #203B2A;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+        }
+        h1, h2, h3, h4, h5, h6, .font-bold, .font-semibold, .font-black {
+            font-weight: 300 !important;
+            letter-spacing: 0.05em;
+        }
+        
+        :root {
+            --brand-primary: #203B2A;
+            --brand-secondary: #4A6B55;
+            --brand-accent: #5A7F68;
+            --brand-dark: #162B1F;
+            --brand-light: #FAF8F5;
+            --brand-gold: #B8A088;
+            --brand-warm: #EDE8E0;
+            --brand-muted: #8AA69B;
+            --brand-red: #DBA58B;
+        }
+        
+        .bg-brand {
+            background-color: var(--brand-primary);
+        }
+        .bg-brand-light {
+            background-color: var(--brand-light);
+        }
+        .bg-brand-warm {
+            background-color: var(--brand-warm);
+        }
+        .text-brand {
+            color: var(--brand-primary);
+        }
+        .text-brand-dark {
+            color: var(--brand-dark);
+        }
+        .border-brand {
+            border-color: var(--brand-primary);
+        }
+        .bg-brand-red {
+            background-color: var(--brand-red);
+        }
+        .text-brand-red {
+            color: var(--brand-red);
+        }
+        .border-brand-red {
+            border-color: var(--brand-red);
+        }
+
+        .glass-card {
+            background: rgba(255, 252, 248, 0.78);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 252, 248, 0.5);
+            box-shadow: 0 4px 16px rgba(32, 59, 42, 0.08);
+            border-radius: 2rem;
+        }
+
+        .cute-card {
+            background: #FFFDF9;
+            border: 2px solid #EDE8E0;
+            border-radius: 1.5rem;
+            box-shadow: 0 2px 8px rgba(32, 59, 42, 0.04);
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .cute-card:hover { 
+            transform: translateY(-2px); 
+            border-color: #B8A088;
+            box-shadow: 0 8px 24px rgba(32, 59, 42, 0.08);
+        }
+
+        .status-badge { 
+            padding: 4px 14px; 
+            border-radius: 20px; 
+            font-size: 11px; 
+            font-weight: 300;
+            letter-spacing: 0.04em;
+        }
+        .status-pending { background: #FDF6F0; color: #B8A088; border: 1px solid #B8A088/30; }
+        .status-confirmed { background: #E8F0EC; color: #4A6B55; border: 1px solid #4A6B55/30; }
+        .status-completed { background: #EDE8E0; color: #8AA69B; border: 1px solid #EDE8E0; }
+        .status-cancelled { background: #FDF6F3; color: #DBA58B; border: 1px solid #DBA58B/30; }
+        
+        .admin-input {
+            width: 100%;
+            background: rgba(255, 252, 248, 0.6);
+            border: 1px solid #E0D8D0;
+            border-radius: 1rem;
+            padding: 0.6rem 1rem;
+            font-size: 14px;
+            color: #203B2A;
+            font-weight: 200;
+            transition: all 0.3s ease;
+        }
+        .admin-input:focus { 
+            outline: none; 
+            border-color: #203B2A;
+            box-shadow: 0 0 0 4px rgba(32, 59, 42, 0.06);
+            background: #ffffff;
+        }
+        
+        .service-tab {
+            padding: 0.6rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            border-bottom: 3px solid transparent;
+            opacity: 0.5;
+            font-size: 0.9rem;
+            font-weight: 200;
+            letter-spacing: 0.08em;
+            background: transparent;
+            color: #203B2A;
+            position: relative;
+        }
+        .service-tab::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: #203B2A;
+            border-radius: 4px;
+            transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .service-tab:hover { opacity: 0.8; }
+        .service-tab:hover::after { width: 40%; }
+        .service-tab.active {
+            color: #203B2A;
+            opacity: 1;
+            font-weight: 300;
+        }
+        .service-tab.active::after { width: 60%; }
+        
+        .logo-text {
+            font-family: 'Noto Serif TC', serif;
+            font-weight: 200;
+            letter-spacing: 0.2em;
+            color: #162B1F;
+            line-height: 1.2;
+        }
+        .logo-text-sub {
+            font-family: 'Noto Serif TC', serif;
+            font-weight: 200;
+            letter-spacing: 0.3em;
+            color: #203B2A;
+            font-size: 0.6rem;
+        }
+        
+        .fullscreen-signature {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .animate-float {
+            animation: float 12s infinite ease-in-out;
+        }
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(0, 16px); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up {
+            animation: slideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(100%); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom, 1rem);
+        }
+        .safe-area-top {
+            padding-top: env(safe-area-inset-top, 0.5rem);
+        }
+        
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.2;
+        }
+        
+        .section-title {
+            position: relative;
+            padding-bottom: 0.85rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #E8E0D8;
+            letter-spacing: 0.04em;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 3.5rem;
+            height: 2.5px;
+            background: linear-gradient(90deg, #203B2A, #B8A088);
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+        .section-title:hover::after {
+            width: 5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-orb w-96 h-96 top-[-10%] left-[-10%] animate-float" style="background:#D4C9BE;"></div>
+    <div class="bg-orb w-80 h-80 bottom-[-10%] right-[-10%]" style="background:#C4B8AA;"></div>
+    
+    <div id="root"></div>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            DEFAULT: '#203B2A',
+                            light: '#FAF8F5',
+                            dark: '#162B1F',
+                            gold: '#B8A088',
+                            warm: '#EDE8E0',
+                            muted: '#8AA69B',
+                            red: '#DBA58B',
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Noto Serif TC"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script type="text/babel" data-type="module">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        // --- TTPC Supabase Config ---
+        const supabaseUrl = 'https://fcsmbnhnknwzdffcogwm.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjc21ibmhua253emRmZmNvZ3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMzgwNTYsImV4cCI6MjA5NzYxNDA1Nn0.0E8x03Im9GWTZjQGzgQF5qhVkTW3sFRZ-Jm_ihUybLM';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // TTPC 帳號
+        const ADMIN_EMAIL = "wearegoodbones@gmail.com";
+        const STAFF_EMAIL = "wearegoodbones@staff.com";
+
+        const Icon = ({ name, size = 18, className = "" }) => {
+            const iconRef = useRef(null);
+            useEffect(() => {
+                if (window.lucide && iconRef.current) {
+                    window.lucide.createIcons({ root: iconRef.current, attrs: { "stroke-width": 2, class: className } });
+                }
+            }, [name, className]);
+            return <span ref={iconRef} key={name} className="inline-flex items-center justify-center"><i data-lucide={name} style={{ width: size, height: size }}></i></span>;
+        };
+
+        // --- 翻譯與格式化工具 ---
+        const T = (key) => {
+            if (key === true || key === 'true') return '是';
+            if (key === false || key === 'false') return '否';
+            if (!key) return '-';
+            
+            const map = {
+                'basic': '小美容', 'full': '大美容',
+                'dog': '狗狗', 'cat': '貓咪',
+                'grooming': '美容', 'boarding': '住宿', 'daycare': '安親',
+                'local_style': '局部修飾', 'special_style': '特殊造型', 'scissor_cut': '全身手剪',
+                'local_degrease': '局部去油', 'full_degrease': '全身去油',
+                'spa_dental': '口腔凝膠', 'spa_oil': '潔膚油', 'spa_ear': '日本採耳',
+                'spa_carbon': '碳酸浴', 'spa_bath': '舒敏浴', 'spa_nano': '奈米浴',
+                'spa_salt': '海鹽浴', 'spa_mud_exfoliate': '去角質泥', 'spa_bubble': '泡泡浴', 'spa_volcano': '火山泥',
+                'spa_ceramide_local': '局部保濕', 'spa_ceramide_full': '全身保濕',
+                'other': '其他項目'
+            };
+            return map[key] || key;
+        };
+
+        // --- 權限驗證 Modal ---
+        const SecurityModal = ({ isOpen, onClose, onConfirm, title = "敏感操作驗證" }) => {
+            const [pwd, setPwd] = useState("");
+            const [verifying, setVerifying] = useState(false);
+
+            if (!isOpen) return null;
+
+            const handleVerify = async () => {
+                setVerifying(true);
+                try {
+                    const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+                    if (userError || !currentUser) {
+                        throw new Error("驗證失敗：登入資訊已過期，請重新整理頁面。");
+                    }
+                    const { error: loginError } = await supabase.auth.signInWithPassword({
+                        email: currentUser.email,
+                        password: pwd,
+                    });
+                    if (loginError) throw new Error("密碼錯誤，驗證失敗");
+                    onConfirm();
+                    setPwd("");
+                    onClose();
+                } catch (err) {
+                    alert(err.message);
+                } finally {
+                    setVerifying(false);
+                }
+            };
+
+            return (
+                <div className="fixed inset-0 z-[100] bg-[#203B2A]/50 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl animate-fade-in">
+                        <h3 className="font-bold text-lg text-center mb-1 text-[#203B2A]">{title}</h3>
+                        <p className="text-[10px] text-[#B5A89C] text-center mb-4 font-bold">請輸入您的密碼以確認變更</p>
+                        <input type="password" autoFocus placeholder="您的帳戶密碼" 
+                            className="w-full border-2 border-[#DDD6CE] rounded-xl p-3 text-center mb-4 outline-none focus:border-[#203B2A] focus:shadow-[0_0_0_4px_rgba(32,59,42,0.06)] transition-all"
+                            value={pwd} onChange={e=>setPwd(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleVerify()}
+                        />
+                        <div className="flex gap-2">
+                            <button onClick={onClose} className="flex-1 py-2 bg-[#EDE8E0] rounded-lg text-xs font-bold text-[#8A7A6E]">取消</button>
+                            <button onClick={handleVerify} disabled={verifying} className="flex-1 py-2 bg-[#203B2A] text-white rounded-lg text-xs font-bold">
+                                {verifying ? '驗證中...' : '確認'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- 登入 View (TTPC 風格) ---
+        const LoginView = ({ onLogin }) => {
+            const [loginEmail, setLoginEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError('');
+                const { data, error: authError } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
+                if (authError) {
+                    setError('帳號或密碼錯誤');
+                    setLoading(false);
+                } else {
+                    onLogin();
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
+                    <div className="bg-orb w-96 h-96 top-[-10%] left-[-10%] animate-float" style={{background: '#D4C9BE'}}></div>
+                    <div className="bg-orb w-80 h-80 bottom-[-10%] right-[-10%]" style={{background: '#C4B8AA'}}></div>
+                    
+                    <div className="glass-card w-full max-w-md p-10 text-center relative z-10 animate-fade-in">
+                        <img src="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png" className="w-40 mx-auto mb-6 drop-shadow-sm" alt="尾尾道來" />
+                        
+                        {!loginEmail ? (
+                            <div className="space-y-4">
+                                <h1 className="text-xl font-bold text-[#203B2A] mb-6 tracking-wider">尾尾道來 · 管理後台</h1>
+                                <button onClick={() => setLoginEmail(ADMIN_EMAIL)} className="w-full bg-white border-2 border-[#203B2A]/20 hover:border-[#203B2A] hover:bg-[#203B2A]/5 text-[#203B2A] py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all active:scale-95">
+                                    <div className="w-10 h-10 rounded-full bg-[#203B2A] text-white flex items-center justify-center"><Icon name="shield" /></div>
+                                    管理員登入
+                                </button>
+                                <button onClick={() => setLoginEmail(STAFF_EMAIL)} className="w-full bg-white border-2 border-[#B8A088]/20 hover:border-[#B8A088] hover:bg-[#B8A088]/5 text-[#203B2A] py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all active:scale-95">
+                                    <div className="w-10 h-10 rounded-full bg-[#B8A088] text-white flex items-center justify-center"><Icon name="user" /></div>
+                                    員工登入
+                                </button>
+                                <a href="./index.html" className="inline-flex items-center gap-2 text-xs font-bold text-[#B8A088] hover:text-[#203B2A] transition-colors">
+                                    <Icon name="arrow-left" size={14}/> 返回填寫首頁
+                                </a>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleLogin} className="space-y-4 animate-fade-in">
+                                <div className="text-center mb-4">
+                                    <span className={`px-6 py-2 rounded-full text-sm font-bold text-white shadow-sm ${loginEmail === ADMIN_EMAIL ? 'bg-[#203B2A]' : 'bg-[#B8A088]'}`}>
+                                        {loginEmail === ADMIN_EMAIL ? '管理員模式' : '員工模式'}
+                                    </span>
+                                </div>
+                                <input type="password" placeholder="請輸入密碼" value={password} onChange={e=>setPassword(e.target.value)} className="w-full text-center py-4 rounded-2xl border-2 border-[#DDD6CE] focus:border-[#203B2A] outline-none font-bold text-lg tracking-widest transition-all focus:shadow-[0_0_0_4px_rgba(32,59,42,0.06)]" autoFocus />
+                                {error && <p className="text-[#DBA58B] text-xs font-bold">{error}</p>}
+                                <button disabled={loading} className="w-full bg-[#203B2A] text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-[#162B1F] transition-all flex items-center justify-center gap-2 active:scale-95">
+                                    {loading ? <Icon name="loader-2" className="animate-spin" /> : '確認登入'}
+                                </button>
+                                <button type="button" onClick={() => setLoginEmail('')} className="text-xs font-bold text-[#B5A89C] hover:text-[#203B2A] transition-colors">← 切換身分</button>
+                            </form>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- RenderField 元件 ---
+        const RenderField = ({ label, value, editPath, type = 'text', highlight = false, isEditing, onChange }) => {
+            if (!editPath) {
+                return (
+                    <div className="mb-2">
+                        <label className="text-[10px] font-bold text-[#B5A89C] block mb-0.5 tracking-wider">{label}</label>
+                        <div className="font-bold text-sm break-words text-[#203B2A]">-</div>
+                    </div>
+                );
+            }
+            return (
+                <div className="mb-2">
+                    <label className="text-[10px] font-bold text-[#B5A89C] block mb-0.5 tracking-wider">{label}</label>
+                    {isEditing ? (
+                        <input 
+                            type={type} 
+                            value={value || ''} 
+                            onChange={(e) => onChange(editPath, e.target.value)} 
+                            className="admin-input"
+                        />
+                    ) : (
+                        <div className={`font-bold text-sm break-words ${highlight ? 'text-[#DBA58B]' : 'text-[#203B2A]'}`}>
+                            {T(value)}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- ReportGeneratorModal (TTPC 風格) ---
+        const ReportGeneratorModal = ({ isOpen, onClose, order, reportType }) => {
+            const [activeTab, setActiveTab] = useState('finish');
+            const [reportData, setReportData] = useState({
+                feeDetail: '',
+                overtime: '',
+                general: '精神食慾良好，狀況穩定。', 
+                skin: '皮膚檢查無明顯異常。',
+                dailyMood: '🟢 開心',
+                dailyMoodCustom: '',
+                dailyEat: '🟢 完食',
+                dailyEatCustom: '',
+                dailyToilet: '🟢 正常',
+                dailyToiletCustom: '',
+                dailyCare: '⚪ 無',
+                dailyCareCustom: '',
+                dailyNote: ''
+            });
+
+            useEffect(() => {
+                if (isOpen && order) {
+                    const isBoarding = ['boarding', 'daycare'].includes(order.service_type);
+                    setActiveTab(reportType === 'boarding' ? 'daily' : 'finish');
+                    const today = new Date();
+                    const dateStr = `${today.getMonth() + 1}/${today.getDate()}`;
+                    setReportData(prev => ({
+                        ...prev,
+                        feeDetail: `本次消費總計：$${order.total_price}`,
+                        dailyNote: '今天在遊戲區玩得很開心喔！',
+                        overtime: ''
+                    }));
+                }
+            }, [isOpen, order]);
+
+            if (!isOpen || !order) return null;
+
+            const isBoarding = ['boarding', 'daycare'].includes(order.service_type);
+
+const generateText = () => {
+    const pets = Array.isArray(order.booking_pets) ? order.booking_pets : [];
+    const petsName = pets.map(p => p.pet_name).join('、') || '未命名毛孩';
+                const today = new Date();
+                const dateText = `${today.getMonth() + 1}/${today.getDate()}`;
+
+                if (isBoarding && activeTab === 'daily') {
+                    const mood = reportData.dailyMood === '⭐ 其他...' ? reportData.dailyMoodCustom : reportData.dailyMood;
+                    const eat = reportData.dailyEat === '⭐ 其他...' ? reportData.dailyEatCustom : reportData.dailyEat;
+                    const toilet = reportData.dailyToilet === '⭐ 其他...' ? reportData.dailyToiletCustom : reportData.dailyToilet;
+                    const careValue = reportData.dailyCare === '⭐ 其他...' 
+                        ? (reportData.dailyCareCustom || '') 
+                        : `${reportData.dailyCare}${reportData.dailyCareCustom ? ` (${reportData.dailyCareCustom})` : ''}`;
+                    const careLine = reportData.dailyCare !== '⚪ 無' 
+                        ? `🏥 特殊照顧/投藥紀錄：${careValue}\n` 
+                        : '';
+
+                    return `【${dateText} 住宿日記 📝】\n` +
+                           `我是 ${petsName} ～這是今天的住宿狀況回報：\n\n` +
+                           `✨ 精神狀況：${mood}\n` +
+                           `🥣 用餐情形：${eat}\n` +
+                           `💩 排泄狀況：${toilet}\n` +
+                           `${careLine}\n` +
+                           `📝 小管家筆記：\n${reportData.dailyNote}\n\n` +
+                           `📸 (照片/影片將另行傳送)\n` +
+                           `--------------------------------\n` +
+                           `有任何問題隨時都可以詢問喔！`;
+                }
+
+                const petsForInfo = Array.isArray(order.booking_pets) ? order.booking_pets : [];
+                const petInfo = petsForInfo.map(p => {
+                    let service = reportType === 'grooming' ? '美容' : '住宿退房';
+                    if (reportType === 'boarding' && order.service_type === 'daycare') service = '安親接回';
+                    if (reportType === 'grooming') {
+                        if (p.service_items?.includes('basic')) service = '小美容';
+                        if (p.service_items?.includes('full')) service = '大美容';
+                    }
+                    return `${p.pet_name || '未命名'}(${service})`;
+                }).join('、');
+
+                const showFee = reportType === 'boarding' || (reportType === 'grooming' && !isBoarding);
+                
+                const baseInfo = `【${dateText} ${petInfo}】\n` +
+                                 `整體狀況 - ${reportData.general}\n` +
+                                 `皮膚狀況 - ${reportData.skin}\n\n` +
+                                 (showFee ? `費用明細：\n${reportData.feeDetail}\n\n` : '') +
+                                 `--------------------------------\n`;
+                if (reportType === 'grooming') {
+                    return baseInfo +
+                           `✨ [ ${petsName} ] 洗香香完畢囉！\n` +
+                           `📸 (照片/影片將另行傳送)\n` +
+                           (isBoarding ? '' : `—\n請於通知後兩小時內接回，逾時將依安親費計費：\n${reportData.overtime || '(尚未選擇費率)'}\n`) +
+                           `—\n有任何問題隨時都可以詢問~`;
+                }
+
+                return baseInfo +
+                       `🎉 可以來接 [ ${petsName} ] 回家囉!\n` +
+                       `謝謝你們的信任，期待下次再來玩～～\n` +
+                       `—\n有任何問題隨時都可以詢問~`;
+            };
+
+            const handleCopy = () => {
+                const text = generateText();
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("✅ 報告已複製！請切換到 LINE 貼上。");
+                    onClose();
+                });
+            };
+
+            return (
+                <div className="fixed inset-0 z-[200] bg-[#203B2A]/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl flex flex-col max-h-[90vh] animate-slide-up">
+                        
+                        <div className="bg-[#203B2A] p-5 text-white rounded-t-[2rem] shrink-0">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-bold text-lg flex items-center gap-2"><Icon name="message-square"/> 訊息產生器</h3>
+                                <button onClick={onClose}><Icon name="x"/></button>
+                            </div>
+                            
+                            {isBoarding && (
+                                <div className="flex bg-[#162B1F]/50 p-1 rounded-xl">
+                                    <button onClick={() => setActiveTab('daily')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'daily' ? 'bg-white text-[#203B2A] shadow-md' : 'text-white/70 hover:text-white'}`}>
+                                        📝 每日日記
+                                    </button>
+                                    <button onClick={() => setActiveTab('finish')} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === 'finish' ? 'bg-white text-[#203B2A] shadow-md' : 'text-white/70 hover:text-white'}`}>
+                                        🏠 退房通知
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-6 overflow-y-auto space-y-5 bg-[#FAF8F5] flex-1">
+                            
+                            {activeTab === 'daily' && (
+                                <div className="space-y-4 animate-fade-in">
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {[
+                                            { label: '精神', key: 'dailyMood', custom: 'dailyMoodCustom', opts: ['🟢 開心', '🟡 普通', '🔴 鬱卒', '⭐ 其他...'] },
+                                            { label: '食慾', key: 'dailyEat', custom: 'dailyEatCustom', opts: ['🟢 完食', '🟡 吃一半', '🔴 不吃', '⭐ 其他...'] },
+                                            { label: '排泄', key: 'dailyToilet', custom: 'dailyToiletCustom', opts: ['🟢 正常', '🟡 軟便', '🔴 未排', '⭐ 其他...'] }
+                                        ].map((field) => (
+                                            <div key={field.key} className="space-y-1">
+                                                <label className="text-xs font-bold text-[#B5A89C] block text-center">{field.label}</label>
+                                                <select 
+                                                    value={reportData[field.key]} 
+                                                    onChange={e => setReportData({...reportData, [field.key]: e.target.value})}
+                                                    className="w-full p-2 rounded-xl border border-[#DDD6CE] text-xs font-bold text-center outline-none focus:border-[#203B2A]"
+                                                >
+                                                    {field.opts.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                                </select>
+                                                {reportData[field.key] === '⭐ 其他...' && (
+                                                    <input 
+                                                        type="text"
+                                                        placeholder="自行填寫"
+                                                        value={reportData[field.custom]}
+                                                        onChange={e => setReportData({...reportData, [field.custom]: e.target.value})}
+                                                        className="w-full mt-1 p-1 rounded-lg border border-[#DDD6CE] text-[10px] font-bold outline-none focus:border-[#203B2A] animate-fade-in"
+                                                    />
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div>
+                                        <div className="bg-white p-3 rounded-xl border border-[#B8A088]/30 space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <label className="text-xs font-bold text-[#B8A088] flex items-center gap-1">
+                                                    <Icon name="pills" size={14}/> 特殊照顧 / 投藥紀錄
+                                                </label>
+                                                <select 
+                                                    value={reportData.dailyCare} 
+                                                    onChange={e => setReportData({...reportData, dailyCare: e.target.value})}
+                                                    className="text-[10px] font-bold border-none bg-transparent text-[#B8A088] outline-none"
+                                                >
+                                                    <option value="⚪ 無">⚪ 無</option>
+                                                    <option value="✅ 已完成">✅ 已完成</option>
+                                                    <option value="⚠️ 需注意">⚠️ 需注意</option>
+                                                    <option value="⭐ 其他...">⭐ 其他...</option>
+                                                </select>
+                                            </div>
+                                            {reportData.dailyCare !== '⚪ 無' && (
+                                                <input 
+                                                    type="text"
+                                                    placeholder="例如：早晚餵藥、噴口腔噴劑..."
+                                                    value={reportData.dailyCareCustom}
+                                                    onChange={e => setReportData({...reportData, dailyCareCustom: e.target.value})}
+                                                    className="w-full p-2 rounded-lg bg-[#FAF8F5]/50 border border-[#DDD6CE] text-xs font-bold outline-none focus:border-[#B8A088] animate-fade-in"
+                                                />
+                                            )}
+                                        </div>
+                                        <label className="text-xs font-bold text-[#B8A088] mb-1 block mt-3">小管家筆記</label>
+                                        <textarea value={reportData.dailyNote} onChange={e=>setReportData({...reportData, dailyNote: e.target.value})} className="w-full p-3 rounded-xl border border-[#DDD6CE] text-sm h-24 resize-none focus:border-[#203B2A] outline-none"/>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'finish' && (
+                                <div className="space-y-4 animate-fade-in">
+                                    <div className="space-y-3">
+                                        <div>
+                                            <label className="text-xs font-bold text-[#B8A088] mb-1 block">整體狀況</label>
+                                            <textarea value={reportData.general} onChange={e=>setReportData({...reportData, general: e.target.value})} className="w-full p-2 rounded-xl border border-[#DDD6CE] text-sm h-16 resize-none focus:border-[#203B2A] outline-none"/>
+                                        </div>
+                                        <div>
+                                            <label className="text-xs font-bold text-[#B8A088] mb-1 block">皮膚/外觀狀況</label>
+                                            <textarea value={reportData.skin} onChange={e=>setReportData({...reportData, skin: e.target.value})} className="w-full p-2 rounded-xl border border-[#DDD6CE] text-sm h-16 resize-none focus:border-[#203B2A] outline-none"/>
+                                        </div>
+                                    </div>
+                                    {(reportType === 'boarding' || (reportType === 'grooming' && !isBoarding)) && (
+                                        <div>
+                                            <label className="text-xs font-bold text-[#B8A088] mb-1 block">費用明細</label>
+                                            <textarea value={reportData.feeDetail} onChange={e=>setReportData({...reportData, feeDetail: e.target.value})} className="w-full p-2 rounded-xl border border-[#DDD6CE] text-sm h-16 resize-none focus:border-[#203B2A] outline-none"/>
+                                        </div>
+                                    )}
+{!isBoarding && reportType === 'grooming' && activeTab === 'finish' && (
+    <div className="bg-white p-3 rounded-xl border border-[#B8A088]/20">
+        <label className="text-xs font-bold text-[#B8A088] mb-2 block flex items-center gap-1">
+            <Icon name="clock" size={12}/> 逾時費率 (點擊帶入)
+        </label>
+        <div className="grid grid-cols-2 gap-2">
+            {[
+                "小型犬：$100/時",
+                "中型犬：$150/時",
+                "大型犬：$200/時",
+            ].map((rate, i) => (
+                <button key={i} 
+                    onClick={() => setReportData({...reportData, overtime: rate})}
+                    className={`text-[9px] font-bold py-2 px-1 rounded-lg border transition-all ${reportData.overtime === rate ? 'bg-[#203B2A] text-white border-[#203B2A]' : 'bg-[#FAF8F5] text-[#B5A89C] border-[#DDD6CE] hover:bg-[#EDE8E0]'}`}>
+                    {rate}
+                </button>
+            ))}
+        </div>
+        <div className="mt-3 text-[10px] text-[#B5A89C] leading-relaxed border-t border-[#DDD6CE] pt-2">
+            ⏰ 逾時計費：超過約定接回時間，依公告標準收取安親照護費用；
+            營業時間結束仍未接回者，得視同住宿一晚計費。
+        </div>
+    </div>
+)}
+                                </div>
+                            )}
+
+                            <div className="bg-[#EDE8E0] p-4 rounded-xl text-xs text-[#4A6B55] leading-relaxed font-mono whitespace-pre-wrap border border-dashed border-[#B8A088]/30 relative">
+                                <div className="absolute top-2 right-2 text-[9px] text-white bg-[#B8A088] px-2 py-0.5 rounded-full">LINE 預覽</div>
+                                {generateText()}
+                            </div>
+                        </div>
+
+                        <div className="p-4 border-t border-[#DDD6CE] bg-white rounded-b-[2rem] shrink-0">
+                            <button onClick={handleCopy} className="w-full py-3 bg-[#203B2A] text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2 hover:bg-[#162B1F] transition-all active:scale-95">
+                                <Icon name="copy" size={18}/> 
+                                {activeTab === 'daily' ? '複製日記' : '複製通知'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- OrderModal (TTPC 風格) ---
+        const OrderModal = ({ user, order, onClose, onUpdateStatus, onUpdateNote, onDeleteOrder, onUpdateFullOrder }) => {
+            if (!order) return null;
+            // 確保 order.id 是字串
+            const orderId = typeof order.id === 'string' ? order.id : String(order.id);
+            const [showReport, setShowReport] = useState(false);
+            const [reportType, setReportType] = useState('grooming');
+            const [localNote, setLocalNote] = useState(order.admin_note || '');
+            const [isEditing, setIsEditing] = useState(false);
+            const [showAuth, setShowAuth] = useState(false);
+            const [showDeleteAuth, setShowDeleteAuth] = useState(false);
+            const [editData, setEditData] = useState(JSON.parse(JSON.stringify(order)));
+            const [isResending, setIsResending] = useState(false);
+
+            const handleResendEmail = async () => {
+                const confirmText = order.email
+                    ? `確定要重寄契約副本至 ${order.email} 嗎？(副本將抄送店家)`
+                    : `此訂單未填寫 Email，仍要重寄給店家嗎？`;
+                if (!confirm(confirmText)) return;
+
+                setIsResending(true);
+                try {
+                    const rawProps = order.raw_data?.raw_data || order.raw_data || {};
+                    const payload = {
+                        ...rawProps,
+                        owner_name: order.owner_name,
+                        phone: order.phone,
+                        email: order.email,
+                        total_price: order.total_price,
+                        isBoarding: ['boarding', 'daycare'].includes(order.service_type),
+                        isDaycare: order.service_type === 'daycare',
+                        signature_url: order.signature_url,
+                        signed_at: order.created_at,
+                        petList: order.booking_pets.map(p => ({
+                            ...p,
+                            addGrooming: p.add_grooming,
+                            boarding_grooming_price: p.boarding_grooming_price
+                        }))
+                    };
+
+                    const resp = await fetch(`${supabaseUrl}/functions/v1/send-resend-email`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${supabaseKey}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!resp.ok) throw new Error("發送失敗");
+                    alert("✅ 契約副本已成功重新寄出！");
+                } catch (e) {
+                    console.error("重寄失敗:", e);
+                    alert("❌ 重寄失敗，請稍後再試或檢查 Edge Function 狀態。");
+                } finally {
+                    setIsResending(false);
+                }
+            };
+
+            const isBoarding = order.service_type === 'boarding' || order.service_type === 'daycare';
+            const getRaw = (key) => {
+    // 先從 raw_data 找，再從 editData 直接找
+    const rawValue = editData.raw_data?.raw_data?.[key] || editData.raw_data?.[key];
+    if (rawValue !== undefined && rawValue !== null) return rawValue;
+    // 直接從 editData 找
+    if (editData[key] !== undefined && editData[key] !== null) return editData[key];
+    return '';
+};            const hasAddGrooming = (getRaw('addGrooming') === true || getRaw('addGrooming') === 'true');
+
+            const handleNoteBlur = () => { if (localNote !== order.admin_note) onUpdateNote(order.id, localNote); };
+
+            const handleEditChange = (path, value) => {
+                setEditData(prev => {
+                    const newData = { ...prev };
+                    if (path.startsWith('owner_')) newData[path] = value;
+                    else if (path === 'phone' || path === 'email' || path === 'total_price') newData[path] = value;
+                    else if (path.startsWith('raw_data.')) {
+                        const key = path.split('.')[1];
+                        if (!newData.raw_data) newData.raw_data = {};
+                        if (!newData.raw_data.raw_data) newData.raw_data.raw_data = {};
+                        newData.raw_data.raw_data[key] = value;
+                    }
+                    return newData;
+                });
+            };
+
+            const saveChanges = () => { onUpdateFullOrder(editData); setIsEditing(false); };
+
+            const formatAge = (pet) => {
+                const ageVal = pet.age;
+                if (ageVal === null || ageVal === undefined || ageVal === '') return '-';
+                const ageNum = parseFloat(ageVal);
+                if (pet.is_under_one || ageNum < 1) {
+                    const months = Math.round(ageNum * 12);
+                    const displayMonths = (months === 0 && ageNum > 0) ? 1 : months;
+                    return <span className="text-[#B8A088] font-bold">{displayMonths} 個月</span>;
+                }
+                return `${ageNum} 歲`;
+            };
+
+            const getPetTypeLabel = (pet) => {
+                const type = pet.pet_type || 'dog';
+                return type === 'cat' ? '🐱 貓咪' : '🐶 狗狗';
+            };
+            
+            const getVal = (pet, key) => pet[key] || getRaw(key);
+
+            const renderPriceDetails = () => {
+                const pricePerNight = parseInt(getRaw('price_per_night') || 0);
+                const holidaySurcharge = parseInt(getRaw('holiday_surcharge') || 0);
+let stayDuration = parseInt(getRaw('stayDuration') || 0);
+if (!stayDuration && order.check_in_date && order.check_out_date) {
+    try {
+        const start = new Date(order.check_in_date);
+        const end = new Date(order.check_out_date);
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+            stayDuration = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        }
+    } catch (_) { stayDuration = 0; }
+}
+                
+                return (
+                    <div className="bg-[#FAF8F5] p-4 rounded-xl border border-[#DDD6CE] text-sm space-y-2 mb-4">
+                        <div className="font-bold text-[#B5A89C] text-xs border-b border-[#DDD6CE] pb-2 mb-2 flex items-center gap-1">
+                            <Icon name="file-text" size={14}/> 費用明細
+                        </div>
+
+                        {isBoarding && stayDuration > 0 && pricePerNight > 0 && (
+                            <>
+                                <div className="flex justify-between">
+                                    <span>🏠 住宿 ({stayDuration}晚)</span>
+                                    <span className="font-bold">${stayDuration * pricePerNight}</span>
+                                </div>
+                                {stayDuration >= 6 && (
+                                    <div className="flex justify-between text-[#4A6B55] text-xs italic">
+                                        <span>└ {stayDuration >= 15 ? '長住優惠 (85折)' : '長住優惠 (95折)'}</span>
+                                        <span>- ${Math.round(stayDuration * pricePerNight * (stayDuration >= 15 ? 0.15 : 0.05))}</span>
+                                    </div>
+                                )}
+                                {holidaySurcharge > 0 && (
+                                    <div className="flex justify-between text-[#DBA58B]">
+                                        <span>+ 假日/特殊加價</span>
+                                        <span className="font-bold">${holidaySurcharge}</span>
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        {editData.booking_pets?.map((pet, idx) => {
+                            const hasGrooming = isBoarding 
+                                ? (pet.add_grooming === true || pet.add_grooming === 'true' || pet.addGrooming === true || pet.addGrooming === 'true')
+                                : true;
+                            const gPrice = parseInt(pet.grooming_price || 0);
+                            
+                            if (hasGrooming) {
+                                return (
+                                    <div key={idx} className="pt-1 border-t border-dashed border-[#DDD6CE] mt-1">
+                                        <div className="flex justify-between text-[#203B2A] font-bold text-xs mb-1">
+                                            <span>✂️ {pet.pet_name} 服務項目</span>
+                                            {isBoarding && <span className="text-[#4A6B55] font-bold">+ ${gPrice}</span>}
+                                        </div>
+                                        <div className="pl-4 space-y-0.5">
+{(() => {
+    // 優先從 booking 的 service_tags 獲取
+    let items = [];
+    if (pet.service_items && Array.isArray(pet.service_items)) {
+        items = pet.service_items;
+    } else if (pet.service_tags && Array.isArray(pet.service_tags)) {
+        items = pet.service_tags;
+    } else if (typeof pet.service_items === 'string') {
+        try { items = JSON.parse(pet.service_items); } catch(e) { items = []; }
+    } else if (typeof pet.service_tags === 'string') {
+        try { items = JSON.parse(pet.service_tags); } catch(e) { items = []; }
+    }
+    return items.map((item, i) => (
+        <div key={i} className="text-[11px] text-[#B5A89C]">• {T(item)}</div>
+    ));
+})()}
+{(() => {
+    const other = getRaw('service_items_other') || getRaw('note') || '';
+    return other && <div className="text-[11px] text-[#B5A89C] italic">• 備註: {other}</div>;
+})()}
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })}
+
+                        {(() => {
+                            const promoPets = editData.booking_pets?.filter(p => 
+                                p.use_promo_50 === true || p.use_promo_50 === 'true' || 
+                                p.usePromo50 === true || p.usePromo50 === 'true'
+                            ) || [];
+                            const isOrderPromo = (getRaw('usePromo50') === true || getRaw('usePromo50') === 'true') || 
+                                               (getRaw('use_promo_50') === true || getRaw('use_promo_50') === 'true');
+                            
+                            if (promoPets.length > 0 || isOrderPromo) {
+                                const names = promoPets.map(p => p.pet_name).filter(Boolean).join('、');
+                                const label = names ? `(${names}) 50天優惠` : `50天優惠`;
+                                const totalDiscount = promoPets.length > 0 ? (promoPets.length * 200) : 200;
+
+                                return (
+                                    <div className="flex justify-between text-[#DBA58B] border-t border-dashed border-[#DDD6CE] pt-2 font-bold animate-pulse">
+                                        <span className="flex items-center gap-1">
+                                            <Icon name="sparkles" size={12}/> {label}
+                                        </span>
+                                        <span>- ${totalDiscount}</span>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
+
+                        <div className="border-t border-[#DDD6CE] pt-2 mt-2">
+                            <div className="flex justify-between items-center">
+                                <span className="font-bold text-[#203B2A] text-base">應收總額</span>
+                                {isEditing ? (
+                                    <div className="flex items-center gap-1">
+                                        <span className="font-bold text-[#B5A89C]">$</span>
+                                        <input 
+                                            type="number" 
+                                            value={editData.total_price} 
+                                            onChange={(e) => handleEditChange('total_price', e.target.value)}
+                                            className="admin-input w-24 text-right font-bold text-lg text-[#B8A088]"
+                                        />
+                                    </div>
+                                ) : (
+                                    <span className="text-xl font-bold text-[#B8A088]">${editData.total_price}</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#203B2A]/60 backdrop-blur-sm animate-fade-in">
+                    <div className="w-full max-w-4xl bg-[#FAF8F5] rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                        {/* Header */}
+                        <div className="bg-white px-8 py-5 flex justify-between items-center border-b border-[#DDD6CE] shrink-0">
+                            <div>
+                                <h3 className="font-bold text-xl text-[#203B2A] flex items-center gap-2">
+                                    {isBoarding ? <Icon name="home" className="text-[#B8A088]"/> : <Icon name="scissors" className="text-[#4A6B55]"/>}
+                                    {isBoarding ? (order.service_type === 'daycare' ? '安親詳情' : '住宿詳情') : '美容詳情'}
+                                    {isEditing && <span className="text-xs bg-[#DBA58B]/20 text-[#DBA58B] px-2 py-1 rounded ml-2">編輯模式</span>}
+                                </h3>
+                                <p className="text-[10px] text-[#B5A89C] font-bold tracking-widest uppercase">ID: {typeof order.id === 'string' ? order.id.slice(0,8) : String(order.id).slice(0,8)}</p>
+                            </div>
+                            <div className="flex gap-2 items-center">
+                                {user?.email === ADMIN_EMAIL && (
+                                    !isEditing ? (
+                                        <>
+                                            <button onClick={() => setIsEditing(true)} className="p-2 bg-[#FAF8F5] hover:bg-[#203B2A] hover:text-white rounded-full transition-colors">
+                                                <Icon name="edit-2" size={18}/>
+                                            </button>
+                                            <button onClick={() => setShowDeleteAuth(true)} className="p-2 bg-[#FDF6F3] hover:bg-[#DBA58B] hover:text-white text-[#DBA58B] rounded-full transition-colors">
+                                                <Icon name="trash-2" size={18}/>
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <button onClick={() => setShowAuth(true)} className="px-6 py-1.5 bg-[#203B2A] text-white rounded-xl text-xs font-bold shadow-md active:scale-95 transition-all">儲存</button>
+                                    )
+                                )}
+                                <button onClick={onClose} className="p-2 hover:bg-[#FAF8F5] rounded-full transition-colors ml-1"><Icon name="x" size={24}/></button>
+                            </div>
+                        </div>
+
+                        <div className="p-8 overflow-y-auto space-y-6">
+                            {/* 狀態與按鈕區 */}
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div className="bg-white p-5 rounded-3xl border border-[#4A6B55]/10 shadow-sm">
+                                    <label className="text-xs font-bold text-[#B5A89C] mb-2 block">訂單狀態</label>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                        {['pending', 'confirmed', 'completed', 'cancelled'].map(status => (
+                                            <button key={status} 
+                                                onClick={()=>onUpdateStatus(order.id, status)} 
+                                                className={`w-full py-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center ${
+                                                    order.status === status 
+                                                    ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' 
+                                                    : 'bg-white text-[#B5A89C] border-[#DDD6CE] hover:border-[#203B2A] hover:text-[#203B2A]'
+                                                }`}
+                                            >
+                                                {status === 'pending' ? '待確認' : status === 'confirmed' ? '已確認' : status === 'completed' ? '已完成' : '已取消'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 mt-3">
+                                        {(!isBoarding || (isBoarding && hasAddGrooming)) && (
+                                            <button onClick={() => { setReportType('grooming'); setShowReport(true); }} 
+                                                className={`py-3 bg-[#4A6B55]/10 text-[#4A6B55] border-2 border-dashed border-[#4A6B55]/20 rounded-xl font-bold text-xs flex items-center justify-center gap-1 hover:bg-[#4A6B55] hover:text-white transition-all group ${!isBoarding ? 'col-span-2' : ''}`}>
+                                                <Icon name="scissors" size={16}/> 產生美容報告
+                                            </button>
+                                        )}
+                                        {isBoarding && (
+                                            <button onClick={() => { setReportType('boarding'); setShowReport(true); }} 
+                                                className={`py-3 bg-[#B8A088]/10 text-[#B8A088] border-2 border-dashed border-[#B8A088]/20 rounded-xl font-bold text-xs flex items-center justify-center gap-1 hover:bg-[#B8A088] hover:text-white transition-all group ${!hasAddGrooming ? 'col-span-2' : ''}`}>
+                                                <Icon name="home" size={16}/> 產生住宿報告
+                                            </button>
+                                        )}
+                                    </div>
+                                    <button 
+                                        onClick={handleResendEmail}
+                                        disabled={isResending}
+                                        className={`w-full mt-2 py-2 rounded-xl text-xs font-bold border-2 transition-all flex items-center justify-center gap-2 ${
+                                            isResending 
+                                            ? 'bg-[#FAF8F5] text-[#B5A89C] border-[#DDD6CE] cursor-not-allowed' 
+                                            : 'bg-white text-[#203B2A] border-[#DDD6CE] hover:bg-[#FAF8F5] active:scale-95'
+                                        }`}
+                                    >
+                                        {isResending ? <Icon name="loader-2" className="animate-spin" size={14}/> : <Icon name="mail" size={14}/>}
+                                        {order.email ? `重寄契約至信箱 (${order.email})` : '重寄契約副本給店家'}
+                                    </button>
+                                </div>
+                                <div className="bg-white p-5 rounded-3xl border border-[#B8A088]/10 shadow-sm relative group">
+                                    <label className="text-xs font-bold text-[#B8A088] mb-1 flex items-center gap-1">
+                                        <Icon name="sticky-note" size={14}/> 店家備註 (內部用)
+                                    </label>
+                                    <textarea 
+                                        className="w-full h-20 bg-[#FAF8F5]/50 p-2 rounded-xl text-sm border border-transparent focus:border-[#B8A088] outline-none resize-none"
+                                        placeholder="在此輸入備註事項..."
+                                        value={localNote}
+                                        onChange={(e)=>setLocalNote(e.target.value)}
+                                        onBlur={handleNoteBlur}
+                                    />
+                                    <div className="absolute bottom-2 right-2 text-[10px] text-[#DDD6CE] opacity-0 group-hover:opacity-100 transition-opacity">自動儲存</div>
+                                </div>
+                            </div>
+
+                            {/* 飼主與金額區塊 */}
+                            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-[#DDD6CE]">
+                                <h4 className="font-bold text-[#203B2A] mb-4 flex items-center gap-2 border-b border-dashed border-[#DDD6CE] pb-2">
+                                    <Icon name="user" size={18}/> 飼主與款項
+                                </h4>
+                                <div className="grid md:grid-cols-3 gap-6">
+                                    <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                                        <RenderField label="姓名" value={editData.owner_name} editPath="owner_name" isEditing={isEditing} onChange={handleEditChange} />
+                                        <RenderField label="電話" value={editData.phone} editPath="phone" isEditing={isEditing} onChange={handleEditChange} />
+                                        <RenderField label="Email" value={editData.email} editPath="email" isEditing={isEditing} onChange={handleEditChange} />
+                                        <RenderField label="身分證字號" value={getRaw('owner_id')} editPath="raw_data.owner_id" isEditing={isEditing} onChange={handleEditChange} />
+                                        
+                                        <div className="col-span-2">
+                                            <RenderField label="地址" value={getRaw('address')} editPath="raw_data.address" isEditing={isEditing} onChange={handleEditChange} />
+                                        </div>
+                                        
+                                        <RenderField label="緊急聯絡人" value={getRaw('emergency_name')} editPath="raw_data.emergency_name" isEditing={isEditing} onChange={handleEditChange} />
+                                        <RenderField label="緊急電話" value={getRaw('emergency_phone')} editPath="raw_data.emergency_phone" isEditing={isEditing} onChange={handleEditChange} />
+                                        <RenderField label="指定醫院" value={getRaw('preferred_clinic')} editPath="raw_data.preferred_clinic" isEditing={isEditing} onChange={handleEditChange} />
+                                        
+                                        <div className="col-span-2 flex gap-4">
+                                            <div className="flex-1">
+                                                <label className="text-[10px] font-bold text-[#B5A89C] block mb-0.5">影像授權</label>
+                                                <div className={`font-bold text-sm ${getRaw('image_auth') === 'agree' ? 'text-[#4A6B55]' : 'text-[#DBA58B]'}`}>
+                                                    {getRaw('image_auth') === 'agree' ? '✅ 同意' : '❌ 不同意'}
+                                                </div>
+                                            </div>
+                                            {getRaw('isDaycare') && (
+                                                <div className="flex-1">
+                                                    <label className="text-[10px] font-bold text-[#B5A89C] block mb-0.5">安親時段</label>
+                                                    <div className="font-bold text-sm">{getRaw('bookingTime')} ~ {getRaw('bookingTimeEnd')}</div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="md:col-span-1">
+                                        {renderPriceDetails()}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 寵物列表 */}
+                            <div>
+                                <h4 className="font-bold text-[#203B2A] mb-4 flex items-center gap-2 ml-1">
+                                    <Icon name="paw-print" size={20} className="text-[#B8A088]"/> 
+                                    寵物詳細資料 ({editData.booking_pets?.length || 0} 隻)
+                                </h4>
+                                <div className="space-y-4">
+                                    {editData.booking_pets?.map((pet, idx) => (
+                                        <div key={idx} className="bg-white p-6 rounded-[2rem] border-2 border-[#4A6B55]/10 shadow-sm relative">
+                                            <div className="absolute top-4 right-4 text-[10px] text-[#DDD6CE] font-bold">#{idx + 1}</div>
+                                            
+                                            {/* 第一排：基本資料 */}
+                                            <div className="grid md:grid-cols-4 gap-4 mb-4 border-b border-dashed border-[#DDD6CE] pb-4">
+                                                <div>
+                                                    <label className="text-[10px] font-bold text-[#B5A89C]">名字 / 種類</label>
+                                                    <div className="text-lg font-bold text-[#203B2A] flex items-center gap-2">
+                                                        {pet.pet_name}
+                                                        <span className="text-xs bg-[#EDE8E0] px-2 py-0.5 rounded-full font-bold text-[#B5A89C]">{getPetTypeLabel(pet)}</span>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-bold text-[#B5A89C]">品種/花色</label>
+                                                    <div className="font-bold">{pet.breed}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-bold text-[#B5A89C]">基本資訊</label>
+                                                    <div className="font-bold">
+                                                        {pet.sex} 
+                                                        <span className={`text-xs ml-1 ${pet.fix === '是' ? 'text-[#B5A89C]' : 'text-[#DBA58B]'}`}>
+                                                            ({pet.fix === '是' ? '已結紮' : '未結紮'})
+                                                        </span> 
+                                                        / {formatAge(pet)} / {pet.weight}kg
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-bold text-[#B5A89C]">晶片號碼</label>
+                                                    <div className="font-bold text-xs">{getVal(pet, 'chip_id') || T(getVal(pet, 'chip_status'))}</div>
+                                                </div>
+                                            </div>
+
+                                            {/* 第二排：詳細調查 */}
+                                            <div className="grid md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
+                                                <div className="space-y-2">
+                                                    <div className="flex justify-between border-b border-[#EDE8E0] pb-1">
+                                                        <span className="text-[#B5A89C] text-xs">攻擊性/社交</span>
+                                                        <div className="text-right">
+                                                            <span className={`font-bold ${getVal(pet, 'social_aggression') === '有攻擊性' ? 'text-[#DBA58B]' : 'text-[#203B2A]'}`}>
+                                                                {getVal(pet, 'social_aggression') || '無資料'}
+                                                            </span>
+                                                            <span className="text-xs text-[#B5A89C] mx-1">/</span>
+                                                            <span className="font-bold text-xs text-[#B8A088]">
+                                                                {getVal(pet, 'social_play') || '-'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col border-b border-[#EDE8E0] py-1.5">
+                                                        <span className="text-[#B5A89C] text-[10px] mb-0.5">個性/分離焦慮</span>
+                                                        <span className="font-bold text-[#203B2A] break-words text-sm leading-relaxed">{pet.personality || '-'}</span>
+                                                    </div>
+                                                    <div className="flex flex-col border-b border-[#EDE8E0] py-1.5">
+                                                        <span className="text-[#B5A89C] text-[10px] mb-0.5">特殊注意事項</span>
+                                                        <div className="font-bold text-[#DBA58B] break-words text-sm leading-relaxed bg-[#FDF6F3] p-2 rounded-lg mt-1">
+                                                            {getVal(pet, 'specialNotes') || '無'}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col border-b border-[#EDE8E0] py-1.5">
+                                                        <span className="text-[#B5A89C] text-[10px] mb-0.5">過敏源</span>
+                                                        <div className="font-bold text-[#DBA58B] break-words text-sm leading-relaxed bg-[#FDF6F3] p-2 rounded-lg mt-1">
+                                                            {getVal(pet, 'allergies') || '無'}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex justify-between border-b border-[#EDE8E0] pb-1">
+                                                        <span className="text-[#B5A89C] text-xs">美容性情</span>
+                                                        <span className="font-bold text-right break-words">{getVal(pet, 'grooming_temperament')}</span>
+                                                    </div>
+                                                    <div className="flex flex-col border-b border-[#EDE8E0] py-1.5">
+                                                        <span className="text-[#B5A89C] text-[10px] mb-0.5">過往病史</span>
+                                                        <div className={`text-sm font-bold break-words leading-relaxed ${pet.medical_status === '有' ? 'text-[#DBA58B] bg-[#FDF6F3] p-2 rounded-lg mt-1' : 'text-[#203B2A]'}`}>
+                                                            {pet.medical_status === '有' ? (pet.medical_history||[]).join(',') : '無'}
+                                                            {getVal(pet, 'medical_history_other') && (
+                                                                <div className="text-[10px] mt-1 opacity-80 border-t border-[#DBA58B]/30 pt-1">說明：{getVal(pet, 'medical_history_other')}</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <div className="border-b border-[#EDE8E0] pb-1">
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <span className="text-[#B5A89C] text-xs">疫苗/驅蟲</span>
+                                                            <div className="text-right">
+                                                                <span className="font-bold text-sm">{getVal(pet, 'vaccine')}</span>
+                                                                <span className="mx-1 text-[#DDD6CE]">/</span>
+                                                                <span className="font-bold text-sm">{getVal(pet, 'deworm')}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex justify-end gap-2">
+                                                            {getVal(pet, 'deworm_brand') && <span className="text-[10px] text-[#B5A89C] bg-[#EDE8E0] px-1.5 py-0.5 rounded">{getVal(pet, 'deworm_brand')}</span>}
+                                                            {getVal(pet, 'vaccine_url') && <a href={getVal(pet, 'vaccine_url')} target="_blank" className="text-[10px] text-[#4A6B55] underline font-bold">查看手冊</a>}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex flex-col border-b border-[#EDE8E0] py-1.5">
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="text-[#B5A89C] text-[10px]">飲食習慣</span>
+                                                            <span className="font-bold text-sm">{(getVal(pet, 'diet_type')||[]).join(',')}</span>
+                                                        </div>
+                                                        {(getVal(pet, 'diet_type_other') || getVal(pet, 'feeding_plan')) && (
+                                                            <div className="bg-[#FAF8F5] p-2 rounded-lg mt-1.5 text-xs text-[#4A6B55] leading-relaxed break-words border border-[#DDD6CE]">
+                                                                {getVal(pet, 'diet_type_other')} {getVal(pet, 'feeding_plan')}
+                                                            </div>
+                                                        )}
+                                                        {getVal(pet, 'pica') === '有' && (
+                                                            <div className="text-[11px] text-white bg-[#DBA58B] px-2 py-1 rounded-md font-bold mt-1.5 flex items-center gap-1">
+                                                                <span>⚠️ 異食癖：</span>
+                                                                <span className="break-all">{getVal(pet, 'pica_note')}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="border-b border-[#EDE8E0] pb-1">
+                                                        <div className="flex justify-between mb-1">
+                                                            <span className="text-[#B5A89C] text-xs">生活習慣</span>
+                                                            {pet.pet_type === 'dog' && isBoarding && (
+                                                                <span className={`text-[10px] font-bold px-1.5 rounded ${getVal(pet, 'hasTrialStay') ? 'bg-[#4A6B55]/20 text-[#4A6B55]' : 'bg-[#DBA58B]/20 text-[#DBA58B]'}`}>
+                                                                    {getVal(pet, 'hasTrialStay') ? '✅ 已試住' : '❌ 未試住'}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-right text-[10px] font-bold leading-tight text-[#4A6B55]">
+                                                            {getVal(pet, 'litter_type') && <div>貓砂: {getVal(pet, 'litter_type')}</div>}
+                                                            {getVal(pet, 'isBarking') === '會' && <div>🔊 會吠叫</div>} 
+                                                            {getVal(pet, 'isFoodGuarding') === '會' && <div>🥣 會護食</div>}
+                                                            {getVal(pet, 'useToiletPad') === '會' && <div>🚽 用尿布墊</div>}
+                                                            {getVal(pet, 'isWalking') === '是' && <div>🌳 外出散步</div>}
+                                                            {getVal(pet, 'isWalking') === '否' && <div>🚫 不外出散步</div>}
+                                                            {getVal(pet, 'hasBoardingExp') === '有' && <div>🏠 有住宿經驗</div>}
+                                                            {(getVal(pet, 'crateTraining')||[]).length > 0 && (
+                                                                <div className="mt-1 text-[#B8A088] bg-[#B8A088]/5 p-1 rounded">
+                                                                    籠內訓練：{(getVal(pet, 'crateTraining')||[]).join('、')}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {isBoarding && (
+                                                ((pet.add_grooming === true || pet.add_grooming === 'true' || pet.addGrooming === true || pet.addGrooming === 'true')) ? (
+                                                    <div className="mt-4 bg-[#4A6B55]/5 p-3 rounded-xl">
+                                                        <div className="font-bold text-[#4A6B55] text-xs mb-2">
+                                                            加購美容項目 (${pet.boarding_grooming_price || pet.grooming_price || getVal(pet, 'boarding_grooming_price') || getVal(pet, 'grooming_price') || '-'})
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-1.5">
+{(() => {
+    const items = Array.isArray(pet.service_items) ? pet.service_items : 
+                   (typeof pet.service_items === 'string' ? JSON.parse(pet.service_items) : []);
+    return items.map((item, i) => (
+        <span key={i} className="text-[10px] bg-white text-[#4A6B55] px-2.5 py-1 rounded-full font-bold border border-[#4A6B55]/10 shadow-sm">{T(item)}</span>
+    ));
+})()}
+                                                            {getVal(pet, 'service_items_other') && (
+                                                                <span className="text-[10px] bg-white text-[#B5A89C] px-2.5 py-1 rounded-full border border-[#DDD6CE]">{getVal(pet, 'service_items_other')}</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <div className="mt-4 bg-[#EDE8E0]/50 p-3 rounded-xl text-xs font-bold text-[#B5A89C]">
+                                                            未加購美容
+                                                        </div>
+                                                        {(pet.pet_type === 'dog' || getVal(pet, 'pet_type') === 'dog') && (
+                                                            <div className="mt-2 bg-[#FDF6F3] p-3 rounded-xl border border-[#DBA58B]/30 text-xs font-bold text-[#DBA58B]">
+                                                                洗澡證明：
+                                                                {(() => {
+                                                                    const proofType = getVal(pet, 'proof_type');
+                                                                    const proofUrl = getVal(pet, 'proof_url');
+                                                                    if (proofType === 'onsite') return '現場提供';
+                                                                    if (proofUrl) return '已上傳';
+                                                                    return '未提供';
+                                                                })()}
+                                                            </div>
+                                                        )}
+                                                        {(pet.pet_type === 'dog' || getVal(pet, 'pet_type') === 'dog') && getVal(pet, 'proof_url') && (
+                                                            <div className="mt-2 text-center">
+                                                                <a href={getVal(pet, 'proof_url')} target="_blank" className="inline-block px-3 py-1 bg-[#FDF6F3] text-[#DBA58B] rounded-lg text-xs font-bold hover:bg-[#DBA58B] hover:text-white transition-colors">
+                                                                    📄 查看洗澡證明
+                                                                </a>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* 簽名與時間 */}
+                            {order.signature_url && (
+                                <div className="text-center pt-4 border-t border-dashed border-[#DDD6CE]">
+                                    <label className="text-[10px] font-bold text-[#B5A89C]/50 block mb-2 uppercase tracking-widest">客戶數位簽署</label>
+                                    <img src={order.signature_url} className="h-24 mx-auto opacity-80 mix-blend-multiply" />
+                                    <div className="text-[11px] text-[#203B2A] font-bold mt-2 font-mono">
+                                        簽署時間：{new Date(order.created_at).toLocaleString('zh-TW', {hour12: false})}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <SecurityModal 
+                        isOpen={showAuth} 
+                        onClose={()=>setShowAuth(false)} 
+                        onConfirm={saveChanges} 
+                        title="確認儲存變更"
+                    />
+                    <SecurityModal 
+                        isOpen={showDeleteAuth} 
+                        onClose={()=>setShowDeleteAuth(false)} 
+                        onConfirm={()=>onDeleteOrder(order.id)} 
+                        title="⚠️ 危險操作：刪除訂單"
+                    />
+                    <ReportGeneratorModal 
+                        isOpen={showReport} 
+                        onClose={() => setShowReport(false)} 
+                        order={order}
+                        reportType={reportType}
+                    />
+                </div>
+            );
+        };
+
+        // --- ChangePasswordModal (TTPC 風格) ---
+        const ChangePasswordModal = ({ isOpen, onClose }) => {
+            const [targetEmail, setTargetEmail] = useState(ADMIN_EMAIL);
+            const [oldPwd, setOldPwd] = useState("");
+            const [newPwd, setNewPwd] = useState("");
+            const [confirmPwd, setConfirmPwd] = useState("");
+            const [loading, setLoading] = useState(false);
+
+            if (!isOpen) return null;
+
+            const handleUpdate = async () => {
+                if (newPwd !== confirmPwd) return alert("❌ 新密碼與確認密碼不符");
+                if (newPwd.length < 6) return alert("❌ 密碼長度需至少 6 碼");
+                
+                setLoading(true);
+                try {
+                    const { error: verifyError } = await supabase.auth.signInWithPassword({
+                        email: targetEmail,
+                        password: oldPwd
+                    });
+                    if (verifyError) throw new Error(`${targetEmail === ADMIN_EMAIL ? '您的舊密碼' : '員工的舊密碼'}輸入錯誤`);
+
+                    const { error: updateError } = await supabase.auth.updateUser({ password: newPwd });
+                    if (updateError) throw updateError;
+
+                    alert(`✅ [${targetEmail === ADMIN_EMAIL ? '管理員' : '員工'}] 密碼修改成功！`);
+                    if (targetEmail === STAFF_EMAIL) {
+                        alert("正在切換回管理員權限...");
+                        window.location.reload(); 
+                    }
+                    onClose();
+                    setOldPwd(""); setNewPwd(""); setConfirmPwd("");
+                } catch (err) {
+                    alert("修改失敗：" + err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="fixed inset-0 z-[100] bg-[#203B2A]/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-white rounded-[2rem] p-8 w-full max-w-sm shadow-2xl animate-slide-up">
+                        <h3 className="font-bold text-xl text-center mb-1 text-[#203B2A] flex items-center justify-center gap-2">
+                            <Icon name="shield-check" className="text-[#203B2A]"/> 密碼修改
+                        </h3>
+                        <p className="text-[10px] text-[#B5A89C] text-center mb-6 font-bold">管理員可在此更新系統登入認證</p>
+                        
+                        <div className="flex bg-[#EDE8E0] p-1.5 rounded-2xl mb-6">
+                            <button onClick={() => setTargetEmail(ADMIN_EMAIL)} className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${targetEmail === ADMIN_EMAIL ? 'bg-white text-[#203B2A] shadow-sm' : 'text-[#B5A89C]'}`}>管理員(自己)</button>
+                            <button onClick={() => setTargetEmail(STAFF_EMAIL)} className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${targetEmail === STAFF_EMAIL ? 'bg-white text-[#B8A088] shadow-sm' : 'text-[#B5A89C]'}`}>一般員工</button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-[10px] font-bold text-[#B5A89C] ml-2 mb-1 block">請輸入該帳號目前的【舊密碼】</label>
+                                <input type="password" placeholder="舊密碼" value={oldPwd} onChange={e=>setOldPwd(e.target.value)} className="admin-input text-center text-lg tracking-widest py-3" />
+                            </div>
+                            <div className="border-t border-dashed border-[#DDD6CE] my-2"></div>
+                            <div>
+                                <label className="text-[10px] font-bold text-[#B5A89C] ml-2 mb-1 block">設定【新密碼】</label>
+                                <input type="password" placeholder="新密碼" value={newPwd} onChange={e=>setNewPwd(e.target.value)} className="admin-input text-center text-lg tracking-widest py-3 mb-2" />
+                                <input type="password" placeholder="確認新密碼" value={confirmPwd} onChange={e=>setConfirmPwd(e.target.value)} className="admin-input text-center text-lg tracking-widest py-3" />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-8">
+                            <button onClick={onClose} className="flex-1 py-3 bg-[#FAF8F5] rounded-2xl text-xs font-bold text-[#B5A89C] hover:bg-[#EDE8E0] transition-colors">取消</button>
+                            <button onClick={handleUpdate} disabled={loading} className="flex-[1.5] py-3 bg-[#203B2A] text-white rounded-2xl text-xs font-bold shadow-lg active:scale-95 transition-all">
+                                {loading ? "處理中..." : "確認修改"}
+                            </button>
+                        </div>
+                        
+                        {targetEmail === STAFF_EMAIL && (
+                            <p className="mt-4 text-[9px] text-[#DBA58B] font-bold text-center leading-relaxed">
+                                ※ 修改員工密碼需知道員工的「現有密碼」。<br/>完成後系統將自動重新整理以確保權限正確。
+                            </p>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- CustomerDetailModal (TTPC 風格) ---
+        const CustomerDetailModal = ({ customer, onClose, onSelectOrder }) => {
+            if (!customer) return null;
+            return (
+                <div className="fixed inset-0 z-[150] bg-[#203B2A]/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-[#FAF8F5] rounded-[2.5rem] w-full max-w-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden animate-slide-up">
+                        <div className="bg-white p-6 flex justify-between items-center border-b border-[#DDD6CE]">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-[#203B2A] rounded-2xl flex items-center justify-center text-white text-xl font-bold">{customer.name[0]}</div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-[#203B2A]">{customer.name}</h3>
+                                    <p className="text-sm font-bold text-[#B5A89C]">{customer.phone}</p>
+                                </div>
+                            </div>
+                            <button onClick={onClose} className="p-2 hover:bg-[#FAF8F5] rounded-full"><Icon name="x" size={24}/></button>
+                        </div>
+                        <div className="p-6 overflow-y-auto space-y-6">
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="bg-white p-4 rounded-2xl text-center border border-[#DDD6CE]">
+                                    <div className="text-[10px] font-bold text-[#B5A89C]">總消費</div>
+                                    <div className="text-lg font-bold text-[#B8A088]">${customer.totalSpent}</div>
+                                </div>
+                                <div className="bg-white p-4 rounded-2xl text-center border border-[#DDD6CE]">
+                                    <div className="text-[10px] font-bold text-[#B5A89C]">來訪次數</div>
+                                    <div className="text-lg font-bold text-[#4A6B55]">{customer.visitCount}次</div>
+                                </div>
+                                <div className="bg-white p-4 rounded-2xl text-center border border-[#DDD6CE]">
+                                    <div className="text-[10px] font-bold text-[#B5A89C]">毛孩數</div>
+                                    <div className="text-lg font-bold text-[#B8A088]">{customer.pets.size}隻</div>
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <h4 className="font-bold text-[#203B2A] flex items-center gap-2"><Icon name="history" size={18}/> 歷史服務紀錄</h4>
+                                {customer.history.map(order => (
+                                    <div key={order.id} onClick={() => { onSelectOrder(order); onClose(); }} className="bg-white p-4 rounded-2xl hover:border-[#203B2A] border-2 border-transparent cursor-pointer transition-all flex justify-between items-center group">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`p-2 rounded-lg ${order.service_type === 'grooming' ? 'bg-[#4A6B55]/10 text-[#4A6B55]' : 'bg-[#B8A088]/10 text-[#B8A088]'}`}>
+                                                <Icon name={order.service_type === 'grooming' ? 'scissors' : 'home'} size={16}/>
+                                            </div>
+                                            <div>
+                                                <div className="text-sm font-bold">{order.booking_date || order.check_in_date || order.created_at?.slice(0, 10) || '無日期'}</div>
+                                                <div className="text-[10px] text-[#B5A89C] font-bold">{order.booking_pets?.map(p=>p.pet_name).join(', ')}</div>
+                                            </div>
+                                        </div>
+                                        <div className="text-sm font-bold text-[#203B2A]">${order.total_price}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- CalendarView (TTPC 風格) ---
+        const CalendarView = ({ orders, onSelectOrder }) => {
+            const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Taipei' });
+            const [currentMonth, setCurrentMonth] = useState(new Date());
+            const [selectedDate, setSelectedDate] = useState(today);
+
+            const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+            const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
+            
+const dailyDogs = useMemo(() => {
+    return orders.filter(o => {
+        if (o.status === 'cancelled') return false;
+        const date = selectedDate;
+        if (o.service_type === 'grooming') {
+            const orderDate = o.booking_date || o.check_in_date || o.created_at?.slice(0, 10) || '';
+            return orderDate === date;
+        } else {
+            // 確保日期存在才比較
+            if (!o.check_in_date || !o.check_out_date) return false;
+            return date >= o.check_in_date && date <= o.check_out_date;
+        }
+    });
+}, [orders, selectedDate]);
+
+const getPetsForDate = (dateStr) => {
+    return orders.filter(o => {
+        if (o.status === 'cancelled') return false;
+        if (o.service_type === 'grooming') {
+            const date = o.booking_date || o.check_in_date || o.created_at?.slice(0, 10) || '';
+            return date === dateStr;
+        } else {
+            if (!o.check_in_date || !o.check_out_date) return false;
+            return dateStr >= o.check_in_date && dateStr <= o.check_out_date;
+        }
+    });
+};
+
+            return (
+                <div className="space-y-4 animate-fade-in">
+                    <div className="flex justify-between items-center bg-white p-4 rounded-3xl shadow-sm border border-[#DDD6CE]">
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() - 1)))} className="p-2 hover:bg-[#FAF8F5] rounded-full transition-colors"><Icon name="chevron-left"/></button>
+                            <h3 className="font-bold text-lg text-[#203B2A]">{currentMonth.getFullYear()}年 {currentMonth.getMonth() + 1}月</h3>
+                            <button onClick={() => setCurrentMonth(new Date(currentMonth.setMonth(currentMonth.getMonth() + 1)))} className="p-2 hover:bg-[#FAF8F5] rounded-full transition-colors"><Icon name="chevron-right"/></button>
+                        </div>
+                        <button onClick={() => { setCurrentMonth(new Date()); setSelectedDate(today); }} className="px-4 py-1.5 bg-[#203B2A] text-white rounded-full text-xs font-bold shadow-sm active:scale-95 transition-all">今天</button>
+                    </div>
+
+                    <div className="bg-white rounded-[2rem] border border-[#DDD6CE] shadow-sm overflow-hidden">
+                        <div className="grid grid-cols-7 bg-[#FAF8F5] border-b border-[#DDD6CE]">
+                            {['日','一','二','三','四','五','六'].map(d => <div key={d} className="text-center text-[10px] font-bold text-[#B5A89C] py-3">{d}</div>)}
+                        </div>
+                        <div className="grid grid-cols-7">
+                            {[...Array(firstDayOfMonth)].map((_, i) => <div key={`empty-${i}`} className="border-b border-r border-[#EDE8E0] min-h-[100px]" />)}
+                            {[...Array(daysInMonth)].map((_, i) => {
+                                const d = i + 1;
+                                const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                                const isSelected = dateStr === selectedDate;
+                                const isToday = dateStr === today;
+                                const petsInDay = getPetsForDate(dateStr);
+
+                                return (
+                                    <div key={d} onClick={() => setSelectedDate(dateStr)} 
+                                        className={`min-h-[100px] border-b border-r border-[#EDE8E0] p-1 cursor-pointer transition-all hover:bg-[#4A6B55]/5 ${isSelected ? 'bg-[#4A6B55]/10 ring-2 ring-inset ring-[#4A6B55] z-10' : ''}`}>
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className={`text-[11px] font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-[#DBA58B] text-white' : isSelected ? 'text-[#4A6B55]' : 'text-[#B5A89C]'}`}>{d}</span>
+                                        </div>
+                                        <div className="space-y-0.5 overflow-hidden">
+                                            {petsInDay.slice(0, 3).map(o => (
+                                                <div key={o.id} className={`text-[9px] font-bold px-1.5 py-0.5 rounded-sm truncate text-white shadow-sm ${o.service_type === 'grooming' ? 'bg-[#4A6B55]' : 'bg-[#B8A088]'}`}>
+                                                    {o.service_type === 'grooming' && o.booking_time && <span className="opacity-80">[{o.booking_time}] </span>}
+                                                    {o.booking_pets?.map(p => p.pet_name).join(',')}
+                                                </div>
+                                            ))}
+                                            {petsInDay.length > 3 && (
+                                                <div className="text-[8px] text-[#B5A89C] font-bold text-center mt-0.5">+{petsInDay.length - 3} 更多</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <div className="bg-[#FAF8F5] rounded-[2rem] p-6 border-2 border-dashed border-[#B8A088]/20">
+                        <div className="flex justify-between items-center mb-4">
+                            <h4 className="font-bold text-[#203B2A] flex items-center gap-2">
+                                <Icon name="calendar-check" className="text-[#B8A088]"/> {selectedDate} 詳情名單
+                            </h4>
+                            <span className="bg-white border border-[#DDD6CE] px-3 py-1 rounded-full text-[10px] font-bold text-[#B8A088]">{dailyDogs.length} 隻毛孩</span>
+                        </div>
+                        
+                        <div className="space-y-3">
+                            {dailyDogs.length > 0 ? dailyDogs.map(o => (
+                                <div key={o.id} onClick={() => onSelectOrder(o)} className="bg-white p-4 rounded-2xl border border-[#DDD6CE] hover:border-[#4A6B55] cursor-pointer transition-all flex justify-between items-center group shadow-sm">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-1.5 h-10 rounded-full ${o.service_type === 'grooming' ? 'bg-[#4A6B55]' : 'bg-[#B8A088]'}`}></div>
+                                        <div>
+                                            <div className="font-bold text-[#203B2A] text-base">{o.booking_pets?.map(p => p.pet_name).join(', ')}</div>
+                                            <div className="text-[10px] text-[#B5A89C] font-bold">{o.owner_name} · {o.service_type === 'grooming' ? `✂️ 美容 (${o.booking_time})` : '🏠 住宿/安親'}</div>
+                                        </div>
+                                    </div>
+                                    <Icon name="chevron-right" size={16} className="text-[#DDD6CE] group-hover:text-[#4A6B55] transition-transform group-hover:translate-x-1" />
+                                </div>
+                            )) : (
+                                <div className="py-12 text-center">
+                                    <div className="w-16 h-16 bg-[#EDE8E0] rounded-full flex items-center justify-center mx-auto mb-3 text-[#DDD6CE]"><Icon name="calendar-off" size={32}/></div>
+                                    <p className="text-[#B5A89C] font-bold text-sm">此日期暫無任何預約紀錄 🍃</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+// --- UpdatePrompt (TTPC 風格) ---
+const UpdatePrompt = ({ show, onUpdate }) => {
+    if (!show) return null;
+    
+    const [isUpdating, setIsUpdating] = useState(false);
+    
+    const handleUpdate = () => {
+        if (isUpdating) return;
+        setIsUpdating(true);
+        
+        // 1. 取得註冊的 Service Worker
+        navigator.serviceWorker.getRegistration().then(reg => {
+            // 2. 如果有 waiting worker，通知其跳過等待階段
+            if (reg && reg.waiting) {
+                reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            } else {
+                // 3. 若無 waiting，則直接重新整理（確保舊的快取已過期）
+                window.location.reload(true);
+            }
+        });
+    };
+    
+    // 監聽 controllerchange，確保新 Service Worker 接管後自動更新畫面
+    useEffect(() => {
+        const onControllerChange = () => {
+            window.location.reload(true);
+        };
+        navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+        return () => navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+    }, []);
+    
+    return (
+        <div className="fixed left-6 right-6 z-[400] md:left-1/2 md:-translate-x-1/2 md:w-auto md:min-w-[320px] top-[calc(env(safe-area-inset-top)+1.5rem)]">
+            <div className="bg-white p-4 rounded-2xl shadow-2xl border-2 border-[#203B2A] flex items-center justify-between gap-4 animate-slide-up">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#203B2A] text-white rounded-full flex items-center justify-center shrink-0">
+                        <Icon name="refresh-cw" size={20} className={isUpdating ? "animate-spin" : ""} />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-[#203B2A] text-sm">{isUpdating ? '更新中...' : '發現新版本！'}</h4>
+                        <p className="text-[10px] text-[#B5A89C] font-bold">{isUpdating ? '請稍候，頁面即將重新整理' : '系統已更新 ✨'}</p>
+                    </div>
+                </div>
+                <button 
+                    onClick={handleUpdate}
+                    disabled={isUpdating}
+                    className={`bg-[#203B2A] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-[#203B2A]/20 hover:bg-[#162B1F] active:scale-95 transition-all whitespace-nowrap ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    {isUpdating ? '處理中...' : '立即更新'}
+                </button>
+            </div>
+        </div>
+    );
+};
+
+        // --- Dashboard (TTPC 風格) ---
+        const Dashboard = ({ user }) => {
+            const [showPwdModal, setShowPwdModal] = useState(false);
+            const [activeTab, setActiveTab] = useState('grooming');
+            const [busySlots, setBusySlots] = useState([]);
+            const [orders, setOrders] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [selectedOrder, setSelectedOrder] = useState(null);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [showIncompleteOnly, setShowIncompleteOnly] = useState(true);
+
+const fetchOrders = async () => {
+    setLoading(true);
+    let query = supabase
+        .from('bookings')
+        .select('*')
+        .order('created_at', { ascending: false });
+    
+    if (activeTab !== 'crm' && activeTab !== 'calendar') {
+        const filterTypes = activeTab === 'grooming' ? ['grooming'] : ['boarding', 'daycare'];
+        query = query.in('service_type', filterTypes);
+    }
+    
+    const { data, error } = await query;
+    if (!error) {
+        const processedData = data?.map(booking => {
+            // 從 booking 表的扁平欄位組裝寵物資料
+            const pet = {
+                pet_name: booking.pet_name || '未命名',
+                pet_type: booking.pet_type || 'dog',
+                breed: booking.breed || '',
+                fur_color: booking.fur_color || '',
+                weight: booking.weight || 0,
+                age: booking.age_value || 0,
+                is_under_one: booking.age_type === 'month',
+                sex: booking.sex || '',
+                fix: booking.fix || '',
+                chip_status: booking.chip_status || '',
+                chip_id: booking.chip_id || '',
+                personality: booking.personality_other || '',
+                specialNotes: booking.medical_other || '',
+                allergies: '',
+                grooming_temperament: booking.temperament || '',
+                medical_status: booking.medical_history === '有' ? '有' : '無',
+                medical_history: (() => {
+                    try {
+                        const tags = booking.medical_tags ? JSON.parse(booking.medical_tags) : [];
+                        return Array.isArray(tags) ? tags : [];
+                    } catch (e) { return []; }
+                })(),
+                medical_history_other: booking.medical_other || '',
+                vaccine: (() => {
+                    try {
+                        const v = booking.vaccines ? JSON.parse(booking.vaccines) : [];
+                        return Array.isArray(v) ? v.join('、') : '';
+                    } catch (e) { return ''; }
+                })(),
+                deworm: booking.deworming_monthly || '',
+                deworm_brand: '',
+                vaccine_url: '',
+                diet_type: [],
+                diet_type_other: '',
+                feeding_plan: '',
+                pica: '',
+                pica_note: '',
+                litter_type: '',
+                isBarking: '',
+                isFoodGuarding: '',
+                useToiletPad: '',
+                isWalking: '',
+                hasBoardingExp: booking.has_experience || '',
+                crateTraining: [],
+                hasTrialStay: '',
+                service_items: (() => {
+                    try {
+                        const tags = booking.service_tags ? JSON.parse(booking.service_tags) : [];
+                        return Array.isArray(tags) ? tags : [];
+                    } catch (e) { return []; }
+                })(),
+                service_items_other: booking.note || '',
+                grooming_price: 0,
+                add_grooming: false,
+                boarding_grooming_price: 0,
+                use_promo_50: false,
+                social_aggression: '',
+                social_play: '',
+                proof_type: '',
+                proof_url: ''
+            };
+            
+            return {
+                ...booking,
+                booking_pets: [pet],
+                // 確保這些欄位是陣列
+                service_tags: (() => {
+                    try {
+                        const tags = booking.service_tags ? JSON.parse(booking.service_tags) : [];
+                        return Array.isArray(tags) ? tags : [];
+                    } catch (e) { return []; }
+                })(),
+                medical_tags: (() => {
+                    try {
+                        const tags = booking.medical_tags ? JSON.parse(booking.medical_tags) : [];
+                        return Array.isArray(tags) ? tags : [];
+                    } catch (e) { return []; }
+                })(),
+                physical_check: (() => {
+                    try {
+                        const tags = booking.physical_check ? JSON.parse(booking.physical_check) : [];
+                        return Array.isArray(tags) ? tags : [];
+                    } catch (e) { return []; }
+                })(),
+                social_traits: (() => {
+                    try {
+                        const tags = booking.social_traits ? JSON.parse(booking.social_traits) : [];
+                        return Array.isArray(tags) ? tags : [];
+                    } catch (e) { return []; }
+                })(),
+                vaccines: (() => {
+                    try {
+                        const tags = booking.vaccines ? JSON.parse(booking.vaccines) : [];
+                        return Array.isArray(tags) ? tags : [];
+                    } catch (e) { return []; }
+                })()
+            };
+        });
+        setOrders(processedData || []);
+    }
+    setLoading(false);
+};
+
+            const updateStatus = async (id, newStatus) => {
+                const { error } = await supabase.from('bookings').update({ status: newStatus }).eq('id', id);
+                if (!error) {
+                    setOrders(prev => prev.map(o => o.id === id ? { ...o, status: newStatus } : o));
+                    if (selectedOrder?.id === id) {
+                        if (newStatus === 'completed' || newStatus === 'cancelled') {
+                            setSelectedOrder(null);
+                        } else {
+                            setSelectedOrder(prev => ({ ...prev, status: newStatus }));
+                        }
+                    }
+                }
+            };
+
+            const updateNote = async (id, note) => {
+                const { error } = await supabase.from('bookings').update({ admin_note: note }).eq('id', id);
+                if (!error) setOrders(prev => prev.map(o => o.id === id ? { ...o, admin_note: note } : o));
+            };
+
+            const deleteOrder = async (id) => {
+                const { error } = await supabase.from('bookings').delete().eq('id', id);
+                if (!error) {
+                    setOrders(prev => prev.filter(o => o.id !== id));
+                    setSelectedOrder(null);
+                    alert("訂單已刪除");
+                } else alert("刪除失敗");
+            };
+
+            const updateFullOrder = async (updatedOrder) => {
+                const { error: mainError } = await supabase.from('bookings').update({
+                    owner_name: updatedOrder.owner_name,
+                    phone: updatedOrder.phone,
+                    email: updatedOrder.email,
+                    total_price: updatedOrder.total_price,
+                    raw_data: updatedOrder.raw_data 
+                }).eq('id', updatedOrder.id);
+
+                if (!mainError && updatedOrder.booking_pets) {
+                    for (const pet of updatedOrder.booking_pets) {
+                        await supabase.from('booking_pets').update({
+                            pet_name: pet.pet_name,
+                            breed: pet.breed,
+                            sex: pet.sex,
+                            age: pet.age,
+                            weight: pet.weight,
+                            is_walking: pet.isWalking
+                        }).eq('id', pet.id);
+                    }
+                }
+
+                if (!mainError) {
+                    setOrders(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
+                    setSelectedOrder(updatedOrder);
+                    alert("資料已更新！");
+                } else alert("更新失敗：" + mainError.message);
+            };
+
+            const fetchBusySlots = async (date) => {
+                const { data } = await supabase.from('busy_slots').select('time_slot').eq('date', date);
+                setBusySlots(data?.map(d => d.time_slot) || []);
+            };
+
+            const toggleSlot = async (date, slot) => {
+                if (busySlots.includes(slot)) {
+                    await supabase.from('busy_slots').delete().eq('date', date).eq('time_slot', slot);
+                    setBusySlots(prev => prev.filter(s => s !== slot));
+                } else {
+                    await supabase.from('busy_slots').insert({ date, time_slot: slot });
+                    setBusySlots(prev => [...prev, slot]);
+                }
+            };
+
+            useEffect(() => { 
+                fetchOrders(); 
+                if (activeTab === 'slots') fetchBusySlots(new Date().toLocaleDateString('en-CA'));
+            }, [activeTab]);
+
+            const filteredOrders = useMemo(() => {
+                return orders.filter(o => {
+                    const pets = Array.isArray(o.booking_pets) ? o.booking_pets : [];
+                    const matchSearch = !searchTerm ||
+                        o.owner_name?.includes(searchTerm) ||
+                        o.phone?.includes(searchTerm) ||
+                        pets.some(p => p.pet_name?.includes(searchTerm));
+                    const matchStatus = showIncompleteOnly ? !['completed', 'cancelled'].includes(o.status) : true;
+                    return matchSearch && matchStatus;
+                });
+            }, [orders, searchTerm, showIncompleteOnly]);
+
+            const sortedFilteredOrders = useMemo(() => {
+                const getStatusPriority = (status) => {
+                    if (status === 'pending') return 0;
+                    if (status === 'confirmed') return 1;
+                    if (status === 'completed') return 2;
+                    if (status === 'cancelled') return 3;
+                    return 99;
+                };
+
+                const getRawProps = (order) => {
+                    try {
+                        const parsed = typeof order.raw_data === 'string' ? JSON.parse(order.raw_data) : order.raw_data;
+                        return parsed?.raw_data || parsed || {};
+                    } catch (e) { return {}; }
+                };
+
+                const normalizeTime = (timeStr) => {
+                    if (!timeStr) return '00:00';
+                    if (typeof timeStr !== 'string') return '00:00';
+                    if (timeStr.includes('T')) {
+                        const parts = timeStr.split('T');
+                        if (parts[1]) return parts[1].slice(0, 5);
+                    }
+                    if (timeStr.length >= 5 && timeStr.includes(':')) return timeStr.slice(0, 5);
+                    return '00:00';
+                };
+
+                const getOrderDateTime = (order) => {
+                    if (order.service_type === 'grooming') {
+                        const date = order.booking_date || order.check_in_date || order.created_at?.slice(0, 10);
+                        const time = normalizeTime(order.booking_time);
+                        return new Date(`${date}T${time}`);
+                    }
+                    if (order.service_type === 'boarding' || order.service_type === 'daycare') {
+                        const rawProps = getRawProps(order);
+                        const date = order.check_in_date || order.booking_date || order.created_at?.slice(0, 10);
+                        const time = order.service_type === 'daycare' ? normalizeTime(rawProps.bookingTime) : '00:00';
+                        return new Date(`${date}T${time}`);
+                    }
+                    return new Date(order.created_at);
+                };
+
+                return [...filteredOrders].sort((a, b) => {
+                    const statusA = getStatusPriority(a.status);
+                    const statusB = getStatusPriority(b.status);
+                    if (statusA !== statusB) return statusA - statusB;
+                    const dateA = getOrderDateTime(a);
+                    const dateB = getOrderDateTime(b);
+                    const aIncomplete = ['pending', 'confirmed'].includes(a.status);
+                    const bIncomplete = ['pending', 'confirmed'].includes(b.status);
+                    if (aIncomplete && bIncomplete) return dateA - dateB;
+                    if (!aIncomplete && !bIncomplete) return dateB - dateA;
+                    return dateA - dateB;
+                });
+            }, [filteredOrders]);
+
+            const customers = useMemo(() => {
+                const groups = {};
+                orders.forEach(order => {
+                    const phone = order?.phone;
+                    if (!phone) return;
+                    if (!groups[phone]) {
+                        groups[phone] = { name: order.owner_name, phone, totalSpent: 0, visitCount: 0, pets: new Set(), history: [] };
+                    }
+                    groups[phone].totalSpent += (order.total_price || 0);
+                    groups[phone].visitCount += 1;
+                    const pets = Array.isArray(order.booking_pets) ? order.booking_pets : [];
+                    pets.forEach(p => {
+                        const cleanName = p.pet_name?.trim();
+                        if (cleanName) groups[phone].pets.add(cleanName);
+                    });
+                    groups[phone].history.push(order);
+                });
+                return Object.values(groups).sort((a, b) => b.visitCount - a.visitCount);
+            }, [orders]);
+
+            const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+            return (
+                <div className="min-h-screen pb-20">
+                    <nav className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-[#203B2A]/10 px-6 py-4 flex justify-between items-center shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <img src="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png" className="w-12 h-12 object-contain rounded-xl shadow-sm" />
+                            <div className="text-left">
+                                <div className="logo-text text-xl tracking-[0.25em] text-[#203B2A]">尾尾道來</div>
+                                <div className="logo-text-sub text-[9px] tracking-[0.4em] text-[#203B2A]">TAIL TELL PET CLUB</div>
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                            <a href="https://resend.com/emails" target="_blank" className="w-10 h-10 bg-white border-2 border-[#DDD6CE] rounded-full flex items-center justify-center text-[#4A6B55] hover:border-[#203B2A] hover:bg-[#203B2A] hover:text-white transition-all shadow-sm" title="前往 Resend 查看額度">
+                                <Icon name="mail" size={16}/>
+                            </a>
+                            {user?.email === ADMIN_EMAIL && (
+                                <button onClick={() => setShowPwdModal(true)} className="w-10 h-10 bg-white border-2 border-[#DDD6CE] rounded-full flex items-center justify-center text-[#B8A088] hover:border-[#B8A088] hover:bg-[#B8A088] hover:text-white transition-all shadow-sm" title="管理員權限：修改密碼">
+                                    <Icon name="key" size={16}/>
+                                </button>
+                            )}
+                            <button onClick={() => supabase.auth.signOut()} className="w-10 h-10 bg-[#EDE8E0] rounded-full flex items-center justify-center text-[#B5A89C] hover:bg-[#DBA58B] hover:text-white transition-all" title="登出">
+                                <Icon name="log-out" size={18}/>
+                            </button>
+                        </div>
+                    </nav>
+
+                    <main className="max-w-4xl mx-auto p-6 space-y-6">
+                        <div className="relative group">
+                            <Icon name="search" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#DDD6CE] group-focus-within:text-[#203B2A] transition-colors" />
+                            <input 
+                                type="text" 
+                                placeholder="搜尋主人姓名、電話、毛孩名字..." 
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white shadow-sm border-2 border-transparent focus:border-[#203B2A] outline-none font-bold text-sm transition-all focus:shadow-[0_0_0_4px_rgba(32,59,42,0.06)]"
+                            />
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="grid grid-cols-6 gap-2 bg-white p-2 rounded-[2rem] shadow-sm border border-[#DDD6CE]">
+                                <button onClick={() => setActiveTab('grooming')} className={`col-span-3 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${activeTab === 'grooming' ? 'bg-[#203B2A] text-white shadow-md' : 'text-[#B5A89C] hover:bg-[#FAF8F5]'}`}>
+                                    <Icon name="scissors" size={16}/> 洗澡美容
+                                </button>
+                                <button onClick={() => setActiveTab('boarding')} className={`col-span-3 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${activeTab === 'boarding' ? 'bg-[#203B2A] text-white shadow-md' : 'text-[#B5A89C] hover:bg-[#FAF8F5]'}`}>
+                                    <Icon name="home" size={16}/> 住宿安親
+                                </button>
+                                <button onClick={() => setActiveTab('crm')} className={`col-span-2 py-3 rounded-2xl font-bold text-[10px] flex flex-col items-center gap-1 transition-all ${activeTab === 'crm' ? 'bg-[#203B2A] text-white shadow-md' : 'text-[#B5A89C] hover:bg-[#FAF8F5]'}`}>
+                                    <Icon name="users" size={14}/> 顧客管理
+                                </button>
+                                <button onClick={() => setActiveTab('calendar')} className={`col-span-2 py-3 rounded-2xl font-bold text-[10px] flex flex-col items-center gap-1 transition-all ${activeTab === 'calendar' ? 'bg-[#203B2A] text-white shadow-md' : 'text-[#B5A89C] hover:bg-[#FAF8F5]'}`}>
+                                    <Icon name="calendar" size={14}/> 日曆檢視
+                                </button>
+                                <button onClick={() => setActiveTab('slots')} className={`col-span-2 py-3 rounded-2xl font-bold text-[10px] flex flex-col items-center gap-1 transition-all ${activeTab === 'slots' ? 'bg-[#DBA58B] text-white shadow-md' : 'text-[#B5A89C] hover:bg-[#FAF8F5]'}`}>
+                                    <Icon name="clock" size={14}/> 時段設定
+                                </button>
+                            </div>
+
+                            {(activeTab === 'grooming' || activeTab === 'boarding') && (
+                                <div className="flex items-center justify-between px-1">
+                                    <div className="text-[11px] font-bold text-[#B5A89C] flex items-center gap-1.5">
+                                        <Icon name="filter" size={14}/>
+                                        目前顯示：
+                                        <span className={`${showIncompleteOnly ? 'text-[#203B2A]' : 'text-[#B8A088]'}`}>
+                                            {showIncompleteOnly ? '只看未完成' : '顯示全部'}
+                                        </span>
+                                    </div>
+                                    <button onClick={() => setShowIncompleteOnly(prev => !prev)} className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all flex items-center gap-1 ${showIncompleteOnly ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-sm' : 'bg-white text-[#B5A89C] border-[#DDD6CE] hover:bg-[#FAF8F5]'}`}>
+                                        <Icon name="sliders-horizontal" size={13}/>
+                                        {showIncompleteOnly ? '切換成顯示全部' : '切換成只看未完成'}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        {loading ? (
+                            <div className="py-20 text-center text-[#B5A89C] font-bold">載入資料中...</div>
+                        ) : activeTab === 'crm' ? (
+                            <div className="space-y-3">
+                                {customers.map(c => (
+                                    <div key={c.phone} onClick={() => setSelectedCustomer(c)} className="cute-card p-5 bg-white flex justify-between items-center cursor-pointer hover:border-[#203B2A] transition-all">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-[#203B2A]/10 text-[#203B2A] rounded-xl flex items-center justify-center font-bold text-lg">{c.name[0]}</div>
+                                            <div>
+                                                <div className="font-bold text-[#203B2A]">{c.name}</div>
+                                                <div className="text-[10px] text-[#B5A89C] font-bold">
+                                                    {c.phone} · {c.visitCount}次來訪 · <span className="text-[#4A6B55]">{c.pets.size} 隻毛孩</span>
+                                                </div>
+                                                <div className="text-[9px] text-[#DDD6CE] font-bold mt-0.5">
+                                                    {[...c.pets].join(', ')}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className="text-xs font-bold text-[#B8A088]">總額 ${c.totalSpent}</div>
+                                            <div className="text-[9px] text-[#DDD6CE] font-bold">查看紀錄 →</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : activeTab === 'calendar' ? (
+                            <CalendarView orders={orders} onSelectOrder={setSelectedOrder} />
+                        ) : activeTab === 'slots' ? (
+                            <div className="bg-white p-6 rounded-[2rem] shadow-sm space-y-6 animate-fade-in">
+                                <div className="flex justify-between items-center border-b border-[#DDD6CE] pb-4">
+                                    <h3 className="font-bold text-lg text-[#203B2A]">美容預約時段開關</h3>
+                                    <input type="date" className="admin-input w-40" defaultValue={new Date().toLocaleDateString('en-CA')} onChange={e => fetchBusySlots(e.target.value)} id="slot_date_picker" />
+                                </div>
+                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                    {Array.from({length: 17}, (_, i) => {
+                                        const h = Math.floor(i/2) + 10;
+                                        const m = i % 2 === 0 ? '00' : '30';
+                                        const slot = `${h}:${m}`;
+                                        const isBusy = busySlots.includes(slot);
+                                        return (
+                                            <button key={slot} 
+                                                onClick={() => toggleSlot(document.getElementById('slot_date_picker').value, slot)}
+                                                className={`py-3 rounded-xl text-xs font-bold border transition-all ${isBusy ? 'bg-[#FDF6F3] text-[#DBA58B] border-[#DBA58B]/30' : 'bg-[#FAF8F5] text-[#4A6B55] border-[#4A6B55]/20'}`}>
+                                                {slot} {isBusy ? '已額滿' : '可預約'}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-[10px] text-[#B5A89C] font-bold text-center">※ 點擊按鈕可手動關閉該時段，前台預約頁面將同步隱藏該選項。</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {sortedFilteredOrders.map(order => {
+                                    let rawProps = {};
+                                    try {
+                                        const parsed = typeof order.raw_data === 'string' ? JSON.parse(order.raw_data) : order.raw_data;
+                                        rawProps = parsed?.raw_data || parsed || {};
+                                    } catch (e) {}
+
+                                    const isDaycare = order.service_type === 'daycare';
+                                    const daycareTime = `${rawProps.bookingTime || ''}${rawProps.bookingTimeEnd ? ' - ' + rawProps.bookingTimeEnd : ''}`;
+const displayDateText = (() => {
+    if (isDaycare) {
+        return `${order.check_in_date || order.daycare_date || ''} ${daycareTime}`;
+    }
+    if (order.service_type === 'boarding') {
+        return `${order.check_in_date || ''} ~ ${order.check_out_date || ''}`;
+    }
+    // 美容 - 如果沒有日期，顯示「無日期」或使用 created_at
+    const date = order.booking_date || order.check_in_date || order.created_at?.slice(0, 10) || '';
+    const time = order.booking_time || '';
+    if (!date && !time) return '無日期';
+    return `${date} ${time}`.trim();
+})();
+                                    
+const hasFullGrooming = order.service_type === 'grooming' && (
+    (Array.isArray(order.booking_pets) && order.booking_pets.some(p => {
+        const items = Array.isArray(p.service_items) ? p.service_items : 
+                       (typeof p.service_items === 'string' ? JSON.parse(p.service_items) : []);
+        return items.includes('full');
+    })) ||
+    (Array.isArray(rawProps.service_items) && rawProps.service_items.includes('full'))
+);
+
+                                    const checkTag = (field, targetValue) => {
+                                        if (Array.isArray(order.booking_pets) && order.booking_pets.some(p => p[field] === targetValue)) return true;
+                                        if (rawProps[field] === targetValue) return true;
+                                        return false;
+                                    };
+
+                                    const hasAggression = checkTag('social_aggression', '有攻擊性');
+                                    const isSensitive = checkTag('grooming_temperament', '敏感寶寶');
+                                    const hasMedical = checkTag('medical_status', '有');
+                                    const imageAuthDisagree = rawProps.image_auth === 'disagree';
+
+                                    return (
+                                        <div key={order.id} onClick={() => setSelectedOrder(order)} className="cute-card p-6 bg-white cursor-pointer relative overflow-hidden group">
+                                            <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${order.status === 'confirmed' ? 'bg-[#4A6B55]' : order.status === 'pending' ? 'bg-[#B8A088]' : order.status === 'cancelled' ? 'bg-[#DBA58B]' : 'bg-[#DDD6CE]'}`}></div>
+                                            
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div>
+                                                    <div className="text-[10px] font-bold text-[#B5A89C] uppercase tracking-widest mb-1 flex items-center gap-2">
+                                                        <span className="flex items-center gap-1">
+                                                            <Icon name="calendar" size={12} className="mb-0.5"/>
+                                                            {['boarding', 'daycare'].includes(order.service_type) ? displayDateText : `${order.booking_date || order.check_in_date || order.booking_time?.split('T')[0]} ${order.booking_time || ''}`}
+                                                            {isDaycare && (
+                                                                <span className="ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#B8A088]/20 text-[#B8A088]">
+                                                                    安親
+                                                                </span>
+                                                            )}
+                                                            {hasFullGrooming && (
+                                                                <span className="ml-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#4A6B55]/20 text-[#4A6B55]">
+                                                                    大美容
+                                                                </span>
+                                                            )}
+                                                        </span>
+                                                        {(() => {
+                                                            const pets = Array.isArray(order.booking_pets) ? order.booking_pets : [];
+                                                            return pets.length > 1 && 
+                                                                <span className="bg-[#EDE8E0] text-[#B5A89C] px-1.5 py-0.5 rounded-full ml-1">
+                                                                    {pets.length}隻
+                                                                </span>;
+                                                        })()}
+                                                    </div>
+                                                    
+                                                    <div className="font-bold text-2xl text-[#203B2A] flex items-center gap-2">
+                                                        {(() => {
+                                                            const pets = Array.isArray(order.booking_pets) ? order.booking_pets : [];
+                                                            return pets.map(p => p.pet_name || '未命名').join(', ') || '無毛孩資料';
+                                                        })()}
+                                                    </div>
+
+                                                    {(hasAggression || isSensitive || hasMedical) && (
+                                                        <div className="flex flex-wrap gap-1.5 mt-2 animate-fade-in">
+                                                            {hasAggression && (
+                                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#DBA58B] text-white px-2 py-0.5 rounded-md shadow-sm">
+                                                                    <Icon name="alert-octagon" size={10} /> 有攻擊性
+                                                                </span>
+                                                            )}
+                                                            {isSensitive && (
+                                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#B8A088] text-white px-2 py-0.5 rounded-md shadow-sm">
+                                                                    <Icon name="zap" size={10} /> 敏感寶寶
+                                                                </span>
+                                                            )}
+                                                            {hasMedical && (
+                                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#4A6B55] text-white px-2 py-0.5 rounded-md shadow-sm">
+                                                                    <Icon name="activity" size={10} /> 有病史
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="text-right">
+                                                    <div className="font-bold text-lg text-[#B8A088]">${order.total_price}</div>
+                                                    <span className={`status-badge block mt-1 ${order.status === 'pending' ? 'status-pending' : order.status === 'confirmed' ? 'status-confirmed' : order.status === 'cancelled' ? 'status-cancelled' : 'status-completed'}`}>
+                                                        {order.status === 'pending' ? '待確認' : order.status === 'confirmed' ? '已確認' : order.status === 'cancelled' ? '已取消' : '已完成'}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-4 text-xs font-bold text-[#B5A89C] mt-3 border-t border-dashed border-[#DDD6CE] pt-3">
+                                                <div className="flex items-center gap-1.5 text-[#4A6B55]">
+                                                    <Icon name="user" size={14}/>
+                                                    {order.owner_name}
+                                                </div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <Icon name="phone" size={14}/>
+                                                    {order.phone}
+                                                </div>
+                                                {imageAuthDisagree && (
+                                                    <div className="ml-auto flex items-center gap-1 text-[10px] bg-[#FDF6F3] text-[#DBA58B] px-2 py-1 rounded-full font-bold border border-[#DBA58B]/30">
+                                                        <Icon name="camera-off" size={12}/> 
+                                                        <span>拒絕拍攝</span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {order.admin_note && (
+                                                <div className="mt-3 pt-3 border-t border-dashed border-[#DDD6CE] text-xs text-[#B8A088]/80 truncate">
+                                                    <span className="font-bold">📝 備註：</span>{order.admin_note}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                                {sortedFilteredOrders.length === 0 && <div className="py-20 text-center text-[#DDD6CE] font-bold">暫無相關預約訂單 🍃</div>}
+                            </div>
+                        )}
+                    </main>
+
+                    <OrderModal 
+                        user={user}
+                        order={selectedOrder} 
+                        onClose={() => setSelectedOrder(null)} 
+                        onUpdateStatus={updateStatus} 
+                        onUpdateNote={updateNote}
+                        onDeleteOrder={deleteOrder}
+                        onUpdateFullOrder={updateFullOrder}
+                    />
+                    
+                    <ChangePasswordModal isOpen={showPwdModal} onClose={() => setShowPwdModal(false)} />
+                    <CustomerDetailModal customer={selectedCustomer} onClose={() => setSelectedCustomer(null)} onSelectOrder={setSelectedOrder} />
+                </div>
+            );
+        };
+
+        // --- App 主元件 ---
+        const App = () => {
+            const [session, setSession] = useState(null);
+            const [showUpdate, setShowUpdate] = useState(false);
+            const [waitingWorker, setWaitingWorker] = useState(null);
+
+useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    supabase.auth.onAuthStateChange((_event, session) => setSession(session));
+}, []);
+
+// 監聽自定義更新事件
+useEffect(() => {
+    const handleTriggerUpdate = () => {
+        if (window.__waitingWorker) {
+            // 監聽 controllerchange
+            const onControllerChange = () => {
+                window.removeEventListener('controllerchange', onControllerChange);
+                window.location.reload();
+            };
+            window.addEventListener('controllerchange', onControllerChange);
+            
+            // 發送 SKIP_WAITING
+            window.__waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+            
+            // 3 秒後強制重新整理
+            setTimeout(() => {
+                window.removeEventListener('controllerchange', onControllerChange);
+                window.location.reload();
+            }, 3000);
+        } else {
+            window.location.reload();
+        }
+    };
+    
+    window.addEventListener('trigger-update', handleTriggerUpdate);
+    return () => {
+        window.removeEventListener('trigger-update', handleTriggerUpdate);
+    };
+}, []);
+
+useEffect(() => {
+    // 只在 HTTPS 或 localhost 環境註冊 Service Worker
+    if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        const registerSW = async () => {
+            try {
+                // 先獲取現有的註冊
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                
+                // 檢查是否已有 admin-sw.js 的註冊
+                let existingReg = null;
+                for (const registration of registrations) {
+                    if (registration.active && registration.active.scriptURL.includes('admin-sw.js')) {
+                        existingReg = registration;
+                        break;
+                    }
+                    if (registration.waiting && registration.waiting.scriptURL.includes('admin-sw.js')) {
+                        existingReg = registration;
+                        break;
+                    }
+                }
+
+                // 如果已有註冊且沒有 waiting，表示已經是最新版本，直接使用
+                if (existingReg) {
+                    console.log('[App] 已有 Service Worker 註冊，檢查是否需要更新');
+                    // 如果已有 waiting，顯示更新提示
+                    if (existingReg.waiting) {
+                        setWaitingWorker(existingReg.waiting);
+                        setShowUpdate(true);
+                    } else {
+                        // 檢查是否有新版本（通過 fetch 比對）
+                        try {
+                            const swResponse = await fetch('./admin-sw.js', { cache: 'no-store' });
+                            const swText = await swResponse.text();
+                            // 從 SW 內容中提取版本號
+                            const versionMatch = swText.match(/CACHE_VERSION\s*=\s*['"]([^'"]+)['"]/);
+                            const newVersion = versionMatch ? versionMatch[1] : null;
+                            
+                            // 從當前 active worker 的 URL 中提取版本（透過 scriptURL）
+                            const currentUrl = existingReg.active ? existingReg.active.scriptURL : '';
+                            const currentVersionMatch = currentUrl.match(/[?&]v=([^&]+)/);
+                            const currentVersion = currentVersionMatch ? currentVersionMatch[1] : null;
+                            
+                            // 如果版本不同，需要重新註冊
+                            if (newVersion && currentVersion && newVersion !== currentVersion) {
+                                console.log('[App] 檢測到新版本，重新註冊');
+                                await existingReg.unregister();
+                                const registration = await navigator.serviceWorker.register('./admin-sw.js', { scope: '/' });
+                                if (registration.waiting) {
+                                    setWaitingWorker(registration.waiting);
+                                    setShowUpdate(true);
+                                }
+                            } else {
+                                console.log('[App] Service Worker 已是最新版本');
+                            }
+                        } catch (e) {
+                            console.warn('[App] 版本檢查失敗:', e);
+                        }
+                    }
+                    return;
+                }
+
+                // 沒有現有註冊，建立新的
+                const registration = await navigator.serviceWorker.register('./admin-sw.js', { scope: '/' });
+                console.log('[App] Service Worker 註冊成功:', registration);
+                
+                if (registration.waiting) {
+                    setWaitingWorker(registration.waiting);
+                    setShowUpdate(true);
+                }
+
+                // 監聽更新事件
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    if (newWorker) {
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                setWaitingWorker(newWorker);
+                                setShowUpdate(true);
+                            }
+                            if (newWorker.state === 'activated') {
+                                console.log('[App] 新 Service Worker 已啟用');
+                                setShowUpdate(false);
+                            }
+                        });
+                    }
+                });
+
+                // 監聽來自 Service Worker 的訊息
+                const messageHandler = (event) => {
+                    if (event.data && event.data.type === 'SW_ACTIVATED') {
+                        console.log('[App] 收到 SW 啟用通知');
+                        setShowUpdate(false);
+                        setWaitingWorker(null);
+                    }
+                };
+                navigator.serviceWorker.addEventListener('message', messageHandler);
+
+                // 清理函數
+                return () => {
+                    navigator.serviceWorker.removeEventListener('message', messageHandler);
+                };
+
+            } catch (error) {
+                console.warn('[App] Service Worker 註冊失敗:', error);
+            }
+        };
+        registerSW();
+    }
+}, []);
+
+return (
+    <>
+        <UpdatePrompt show={showUpdate} onUpdate={() => {
+            // 直接使用 waitingWorker，不觸發自定義事件
+            if (waitingWorker) {
+                // 監聽 controllerchange 事件
+                const onControllerChange = () => {
+                    window.removeEventListener('controllerchange', onControllerChange);
+                    window.location.reload();
+                };
+                window.addEventListener('controllerchange', onControllerChange);
+                
+                // 發送 SKIP_WAITING
+                waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+                
+                // 2 秒後如果沒有 controllerchange，強制重新整理
+                setTimeout(() => {
+                    window.removeEventListener('controllerchange', onControllerChange);
+                    window.location.reload();
+                }, 2000);
+            } else {
+                navigator.serviceWorker.getRegistration().then(reg => {
+                    if (reg && reg.waiting) {
+                        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    } else {
+                        window.location.reload();
+                    }
+                });
+            }
+        }} />
+        {session ? <Dashboard user={session.user} /> : <LoginView onLogin={() => {}} />}
+    </>
+);
+        };
+
+// 使用傳統 ReactDOM.render (相容 file:// 協議)
+const rootElement = document.getElementById('root');
+if (rootElement) {
+    ReactDOM.render(<App />, rootElement);
+} else {
+    console.error('Root element not found');
+}
+    </script>
+</body>
+</html>
