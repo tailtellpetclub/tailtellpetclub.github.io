@@ -582,44 +582,175 @@ const TermsModal = ({ isOpen, onClose, title, children, onAgree }) => {
 };
 
 const HistoryModal = ({ records, onClose, onSelect }) => {
+    const [selectedPet, setSelectedPet] = useState(null);
+    const [petRecords, setPetRecords] = useState([]);
+
+    // 當點擊毛孩時，過濾出該毛孩的所有紀錄
+    const handlePetSelect = (petName) => {
+        const filtered = records.filter(r => r.pet_name === petName);
+        setPetRecords(filtered);
+        setSelectedPet(petName);
+    };
+
+    // 回到毛孩列表
+    const handleBack = () => {
+        setSelectedPet(null);
+        setPetRecords([]);
+    };
+
+    // 獲取服務類型標籤
+    const getServiceLabel = (type) => {
+        if (type === 'boarding') return '住宿';
+        if (type === 'daycare') return '安親';
+        return '美容';
+    };
+
+    // 獲取服務類型圖示
+    const getServiceIcon = (type) => {
+        if (type === 'boarding') return '🏠';
+        if (type === 'daycare') return '☀️';
+        return '✂️';
+    };
+
+    // 獲取唯一的毛孩列表 (每個毛孩只顯示一次)
+    const uniquePets = useMemo(() => {
+        const seen = new Set();
+        return records.filter(r => {
+            const name = r.pet_name || '未命名寶貝';
+            if (seen.has(name)) return false;
+            seen.add(name);
+            return true;
+        });
+    }, [records]);
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#203B2A]/40 backdrop-blur-sm animate-fade-in">
             <div className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl relative max-h-[80vh] flex flex-col">
+                {/* Header */}
                 <div className="bg-[#203B2A] p-6 text-white text-center">
                     <h3 className="text-lg font-bold">🐾 歡迎回來！</h3>
-                    <p className="text-sm opacity-80 mt-1">我們找到了以下寶貝的紀錄，請選擇要帶入的資料：</p>
+                    <p className="text-sm opacity-80 mt-1">
+                        {selectedPet ? `選擇 ${selectedPet} 的紀錄` : '請選擇要帶入的毛孩：'}
+                    </p>
                 </div>
+
+                {/* 內容區域 */}
                 <div className="p-6 space-y-3 overflow-y-auto bg-[#FAF8F5] min-h-[200px]">
-                    {records.map((record, idx) => {
-                        const petName = record.pet_name || '未命名寶貝';
-                        const serviceType = record.service_type === 'boarding' ? '住宿' : '美容';
-                        let dateStr = '無日期紀錄';
-                        if (record.created_at) {
-                            try {
-                                const d = new Date(record.created_at);
-                                if (!isNaN(d.getTime())) dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-                            } catch (_) {}
-                        }
-                        return (
-                            <button key={record.id || idx} onClick={() => onSelect(record)}
-                                className="w-full bg-white p-4 rounded-2xl border border-[#DDD6CE] shadow-sm hover:border-[#B8A088] hover:shadow-md transition-all text-left flex items-center gap-4 group">
-                                <div className="w-12 h-12 rounded-full bg-[#EDE8E0]/40 flex items-center justify-center text-[#203B2A] font-bold text-lg group-hover:bg-[#EDE8E0] transition-colors">
-                                    {petName.charAt(0)}
-                                </div>
-                                <div>
-                                    <div className="font-bold text-[#203B2A] text-lg">{petName}</div>
-                                    <div className="text-xs text-[#B5A89C]">上次服務：{dateStr} ({serviceType})</div>
-                                </div>
-                                <div className="ml-auto text-[#203B2A] opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Icon name="arrow-right" size={20} />
-                                </div>
+                    {!selectedPet ? (
+                        // 第一層：毛孩列表
+                        <>
+                            {uniquePets.map((record) => {
+                                const petName = record.pet_name || '未命名寶貝';
+                                // 檢查該毛孩有哪些服務類型
+                                const petRecords = records.filter(r => r.pet_name === petName);
+                                const hasGrooming = petRecords.some(r => r.service_type === 'grooming');
+                                const hasBoarding = petRecords.some(r => r.service_type === 'boarding');
+                                const hasDaycare = petRecords.some(r => r.service_type === 'daycare');
+                                const serviceTags = [];
+                                if (hasGrooming) serviceTags.push('美容');
+                                if (hasBoarding) serviceTags.push('住宿');
+                                if (hasDaycare) serviceTags.push('安親');
+                                return (
+                                    <button
+                                        key={record.id || petName}
+                                        onClick={() => handlePetSelect(petName)}
+                                        className="w-full bg-white p-4 rounded-2xl border border-[#DDD6CE] shadow-sm hover:border-[#B8A088] hover:shadow-md transition-all text-left flex items-center gap-4 group"
+                                    >
+                                        <div className="w-12 h-12 rounded-full bg-[#EDE8E0]/40 flex items-center justify-center text-[#203B2A] font-bold text-lg group-hover:bg-[#EDE8E0] transition-colors">
+                                            {petName.charAt(0)}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="font-bold text-[#203B2A] text-lg">{petName}</div>
+                                            <div className="text-xs text-[#B5A89C] flex flex-wrap gap-1 mt-1">
+                                                {serviceTags.map(tag => (
+                                                    <span key={tag} className="bg-[#EDE8E0] px-2 py-0.5 rounded-full text-[10px]">{tag}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="text-[#203B2A] opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Icon name="chevron-right" size={20} />
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                            <button
+                                onClick={() => {
+                                    // 只帶入飼主資料，不帶入毛孩
+                                    const firstRecord = records[0];
+                                    if (firstRecord) {
+                                        // 只選取飼主相關欄位，排除毛孩和簽名資料
+                                        const ownerData = {
+                                            owner_name: firstRecord.owner_name,
+                                            phone: firstRecord.phone,
+                                            email: firstRecord.email || '',
+                                            owner_id: firstRecord.owner_id,
+                                            address: firstRecord.address,
+                                            emergency_name: firstRecord.emergency_name,
+                                            emergency_phone: firstRecord.emergency_phone,
+                                            // 強制清除簽名
+                                            signature: null,
+                                            signature_time: '',
+                                            legal_agree: false,
+                                        };
+                                        onSelect({ ...ownerData, onlyOwner: true });
+                                    }
+                                    onClose();
+                                }}
+                                className="w-full py-3 rounded-xl text-[#B5A89C] font-bold text-sm hover:bg-[#FAF8F5] transition-colors border border-dashed border-[#DDD6CE]"
+                            >
+                                僅填入飼主資料（不帶入毛孩）
                             </button>
-                        );
-                    })}
+                        </>
+                    ) : (
+                        // 第二層：服務類型選擇
+                        <>
+                            {petRecords.map((record, idx) => {
+                                const serviceType = record.service_type;
+                                const label = getServiceLabel(serviceType);
+                                const icon = getServiceIcon(serviceType);
+                                let dateStr = '無日期紀錄';
+                                if (record.created_at) {
+                                    try {
+                                        const d = new Date(record.created_at);
+                                        if (!isNaN(d.getTime())) dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+                                    } catch (_) {}
+                                }
+                                return (
+                                    <button
+                                        key={record.id || idx}
+                                        onClick={() => {
+                                            onSelect(record);
+                                            onClose();
+                                        }}
+                                        className="w-full bg-white p-4 rounded-2xl border border-[#DDD6CE] shadow-sm hover:border-[#B8A088] hover:shadow-md transition-all text-left flex items-center gap-4 group"
+                                    >
+                                        <div className="w-10 h-10 rounded-full bg-[#203B2A]/10 flex items-center justify-center text-lg">
+                                            {icon}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="font-bold text-[#203B2A] text-base">帶入【{label}】資料</div>
+                                            <div className="text-xs text-[#B5A89C]">上次：{dateStr}</div>
+                                        </div>
+                                        <div className="text-[#203B2A] opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Icon name="arrow-right" size={20} />
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                            <button
+                                onClick={handleBack}
+                                className="w-full py-3 rounded-xl text-[#B5A89C] font-bold text-sm hover:bg-[#FAF8F5] transition-colors"
+                            >
+                                ← 返回選擇毛孩
+                            </button>
+                        </>
+                    )}
                 </div>
+
+                {/* 底部按鈕 */}
                 <div className="p-4 bg-white border-t border-[#DDD6CE]">
                     <button onClick={onClose} className="w-full py-3 rounded-xl text-[#B5A89C] font-bold text-sm hover:bg-[#FAF8F5] transition-colors">
-                        不使用舊資料，填寫新表單
+                        取消搜尋
                     </button>
                 </div>
             </div>
@@ -807,33 +938,39 @@ const SuccessView = ({ data, onReset }) => {
             w.document.close(); } else alert('請允許彈出視窗以查看完整契約。');
     };
     return (
-        <div className="fixed inset-0 z-[200] bg-[#203B2A]/90 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
-            <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl relative overflow-hidden my-auto">
-                <div className={`p-8 text-center relative overflow-hidden transition-colors duration-500 ${hasEmail ? 'bg-[#203B2A]' : 'bg-[#B8A088]'}`}>
-                    <div className="absolute top-[-50px] left-[-50px] w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-                    <div className="absolute bottom-[-30px] right-[-30px] w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
-                    <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 text-white shadow-lg animate-pulse-slow relative">
-                        <div className="absolute inset-0 rounded-full border-2 border-white/10 animate-ping" style={{ animationDuration: '2s' }}></div>
-                        <Icon name={hasEmail ? "check" : "camera"} size={48} className="relative z-10" />
+        <div className="fixed inset-0 z-[200] bg-[#203B2A]/40 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
+            <div className="bg-white/90 backdrop-blur-md rounded-[2.5rem] w-full max-w-lg shadow-2xl relative overflow-hidden my-auto border border-[#DDD6CE]/40">
+                <div className="p-8 text-center relative overflow-hidden bg-gradient-to-b from-[#FAF8F5] to-white">
+                    <div className="absolute top-[-50px] left-[-50px] w-32 h-32 bg-[#D4C9BE]/20 rounded-full blur-2xl"></div>
+                    <div className="absolute bottom-[-30px] right-[-30px] w-24 h-24 bg-[#C4B8AA]/20 rounded-full blur-2xl"></div>
+                    <div className="w-24 h-24 bg-[#203B2A]/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg relative">
+                        <div className="absolute inset-0 rounded-full border-2 border-[#203B2A]/10 animate-ping" style={{ animationDuration: '2s' }}></div>
+                        <Icon name={hasEmail ? "check" : "camera"} size={48} className="relative z-10 text-[#203B2A]" />
                     </div>
-                    <h2 className="text-2xl font-serif font-bold text-white mb-2 tracking-wide">{hasEmail ? '預約成功！' : '預約成功！請截圖'}</h2>
-                    <p className="text-white/80 text-sm font-bold">{hasEmail ? '契約副本已寄至您的信箱' : '未填寫信箱，請務必保存下方副本'}</p>
+                    <h2 className="text-2xl font-serif font-bold text-[#203B2A] mb-2 tracking-wide">預約成功！</h2>
+                    {hasEmail ? (
+                        <p className="text-sm font-bold text-[#4A6B55]">
+                            契約副本已寄至 <span className="text-[#203B2A] font-bold underline decoration-[#B8A088] decoration-2 underline-offset-4">{data.email}</span>
+                        </p>
+                    ) : (
+                        <p className="text-sm font-bold text-[#DBA58B]">未填寫信箱，請務必保存下方副本</p>
+                    )}
                     <div className="mt-3 flex justify-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-white/30"></span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-white/50"></span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-white/30"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#203B2A]/30"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#203B2A]/50"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#203B2A]/30"></span>
                     </div>
                 </div>
-                <div className="p-6 md:p-8 space-y-6">
+                <div className="p-6 md:p-8 space-y-6 bg-white/50">
                     <div className={`border rounded-2xl p-5 flex gap-4 items-start shadow-sm ${hasEmail ? 'bg-[#FAF8F5] border-[#DDD6CE]' : 'bg-[#FDF6F3] border-[#DBA58B]'}`}>
-                        <div className={`shrink-0 mt-1 ${hasEmail ? 'text-[#203B2A]' : 'text-[#DBA58B]'}`}><Icon name={hasEmail ? "info" : "alert-triangle"} size={20} /></div>
+                        <div className={`shrink-0 mt-1 ${hasEmail ? 'text-[#4A6B55]' : 'text-[#DBA58B]'}`}><Icon name={hasEmail ? "mail" : "alert-triangle"} size={20} /></div>
                         <div className="text-sm">
                             <p className={`font-bold mb-1 text-base ${hasEmail ? 'text-[#203B2A]' : 'text-[#DBA58B]'}`}>{hasEmail ? '💡 溫馨提醒' : '⚠️ 重要提醒'}</p>
-                            <p className="leading-relaxed opacity-80 text-[#4A6B55]">{hasEmail ? '若沒收到信件，可能是被歸類到垃圾郵件。您也可以點擊下方按鈕直接查看契約副本。' : '因未填寫 Email，系統無法發送副本。請點擊下方按鈕開啟完整契約，並進行全螢幕截圖保存。'}</p>
+                            <p className="leading-relaxed text-[#4A6B55]">{hasEmail ? '若沒收到信件，可能是被歸類到垃圾郵件。您也可以點擊下方按鈕直接查看契約副本。' : '因未填寫 Email，系統無法發送副本。請點擊下方按鈕開啟完整契約，並進行全螢幕截圖保存。'}</p>
                         </div>
                     </div>
                     <div className="space-y-3">
-                        <button onClick={openContract} className="w-full py-4 rounded-2xl bg-[#203B2A] text-white font-bold shadow-lg shadow-[#203B2A]/20 hover:bg-[#162B1F] active:scale-95 transition-all flex items-center justify-center gap-2 border-2 border-[#203B2A]"><Icon name="file-text" size={20} /> 開啟完整契約頁面 (截圖用)</button>
+                        <button onClick={openContract} className="w-full py-4 rounded-2xl bg-[#203B2A] text-white font-bold shadow-lg shadow-[#203B2A]/20 hover:bg-[#162B1F] active:scale-95 transition-all flex items-center justify-center gap-2"><Icon name="file-text" size={20} /> 開啟完整契約頁面 (截圖用)</button>
                         <button onClick={onReset} className="w-full py-4 rounded-2xl bg-white text-[#203B2A] border-2 border-[#DDD6CE] font-bold shadow-sm hover:bg-[#FAF8F5] active:scale-95 transition-all flex items-center justify-center gap-2"><Icon name="home" size={20} /> 返回首頁 (完成)</button>
                     </div>
                 </div>
@@ -944,27 +1081,49 @@ const App = () => {
 
     const personalityOptions = ['分離焦慮', '緊張', '無社會化', '護食', '+ 其他'];
 
-    // 修正點 1：真正的風險判斷邏輯
+    // 修正點 1：真正的風險判斷邏輯 (包含生日模式)
     const isHighRisk = useMemo(() => {
         // 有病史
         if (formData.medical_history === '有') return true;
-        // 高齡 (8歲以上)
+        
+        // 如果使用生日模式，計算年齡
+        if (formData.use_birthday !== false && formData.pet_birthday) {
+            const birthDate = new Date(formData.pet_birthday);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            // 高齡 (8歲以上) 或 幼齡 (3個月以下)
+            if (age >= 8) return true;
+            if (age < 1) {
+                const monthAge = (today - birthDate) / (1000 * 60 * 60 * 24 * 30.44);
+                if (monthAge <= 3) return true;
+            }
+            return false;
+        }
+        
+        // 使用年齡模式
         if (formData.age_type === 'year' && parseFloat(formData.age_value) >= 8) return true;
-        // 幼齡 (3個月以下)
         if (formData.age_type === 'month' && parseFloat(formData.age_value) <= 3) return true;
         return false;
-    }, [formData.medical_history, formData.age_type, formData.age_value]);
+    }, [formData.medical_history, formData.age_type, formData.age_value, formData.use_birthday, formData.pet_birthday]);
 
     // 修正點 2：正確判斷 image_consent (允許 false 為有效)
     const allTermsCompleted = useMemo(() => {
+        // 美容條款必須閱讀
         if (!termsRead.beauty) return false;
+        // 住宿或安親模式必須閱讀住宿條款
         if (serviceType !== 'grooming' && !termsRead.boarding) return false;
+        // 高風險條款：只有在 isHighRisk 為 true 時才需要閱讀
         if (isHighRisk) {
             if (!termsRead.highRiskBeauty) return false;
             if (serviceType !== 'grooming' && !termsRead.highRiskBoarding) return false;
         }
         // 必須選擇「同意」或「不同意」，不能是 null 或 undefined
         if (formData.image_consent === null || formData.image_consent === undefined) return false;
+        // 簽名檢查移到 validate() 中處理，這裡不檢查簽名
         return true;
     }, [termsRead, serviceType, isHighRisk, formData.image_consent]);
 
@@ -1043,8 +1202,6 @@ const App = () => {
             }
             if (!formData.room_type || formData.room_type.length === 0) { newErrors.room_type = '請至少選擇一項房型';
                 hasError = true; }
-            if (!formData.temperament) { newErrors.temperament = '請選擇放風模式';
-                hasError = true; }
         }
 
         if (serviceType === 'daycare') {
@@ -1063,18 +1220,38 @@ const App = () => {
             hasError = true;
         }
 
-        if (!formData.signature) { newErrors.signature = '請完成數位簽名';
-            hasError = true; }
+        // 簽名驗證：必須有簽名資料
+        if (!formData.signature) { 
+            newErrors.signature = '請完成數位簽名';
+            hasError = true; 
+        }
+
+        // 額外驗證：確保簽名不是空字串或只有空白
+        if (formData.signature && formData.signature.trim() === '') {
+            newErrors.signature = '請完成數位簽名';
+            hasError = true;
+        }
 
         setErrors(newErrors);
         if (hasError) {
             const keys = Object.keys(newErrors);
+            // 如果簽名有錯誤，優先滾動到簽名區塊
+            let targetKey = keys[0];
+            if (keys.includes('signature')) {
+                targetKey = 'signature';
+            }
             const top = keys.slice(0, 3).map(k => newErrors[k]);
             const msg = '請修正以下錯誤：\n' + top.join('\n') + (keys.length > 3 ? `\n\n還有 ${keys.length-3} 個欄位需要修正` :
             '');
             window.showToast(msg, 'error');
-            const first = document.querySelector(`[name="${keys[0]}"]`);
-            if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // 滾動到簽名區塊或第一個錯誤欄位
+            if (targetKey === 'signature') {
+                const sigEl = document.getElementById('signature');
+                if (sigEl) sigEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                const first = document.querySelector(`[name="${targetKey}"]`);
+                if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
         }
         return !hasError;
     };
@@ -1118,35 +1295,93 @@ const App = () => {
     };
 
     const handleApplyHistory = (record) => {
-        const { check_in_date, check_out_date, room_type, room_price, service_tags, is_owner, physical_check,
-            social_traits, medical_tags, vaccines, has_experience, is_heat, has_surgery, surgery_detail, pet_birthday, ...rest } = record;
-        setFormData(prev => ({
-            ...prev,
-            ...rest,
-            phone: formData.phone,
-            physical_check: safeParse(physical_check),
-            social_traits: safeParse(social_traits),
-            medical_tags: safeParse(medical_tags),
-            vaccines: safeParse(vaccines),
-            checkInDate: '',
-            checkOutDate: '',
-            room_type: '',
-            room_price: '',
-            daycare_date: '',
-            pickup_time: '',
-            is_owner: (is_owner === '是' || is_owner === true) ? '是' : '否',
-            service_tags: [],
-            has_experience: has_experience || '',
-            is_heat: is_heat || '',
-            has_surgery: has_surgery || '',
-            surgery_detail: surgery_detail || '',
-            pet_birthday: pet_birthday || '',
-            use_birthday: pet_birthday ? true : false,
-        }));
-        setRealtimeSig(null);
-        setShowHistoryModal(false);
-        window.showToast(`✅ 已載入 ${record.pet_name} 的歷史資料`, 'success');
+    // 明確排除簽名相關欄位，避免舊簽名被導入
+    const { check_in_date, check_out_date, room_type, room_price, service_tags, is_owner, physical_check,
+        social_traits, medical_tags, vaccines, has_experience, is_heat, has_surgery, surgery_detail, pet_birthday, fur_color, signature, signature_time, ...rest } = record;
+    let parsedServiceTags = [];
+    // 只有當當前服務類型不是美容時，才導入 service_tags
+    if (serviceType !== 'grooming' && service_tags) {
+        try {
+            parsedServiceTags = typeof service_tags === 'string' 
+                ? JSON.parse(service_tags) 
+                : service_tags;
+            if (!Array.isArray(parsedServiceTags)) {
+                parsedServiceTags = [];
+            }
+            // 過濾掉不需要導入的分類標題
+            const unwantedTags = ['基礎服務', '加購與升級', '其他項目'];
+            parsedServiceTags = parsedServiceTags.filter(tag => !unwantedTags.includes(tag));
+        } catch (_) {
+            parsedServiceTags = [];
+        }
+    }
+    // has_experience 使用 "有"/"無"
+    const normalizeHasExperience = (val) => {
+        if (val === true || val === 'true' || val === 1 || val === '1' || val === '有') return '有';
+        if (val === false || val === 'false' || val === 0 || val === '0' || val === '無') return '無';
+        return val || '';
     };
+    // is_heat 和 has_surgery 使用 "是"/"否"
+    const normalizeYesNo = (val) => {
+        if (val === true || val === 'true' || val === 1 || val === '1' || val === '是') return '是';
+        if (val === false || val === 'false' || val === 0 || val === '0' || val === '否') return '否';
+        return val || '';
+    };
+    // 解析疫苗接種紀錄 (確保是陣列)
+    let parsedVaccines = [];
+    if (vaccines) {
+        try {
+            parsedVaccines = typeof vaccines === 'string' 
+                ? JSON.parse(vaccines) 
+                : vaccines;
+            if (!Array.isArray(parsedVaccines)) {
+                parsedVaccines = [];
+            }
+        } catch (_) {
+            parsedVaccines = [];
+        }
+    }
+    setFormData(prev => ({
+        ...prev,
+        ...rest,
+        phone: formData.phone,
+        physical_check: safeParse(physical_check),
+        social_traits: safeParse(social_traits),
+        medical_tags: safeParse(medical_tags),
+        vaccines: parsedVaccines,
+        fur_color: fur_color || '',
+        checkInDate: '',
+        checkOutDate: '',
+        room_type: room_type || '',
+        room_price: room_price || 0,
+        daycare_date: '',
+        pickup_time: '',
+        is_owner: (is_owner === '是' || is_owner === true) ? '是' : '否',
+        // 美容服務不導入 service_tags，保留使用者手動選擇
+        service_tags: serviceType === 'grooming' ? [] : parsedServiceTags,
+        has_experience: normalizeHasExperience(has_experience),
+        is_heat: normalizeYesNo(is_heat),
+        has_surgery: normalizeYesNo(has_surgery),
+        surgery_detail: surgery_detail || '',
+        pet_birthday: pet_birthday || '',
+        use_birthday: pet_birthday ? true : false,
+        // 強制清除簽名相關欄位，避免舊簽名被導入
+        signature: null,
+        signature_time: '',
+        legal_agree: false,
+    }));
+    setRealtimeSig(null);
+    setShowHistoryModal(false);
+    // 顯示載入摘要
+    let summary = [];
+    if (serviceType !== 'grooming' && parsedServiceTags.length > 0) summary.push(`服務: ${parsedServiceTags.join('、')}`);
+    if (fur_color) summary.push(`毛色: ${fur_color}`);
+    if (parsedVaccines.length > 0) summary.push(`疫苗: ${parsedVaccines.join('、')}`);
+    if (has_surgery) summary.push(`手術: ${has_surgery}`);
+    if (summary.length > 0) {
+        window.showToast(`✅ 已載入 ${record.pet_name} 的歷史資料`, 'success');
+    }
+};
 
     // 修正點 5：更穩定的 canvas 初始化
     useEffect(() => {
@@ -1220,6 +1455,11 @@ const App = () => {
     const handleSubmit = async () => {
         if (isSubmitting) return;
         if (!validate()) return;
+        // 加入條款驗證 - 確認所有條款都已閱讀並同意
+        if (!allTermsCompleted) {
+            window.showToast('請先閱讀並同意所有條款 (美容、住宿/安親、高風險及影像使用同意)', 'error');
+            return;
+        }
         setIsSubmitting(true);
         window.showToast('正在處理簽名與提交...', 'warning');
 
@@ -1247,14 +1487,17 @@ const App = () => {
                 pet_name: formData.pet_name,
                 pet_type: 'dog',
                 breed: formData.breed,
+                fur_color: formData.fur_color,
                 weight: parseFloat(formData.weight) || 0,
                 age_type: formData.age_type,
                 age_value: formData.age_value,
+                pet_birthday: formData.pet_birthday || null,
                 sex: formData.sex,
                 fix: formData.fix,
                 chip_status: formData.chip_status,
                 chip_id: formData.chip_id,
                 health_date: formData.health_date || null,
+                vaccines: JSON.stringify(formData.vaccines),
                 deworming_monthly: formData.deworming_monthly,
                 physical_check: formData.physical_check,
                 physical_other: formData.physical_other,
@@ -1263,12 +1506,16 @@ const App = () => {
                 medical_history: formData.medical_history,
                 medical_tags: formData.medical_tags,
                 medical_other: formData.medical_other,
+                has_experience: formData.has_experience,
+                is_heat: formData.is_heat,
+                has_surgery: formData.has_surgery,
+                surgery_detail: formData.surgery_detail,
                 preferred_clinic_name: formData.preferred_clinic_name,
                 preferred_clinic_phone: formData.preferred_clinic_phone,
-                check_in_date: serviceType === 'boarding' ? formData.checkInDate : (serviceType === 'daycare' ?
-                    formData.daycare_date : null),
-                check_out_date: serviceType === 'boarding' ? formData.checkOutDate : (serviceType === 'daycare' ?
-                    formData.pickup_time : null),
+                check_in_date: serviceType === 'boarding' ? (formData.checkInDate || null) : (serviceType === 'daycare' ?
+                    (formData.daycare_date || null) : null),
+                check_out_date: serviceType === 'boarding' ? (formData.checkOutDate || null) : (serviceType === 'daycare' ?
+                    (formData.pickup_time || null) : null),
                 room_type: formData.isFamilyRoom ? (formData.room_type ? `${formData.room_type} + 家庭共宿` : '家庭共宿') : formData.room_type,
                 room_price: parseFloat(formData.room_price) || 0,
                 temperament: formData.temperament,
@@ -1301,8 +1548,7 @@ const App = () => {
             if (formData.email && formData.email.trim() !== '') {
                 try {
                     await window.supabaseClient.functions.invoke('resend-email', {
-                        body: { email: formData.email, owner_name: formData.owner_name, pet_name: formData
-                                .pet_name, htmlContent: emailBody }
+                        body: { to: formData.email, html: emailBody, petNames: formData.pet_name }
                     });
                 } catch (mailErr) { console.error('寄信失敗:', mailErr); }
             }
@@ -1468,8 +1714,10 @@ const App = () => {
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-[#4A6B55] ml-1">手機號碼 *</label>
                             <div className="flex flex-col sm:flex-row gap-2">
-                                <input type="tel" value={formData.phone} onChange={e => handleChange('phone', e
-                                        .target.value)} placeholder="請輸入手機號碼"
+                                <input type="tel" value={formData.phone} onChange={e => {
+                                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                        handleChange('phone', val);
+                                    }} placeholder="請輸入手機號碼 (09xxxxxxxx)"
                                     className={`w-full cute-input ${errors.phone ? 'border-red-300 bg-red-50/40' : ''}`} />
                                 <button onClick={handleSearchHistory} disabled={isSearching}
                                     className="bg-[#203B2A] text-white h-[50px] px-4 rounded-xl font-bold text-xs shadow-md hover:bg-[#162B1F] transition-colors whitespace-nowrap flex items-center justify-center gap-2 w-full sm:w-auto shrink-0">
@@ -1479,7 +1727,10 @@ const App = () => {
                                 </button>
                             </div>
                         </div>
-                        <InputWithError label="身分證字號 *" name="owner_id" value={formData.owner_id} onChange={e => handleChange('owner_id', e.target.value)} error={errors.owner_id} placeholder="請輸入身分證字號" />
+                        <InputWithError label="身分證字號 *" name="owner_id" value={formData.owner_id} onChange={e => {
+                                const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
+                                handleChange('owner_id', val);
+                            }} error={errors.owner_id} placeholder="請輸入身分證字號 (範例: A123456789)" />
                     </div>
                     <InputWithError label="聯絡地址 *" name="address" value={formData.address} onChange={e => handleChange('address', e.target.value)} error={errors.address} />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1701,7 +1952,6 @@ const App = () => {
                                     {formData.temperament === '獨立放風' && <Icon name="check-circle" className="text-[#203B2A]" size={18} />}
                                 </div>
                             </div>
-                            {errors.temperament && <div className="text-xs text-red-400 font-bold">{errors.temperament}</div>}
                         </div>
                     )}
 
@@ -1773,7 +2023,8 @@ const App = () => {
                                 <div className={`flex gap-2 ${errors.has_experience ? 'border-2 border-red-300 rounded-xl p-1' : ''}`}>
                                     {['有', '無'].map(v => (
                                         <button key={v} onClick={() => { handleChange('has_experience', v); clearError('has_experience'); }}
-                                            className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${formData.has_experience === v ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#B8A088]'}`}>
+                                            className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all flex items-center justify-center gap-2 ${formData.has_experience === v ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#B8A088]'}`}>
+                                            {formData.has_experience === v && <Icon name="check-circle" size={16} className="text-white" />}
                                             {v}
                                         </button>
                                     ))}
@@ -1785,7 +2036,8 @@ const App = () => {
                                 <div className={`flex gap-2 ${errors.is_heat ? 'border-2 border-red-300 rounded-xl p-1' : ''}`}>
                                     {['是', '否'].map(v => (
                                         <button key={v} onClick={() => { handleChange('is_heat', v); clearError('is_heat'); }}
-                                            className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${formData.is_heat === v ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#B8A088]'}`}>
+                                            className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all flex items-center justify-center gap-2 ${formData.is_heat === v ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#B8A088]'}`}>
+                                            {formData.is_heat === v && <Icon name="check-circle" size={16} className="text-white" />}
                                             {v}
                                         </button>
                                     ))}
@@ -1798,7 +2050,8 @@ const App = () => {
                             <div className={`flex gap-2 mb-2 ${errors.has_surgery ? 'border-2 border-red-300 rounded-xl p-1' : ''}`}>
                                 {['有', '無'].map(v => (
                                     <button key={v} onClick={() => { handleChange('has_surgery', v); if (v === '無') handleChange('surgery_detail', ''); clearError('has_surgery'); }}
-                                        className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${formData.has_surgery === v ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#B8A088]'}`}>
+                                        className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all flex items-center justify-center gap-2 ${formData.has_surgery === v ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#B8A088]'}`}>
+                                        {formData.has_surgery === v && <Icon name="check-circle" size={16} className="text-white" />}
                                         {v}
                                     </button>
                                 ))}
@@ -2155,25 +2408,23 @@ const App = () => {
                         </button>
                     )}
 
-                    {isHighRisk && (
-                        <button onClick={() => setActiveModal('highRiskBeauty')}
-                            className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 transition-all group shadow-sm bg-white animate-slide-down ${termsRead.highRiskBeauty ? 'border-[#06C755]/50' : 'border-[#DBA58B] hover:bg-[#DBA58B]/5'}`}>
-                            <div className="flex items-center gap-4">
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${termsRead.highRiskBeauty ? 'bg-[#06C755] text-white' : 'bg-[#DBA58B]/20 text-[#DBA58B] animate-pulse'}`}>
-                                    <Icon name={termsRead.highRiskBeauty ? "check" : "alert-triangle"} size={24} />
-                                </div>
-                                <div className="text-left">
-                                    <div className="font-bold text-base text-[#203B2A]">高風險美容服務同意書</div>
-                                    <div className="text-xs font-bold text-[#DBA58B] mt-0.5">{termsRead.highRiskBeauty ? '已完成簽署' : '請點擊詳閱並同意'}</div>
-                                </div>
+                    <button onClick={() => setActiveModal('highRiskBeauty')}
+                        className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 transition-all group shadow-sm bg-white animate-slide-down ${termsRead.highRiskBeauty ? 'border-[#06C755]/50' : 'border-[#DBA58B] hover:bg-[#DBA58B]/5'}`}>
+                        <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${termsRead.highRiskBeauty ? 'bg-[#06C755] text-white' : 'bg-[#DBA58B]/20 text-[#DBA58B] animate-pulse'}`}>
+                                <Icon name={termsRead.highRiskBeauty ? "check" : "alert-triangle"} size={24} />
                             </div>
-                            <div className={`px-3 py-1.5 rounded-lg text-xs font-bold ${termsRead.highRiskBeauty ? 'bg-[#06C755]/10 text-[#06C755]' : 'bg-[#DBA58B] text-white'}`}>
-                                {termsRead.highRiskBeauty ? '已同意' : '待簽署'}
+                            <div className="text-left">
+                                <div className="font-bold text-base text-[#203B2A]">高風險美容服務同意書</div>
+                                <div className="text-xs font-bold text-[#DBA58B] mt-0.5">{termsRead.highRiskBeauty ? '已完成簽署' : '請點擊詳閱並同意'}</div>
                             </div>
-                        </button>
-                    )}
+                        </div>
+                        <div className={`px-3 py-1.5 rounded-lg text-xs font-bold ${termsRead.highRiskBeauty ? 'bg-[#06C755]/10 text-[#06C755]' : 'bg-[#DBA58B] text-white'}`}>
+                            {termsRead.highRiskBeauty ? '已同意' : '待簽署'}
+                        </div>
+                    </button>
 
-                    {isHighRisk && (serviceType === 'boarding' || serviceType === 'daycare') && (
+                    {(serviceType === 'boarding' || serviceType === 'daycare') && (
                         <button onClick={() => setActiveModal('highRiskBoarding')}
                             className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 transition-all group shadow-sm bg-white animate-slide-down ${termsRead.highRiskBoarding ? 'border-[#06C755]/50' : 'border-[#DBA58B] hover:bg-[#DBA58B]/5'}`}>
                             <div className="flex items-center gap-4">
@@ -2224,7 +2475,11 @@ const App = () => {
                                 <Icon name="pen-tool" size={18} /> 數位簽名 *
                             </label>
                             {realtimeSig && (
-                                <button type="button" onClick={() => setRealtimeSig(null)}
+                                <button type="button" onClick={() => {
+                                    setRealtimeSig(null);
+                                    handleChange('signature', null);
+                                    handleChange('signature_time', '');
+                                }}
                                     className="text-xs font-bold text-[#DBA58B] hover:text-[#C48A6B] flex items-center gap-1 transition-colors bg-[#FDF6F3] px-3 py-1.5 rounded-full">
                                     <Icon name="trash-2" size={14} /> 重簽
                                 </button>
@@ -2247,18 +2502,35 @@ const App = () => {
                                 </div>
                             </div>
                         ) : (
-                            <button type="button" onClick={() => { if (allTermsCompleted) setShowFullSig(true);
-                                    else window.showToast('請先完成上方所有契約條款閱讀', 'error'); }}
+                            <button type="button" onClick={() => { 
+                                    if (allTermsCompleted) {
+                                        setShowFullSig(true);
+                                    } else {
+                                        let missing = [];
+                                        if (!termsRead.beauty) missing.push('美容條款');
+                                        if (serviceType !== 'grooming' && !termsRead.boarding) missing.push(serviceType === 'boarding' ? '住宿條款' : '安親條款');
+                                        if (isHighRisk) {
+                                            if (!termsRead.highRiskBeauty) missing.push('高風險美容同意書');
+                                            if (serviceType !== 'grooming' && !termsRead.highRiskBoarding) missing.push('高風險住宿/安親同意書');
+                                        }
+                                        if (formData.image_consent === null || formData.image_consent === undefined) missing.push('影像使用同意');
+                                        if (missing.length === 0) {
+                                            missing.push('請確認所有條款已完成閱讀');
+                                        }
+                                        const msg = '請先完成以下項目：\n' + missing.join('、');
+                                        window.showToast(msg, 'error');
+                                    }
+                                }}
                                 className={`w-full min-h-[180px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all group ${errors.signature ? 'border-red-300 bg-red-50/40' : (allTermsCompleted ? 'border-[#203B2A]/30 bg-white hover:border-[#203B2A] hover:bg-[#203B2A]/5 cursor-pointer' : 'border-[#DDD6CE] bg-[#FAF8F5] cursor-not-allowed opacity-60')}`}>
                                 <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${allTermsCompleted ? 'bg-[#203B2A]/5 text-[#203B2A] group-hover:scale-110 group-hover:bg-[#203B2A]/20' : 'bg-[#DDD6CE] text-[#B5A89C]'}`}>
                                     <Icon name={allTermsCompleted ? "pen-tool" : "lock"} size={28} />
                                 </div>
-                                <span className={`text-sm font-bold ${allTermsCompleted ? 'text-[#203B2A]' : 'text-[#B5A89C]'}`}>{allTermsCompleted ? "點擊此處開始簽名" : "請先完成上方條款閱讀"}</span>
-                                <span className="text-xs text-[#B5A89C]">{allTermsCompleted ? "將開啟全螢幕簽名板" : "閱讀並同意後解鎖"}</span>
+                                <span className={`text-sm font-bold ${allTermsCompleted ? 'text-[#203B2A]' : 'text-[#B5A89C]'}`}>{allTermsCompleted ? "點擊此處開始簽名" : "請先完成上方所有項目"}</span>
+                                <span className="text-xs text-[#B5A89C]">{allTermsCompleted ? "將開啟全螢幕簽名板" : "閱讀並同意所有條款後解鎖"}</span>
                                 {!allTermsCompleted && (
                                     <div className="mt-1 flex items-center gap-1 text-[10px] text-[#DBA58B] font-bold">
                                         <Icon name="alert-circle" size={12} />
-                                        尚有未閱讀的條款
+                                        尚有未完成的項目
                                     </div>
                                 )}
                             </button>
@@ -2529,7 +2801,7 @@ root.render(<App />);
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=13').then(reg => {
+                navigator.serviceWorker.register('/sw.js?v=14').then(reg => {
                     if (reg.waiting) showUpdateUI(reg.waiting);
                     reg.addEventListener('updatefound', () => {
                         const w = reg.installing;
