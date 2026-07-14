@@ -898,6 +898,7 @@
                 surgery_detail: '',
                 use_birthday: true,
                 image_consent: null,
+                isFamilyRoom: false,
 
             });
 
@@ -1243,7 +1244,7 @@
                             formData.daycare_date : null),
                         check_out_date: serviceType === 'boarding' ? formData.checkOutDate : (serviceType === 'daycare' ?
                             formData.pickup_time : null),
-                        room_type: formData.room_type,
+                        room_type: formData.isFamilyRoom ? (formData.room_type ? `${formData.room_type} + 家庭共宿` : '家庭共宿') : formData.room_type,
                         room_price: parseFloat(formData.room_price) || 0,
                         temperament: formData.temperament,
                         service_tags: JSON.stringify(formData.service_tags),
@@ -1876,21 +1877,35 @@
                                     <div className="space-y-3">
                                         <label className="text-xs font-bold text-[#4A6B55] ml-1">選擇房型 (狗狗) *</label>
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                            {roomRates.dog.map((room) => (
-                                                <div key={room.name} onClick={() => { handleChange('room_type', room.name);
-                                                        handleChange('room_price', room.price); }}
-                                                    className={`cursor-pointer rounded-xl p-4 border-2 transition-all relative overflow-hidden group ${formData.room_type === room.name ? 'border-[#203B2A] bg-white shadow-md' : (errors.room_type ? 'border-red-300 bg-red-50/40' : 'border-[#DDD6CE] bg-white/50 hover:border-[#B8A088]')}`}>
-                                                    <div className="flex justify-between items-start mb-1">
-                                                        <span className={`font-bold text-sm ${formData.room_type === room.name ? 'text-[#203B2A]' : 'text-[#4A6B55]'}`}>{room.name}</span>
-                                                        {formData.room_type === room.name && <Icon name="check-circle" size={16} className="text-[#B8A088]" />}
+                                            {roomRates.dog.map((room) => {
+                                                const isSelected = room.name === '家庭共宿' 
+                                                    ? formData.isFamilyRoom 
+                                                    : formData.room_type === room.name;
+                                                return (
+                                                    <div key={room.name} onClick={() => {
+                                                        if (room.name === '家庭共宿') {
+                                                            // 家庭共宿：獨立切換
+                                                            setFormData(prev => ({ ...prev, isFamilyRoom: !prev.isFamilyRoom }));
+                                                        } else {
+                                                            // 一般房型：互斥單選
+                                                            setFormData(prev => ({ ...prev, room_type: prev.room_type === room.name ? '' : room.name, room_price: prev.room_type === room.name ? 0 : room.price }));
+                                                        }
+                                                        clearError('room_type');
+                                                    }}
+                                                        className={`cursor-pointer rounded-xl p-4 border-2 transition-all relative overflow-hidden group ${isSelected ? 'border-[#203B2A] bg-white shadow-md' : (errors.room_type && room.name !== '家庭共宿' ? 'border-red-300 bg-red-50/40' : 'border-[#DDD6CE] bg-white/50 hover:border-[#B8A088]')}`}>
+                                                        <div className="flex justify-between items-start mb-1">
+                                                            <span className={`font-bold text-sm ${isSelected ? 'text-[#203B2A]' : 'text-[#4A6B55]'}`}>{room.name}</span>
+                                                            {isSelected && <Icon name="check-circle" size={16} className="text-[#B8A088]" />}
+                                                        </div>
+                                                        {room.name !== '家庭共宿' && (
+                                                            <div className="text-lg font-serif font-bold text-[#203B2A]">${room.price}<span className="text-xs font-sans font-normal text-[#B5A89C]">/晚</span></div>
+                                                        )}
+                                                        <div className={`text-[10px] text-[#B5A89C] mt-1 font-medium ${room.name === '家庭共宿' ? 'mt-0' : ''}`}>{room.desc}</div>
                                                     </div>
-                                                    {room.name !== '家庭共宿' && (
-                                                        <div className="text-lg font-serif font-bold text-[#203B2A]">${room.price}<span className="text-xs font-sans font-normal text-[#B5A89C]">/晚</span></div>
-                                                    )}
-                                                    <div className={`text-[10px] text-[#B5A89C] mt-1 font-medium ${room.name === '家庭共宿' ? 'mt-0' : ''}`}>{room.desc}</div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
+                                        {/* 檢查錯誤時只要前三個都沒有選，就要報錯（家庭共宿不算在必填內） */}
                                         {errors.room_type && <div className="text-xs text-red-400 font-bold">{errors.room_type}</div>}
                                         <div className="mt-2 p-4 bg-[#FAF8F5] rounded-xl border border-[#DDD6CE] text-xs text-[#4A6B55] leading-relaxed">
                                             <div className="flex items-start gap-2">
@@ -2448,7 +2463,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=10').then(reg => {
+                navigator.serviceWorker.register('/sw.js?v=11').then(reg => {
                     if (reg.waiting) showUpdateUI(reg.waiting);
                     reg.addEventListener('updatefound', () => {
                         const w = reg.installing;
