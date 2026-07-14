@@ -1,6 +1,6 @@
 // 尾尾道來 Admin - Service Worker
 // 使用固定版本號，避免無限更新循環
-const CACHE_VERSION = '20260714-v3';
+const CACHE_VERSION = '20260714-v4';
 const CACHE_NAME = `ttpc-admin-${CACHE_VERSION}`;
 const OLD_CACHE_PREFIX = 'ttpc-admin-'; // 用於清除舊版本
 

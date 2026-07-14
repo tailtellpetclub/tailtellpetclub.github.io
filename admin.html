@@ -6,7 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="尾尾道來 Admin">
+    <meta name="apple-mobile-web-app-title" content="尾尾道來·後台管理">
     <link rel="apple-touch-icon" href="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo.jpg">
     <link rel="icon" type="image/png" href="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo.jpg">
     <meta name="theme-color" content="#203B2A">
@@ -277,6 +277,13 @@
 @media (max-width: 479px) {
     .xs\:hidden { display: none; }
 }
+/* 防止手機水平滾動 */
+body {
+    overflow-x: hidden;
+}
+#root {
+    overflow-x: hidden;
+}
     </style>
 </head>
 <body>
@@ -414,7 +421,7 @@
                         <img src="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png" className="w-40 mx-auto mb-6 drop-shadow-sm" alt="尾尾道來" />
                         {!loginEmail ? (
                             <div className="space-y-4">
-                                <h1 className="text-xl font-bold text-[#203B2A] mb-6 tracking-wider">尾尾道來 · 管理後台</h1>
+                                <h1 className="text-xl font-bold text-[#203B2A] mb-6 tracking-wider">尾尾道來</h1>
                                 <button onClick={() => setLoginEmail(ADMIN_EMAIL)} className="w-full bg-white border-2 border-[#203B2A]/20 hover:border-[#203B2A] hover:bg-[#203B2A]/5 text-[#203B2A] py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all">
                                     <div className="w-10 h-10 rounded-full bg-[#203B2A] text-white flex items-center justify-center"><Icon name="shield" /></div>
                                     管理員登入
@@ -545,104 +552,103 @@ const handleDelete = () => {
             };
 
             return (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#203B2A]/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
-                    <div className="w-full max-w-4xl bg-[#FAF8F5] rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+<div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-[#203B2A]/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
+    <div className="w-full max-w-4xl bg-[#FAF8F5] rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[95vh] sm:max-h-[90vh]">
                         {/* Header */}
-                        <div className="bg-white px-8 py-5 flex justify-between items-center border-b border-[#DDD6CE] shrink-0">
-                            <div>
-                                <h3 className="font-bold text-xl text-[#203B2A] flex items-center gap-2">
-                                    {isBoarding ? <Icon name="home" className="text-[#B8A088]"/> : <Icon name="scissors" className="text-[#4A6B55]"/>}
-                                    {isBoarding ? (isDaycare ? '安親詳情' : '住宿詳情') : '美容詳情'}
-                                </h3>
-                                <p className="text-[10px] text-[#B5A89C] font-bold tracking-widest">#{String(order.id).slice(0,8)}</p>
-                            </div>
-                            <div className="flex gap-2 items-center">
-                                {user?.email === ADMIN_EMAIL && (
-                                    <button onClick={() => setIsEditing(!isEditing)} className="p-2 bg-[#FAF8F5] hover:bg-[#203B2A] hover:text-white rounded-full transition-colors">
-                                        <Icon name={isEditing ? "x" : "edit-2"} size={18}/>
-                                    </button>
-                                )}
-                                <button onClick={onClose} className="p-2 hover:bg-[#FAF8F5] rounded-full transition-colors"><Icon name="x" size={24}/></button>
-                            </div>
-                        </div>
-
-                        <div className="p-8 overflow-y-auto space-y-6">
-                            {/* 狀態與操作 */}
-                            <div className="grid md:grid-cols-2 gap-4">
-                                <div className="bg-white p-5 rounded-3xl border border-[#DDD6CE]">
-                                    <label className="text-xs font-bold text-[#B5A89C] mb-2 block">訂單狀態</label>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        {['pending', 'confirmed', 'completed', 'cancelled'].map(status => (
-                                            <button key={status} 
-                                                onClick={()=>handleStatusChange(status)} 
-                                                className={`py-2 rounded-xl text-[10px] font-bold border transition-all ${
-                                                    order.status === status 
-                                                    ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' 
-                                                    : 'bg-white text-[#B5A89C] border-[#DDD6CE] hover:border-[#203B2A]'
-                                                }`}
-                                            >
-                                                {getStatusText(status)}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <button 
-                                        onClick={handleDelete}
-                                        className="w-full mt-3 py-2 rounded-xl text-xs font-bold border-2 border-[#DBA58B]/30 text-[#DBA58B] hover:bg-[#DBA58B] hover:text-white transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <Icon name="trash-2" size={14}/> 刪除訂單
-                                    </button>
-                                </div>
-                                <div className="bg-white p-5 rounded-3xl border border-[#DDD6CE]">
-                                    <label className="text-xs font-bold text-[#B8A088] mb-1 flex items-center gap-1">
-                                        <Icon name="sticky-note" size={14}/> 店家備註
-                                    </label>
-                                    <div className="flex gap-2">
-<textarea 
-    className="flex-1 h-20 bg-[#FAF8F5]/50 p-2 rounded-xl text-sm border border-transparent focus:border-[#B8A088] outline-none resize-none"
-    placeholder="輸入備註事項..."
-    value={localNote}
-    onChange={(e)=>setLocalNote(e.target.value)}
-/>
-<button 
-    onClick={() => {
-        if (localNote !== (order.admin_note || '')) {
-            onUpdateNote(order.id, localNote);
-        } else {
-            window.showToast('備註內容未變更', 'warning');
-        }
-    }}
-    className="shrink-0 px-4 py-2 bg-[#203B2A] text-white rounded-xl text-xs font-bold hover:bg-[#162B1F] transition-all flex items-center gap-1 self-start mt-1"
->
-    <Icon name="save" size={14}/> 儲存
-</button>
-                                    </div>
-<div className="text-[9px] text-[#B5A89C] mt-1 flex justify-between">
-    <span>輸入完成後點擊「儲存」按鈕</span>
-    <span className="text-[#4A6B55]">{localNote !== (order.admin_note || '') ? '✏️ 已修改' : '✓ 已儲存'}</span>
+<div className="bg-white px-4 sm:px-8 py-3 sm:py-5 flex justify-between items-center border-b border-[#DDD6CE] shrink-0">
+    <div className="flex-1 min-w-0">
+        <h3 className="font-bold text-base sm:text-xl text-[#203B2A] flex items-center gap-1.5 sm:gap-2">
+            {isBoarding ? <Icon name="home" className="text-[#B8A088] shrink-0" size={16}/> : <Icon name="scissors" className="text-[#4A6B55] shrink-0" size={16}/>}
+            <span className="truncate">{isBoarding ? (isDaycare ? '安親詳情' : '住宿詳情') : '美容詳情'}</span>
+        </h3>
+        <p className="text-[9px] sm:text-[10px] text-[#B5A89C] font-bold tracking-widest">#{String(order.id).slice(0,8)}</p>
+    </div>
+    <div className="flex gap-1 sm:gap-2 items-center shrink-0">
+        {user?.email === ADMIN_EMAIL && (
+            <button onClick={() => setIsEditing(!isEditing)} className="p-1.5 sm:p-2 bg-[#FAF8F5] hover:bg-[#203B2A] hover:text-white rounded-full transition-colors">
+                <Icon name={isEditing ? "x" : "edit-2"} size={16}/>
+            </button>
+        )}
+        <button onClick={onClose} className="p-1.5 sm:p-2 hover:bg-[#FAF8F5] rounded-full transition-colors"><Icon name="x" size={20} className="sm:w-6 sm:h-6"/></button>
+    </div>
 </div>
-                                </div>
-                            </div>
+
+                        <div className="p-4 sm:p-8 overflow-y-auto space-y-4 sm:space-y-6">                            {/* 狀態與操作 */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+    <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-[#DDD6CE]">
+        <label className="text-xs font-bold text-[#B5A89C] mb-2 block">訂單狀態</label>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
+            {['pending', 'confirmed', 'completed', 'cancelled'].map(status => (
+                <button key={status} 
+                    onClick={()=>handleStatusChange(status)} 
+                    className={`py-2 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-bold border transition-all active:scale-95 ${
+                        order.status === status 
+                        ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' 
+                        : 'bg-white text-[#B5A89C] border-[#DDD6CE] hover:border-[#203B2A]'
+                    }`}
+                >
+                    {getStatusText(status)}
+                </button>
+            ))}
+        </div>
+        <button 
+            onClick={handleDelete}
+            className="w-full mt-2 sm:mt-3 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-bold border-2 border-[#DBA58B]/30 text-[#DBA58B] hover:bg-[#DBA58B] hover:text-white transition-all flex items-center justify-center gap-1.5 active:scale-95"
+        >
+            <Icon name="trash-2" size={12} className="sm:w-3.5 sm:h-3.5"/> 刪除訂單
+        </button>
+    </div>
+    <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-[#DDD6CE]">
+        <label className="text-xs font-bold text-[#B8A088] mb-1 flex items-center gap-1">
+            <Icon name="sticky-note" size={14}/> 店家備註
+        </label>
+        <div className="flex flex-col sm:flex-row gap-2">
+            <textarea 
+                className="w-full h-16 sm:h-20 bg-[#FAF8F5]/50 p-2 rounded-xl text-sm border border-transparent focus:border-[#B8A088] outline-none resize-none"
+                placeholder="輸入備註事項..."
+                value={localNote}
+                onChange={(e)=>setLocalNote(e.target.value)}
+            />
+            <button 
+                onClick={() => {
+                    if (localNote !== (order.admin_note || '')) {
+                        onUpdateNote(order.id, localNote);
+                    } else {
+                        window.showToast('備註內容未變更', 'warning');
+                    }
+                }}
+                className="sm:shrink-0 px-4 py-2.5 sm:py-2 bg-[#203B2A] text-white rounded-xl text-xs font-bold hover:bg-[#162B1F] transition-all flex items-center justify-center gap-1 active:scale-95"
+            >
+                <Icon name="save" size={14}/> 儲存
+            </button>
+        </div>
+        <div className="text-[9px] text-[#B5A89C] mt-1 flex justify-between">
+            <span>輸入完成後點擊「儲存」</span>
+            <span className="text-[#4A6B55]">{localNote !== (order.admin_note || '') ? '✏️ 已修改' : '✓ 已儲存'}</span>
+        </div>
+    </div>
+</div>
 
                             {/* 飼主資訊 */}
                             <div className="bg-white p-6 rounded-[2rem] border border-[#DDD6CE]">
                                 <h4 className="font-bold text-[#203B2A] mb-4 flex items-center gap-2 border-b border-dashed border-[#DDD6CE] pb-2">
                                     <Icon name="user" size={18}/> 飼主資料
                                 </h4>
-                                <div className="grid md:grid-cols-3 gap-4">
-                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">姓名</label><div className="font-bold">{order.owner_name || '-'}</div></div>
-                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">電話</label><div className="font-bold">{order.phone || '-'}</div></div>
-                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">Email</label><div className="font-bold text-sm">{order.email || '-'}</div></div>
-                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">身分證字號</label><div className="font-bold">{order.owner_id || '-'}</div></div>
-                                    <div className="md:col-span-2"><label className="text-[10px] font-bold text-[#B5A89C]">地址</label><div className="font-bold">{order.address || '-'}</div></div>
-                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">緊急聯絡人</label><div className="font-bold">{order.emergency_name || '-'}</div></div>
-                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">緊急電話</label><div className="font-bold">{order.emergency_phone || '-'}</div></div>
-                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">指定醫院</label><div className="font-bold text-sm">{order.preferred_clinic_name || '-'}</div></div>
-                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">影像授權</label>
-                                        <div className={`font-bold ${order.image_consent === true ? 'text-[#4A6B55]' : order.image_consent === false ? 'text-[#DBA58B]' : 'text-[#B5A89C]'}`}>
-                                            {order.image_consent === true ? '✅ 同意' : order.image_consent === false ? '❌ 不同意' : '未選擇'}
-                                        </div>
-                                    </div>
-                                </div>
+<div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+    <div className="col-span-2 md:col-span-1"><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">姓名</label><div className="font-bold text-sm sm:text-base break-words">{order.owner_name || '-'}</div></div>
+    <div><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">電話</label><div className="font-bold text-sm sm:text-base">{order.phone || '-'}</div></div>
+    <div className="col-span-2 md:col-span-1"><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">Email</label><div className="font-bold text-xs sm:text-sm break-all">{order.email || '-'}</div></div>
+    <div><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">身分證</label><div className="font-bold text-sm sm:text-base">{order.owner_id || '-'}</div></div>
+    <div className="col-span-2"><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">地址</label><div className="font-bold text-sm sm:text-base break-words">{order.address || '-'}</div></div>
+    <div><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">緊急聯絡人</label><div className="font-bold text-sm sm:text-base">{order.emergency_name || '-'}</div></div>
+    <div><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">緊急電話</label><div className="font-bold text-sm sm:text-base">{order.emergency_phone || '-'}</div></div>
+    <div className="col-span-2 md:col-span-1"><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">指定醫院</label><div className="font-bold text-xs sm:text-sm break-words">{order.preferred_clinic_name || '-'}</div></div>
+    <div><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">影像授權</label>
+        <div className={`font-bold text-sm sm:text-base ${order.image_consent === true ? 'text-[#4A6B55]' : order.image_consent === false ? 'text-[#DBA58B]' : 'text-[#B5A89C]'}`}>
+            {order.image_consent === true ? '✅ 同意' : order.image_consent === false ? '❌ 不同意' : '未選擇'}
+        </div>
+    </div>
+</div>
                             </div>
 
                             {/* 寵物資訊 */}
@@ -650,8 +656,7 @@ const handleDelete = () => {
                                 <h4 className="font-bold text-[#203B2A] mb-4 flex items-center gap-2 border-b border-dashed border-[#DDD6CE] pb-2">
                                     <Icon name="paw-print" size={18}/> 寵物資料
                                 </h4>
-                                <div className="grid md:grid-cols-4 gap-4">
-                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">名字</label><div className="font-bold text-lg">{pet.pet_name || order.pet_name || '-'}</div></div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">                                    <div><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">名字</label><div className="font-bold text-base sm:text-lg break-words">{pet.pet_name || order.pet_name || '-'}</div></div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">品種</label><div className="font-bold">{pet.breed || order.breed || '-'}</div></div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">毛色</label><div className="font-bold">{pet.fur_color || order.fur_color || '-'}</div></div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">性別 / 結紮</label><div className="font-bold">{pet.sex || order.sex || '-'} / {pet.fix || order.fix || '-'}</div></div>
@@ -664,7 +669,7 @@ const handleDelete = () => {
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">個性補充</label><div className="font-bold">{order.personality_other || '-'}</div></div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">性情</label><div className="font-bold">{order.temperament || '-'}</div></div>
                                 </div>
-                                <div className="grid md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-dashed border-[#DDD6CE]">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-dashed border-[#DDD6CE]">
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">疫苗</label><div className="font-bold text-sm">{renderVaccines()}</div></div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">個性</label><div className="font-bold">{safeParse(order.social_traits).join('、') || '-'}</div></div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">攻擊性/社交</label>
@@ -708,7 +713,7 @@ const handleDelete = () => {
                                 <h4 className="font-bold text-[#203B2A] mb-4 flex items-center gap-2 border-b border-dashed border-[#DDD6CE] pb-2">
                                     <Icon name="shopping-bag" size={18}/> 服務資訊
                                 </h4>
-                                <div className="grid md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">服務類型</label>
                                         <div className="font-bold">{isBoarding ? (isDaycare ? '安親' : '住宿') : '美容'}</div>
                                     </div>
@@ -747,7 +752,7 @@ const handleDelete = () => {
                                 <div className="text-center pt-4 border-t border-dashed border-[#DDD6CE]">
                                     <label className="text-[10px] font-bold text-[#B5A89C]/50 block mb-2 uppercase tracking-widest">客戶簽署</label>
                                     <img src={order.signature} className="h-20 mx-auto opacity-80" />
-                                    <div className="text-[11px] text-[#B5A89C] font-bold mt-2">
+                                    <div className="text-[10px] sm:text-[11px] text-[#B5A89C] font-bold mt-1.5 sm:mt-2">
     {(() => {
         const timeStr = order.signature_time || order.created_at;
         if (!timeStr) return '無時間';
@@ -2153,7 +2158,7 @@ const customers = useMemo(() => {
         };
 
         // --- Admin Service Worker 註冊 ---
-        const ADMIN_SW_VERSION = '20260714-v3';
+        const ADMIN_SW_VERSION = '20260714-v4';
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         // 檢查是否已有 admin-sw.js 的註冊
