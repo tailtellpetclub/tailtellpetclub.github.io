@@ -1591,7 +1591,6 @@ const handleSave = () => {
                                                 <div className="text-[10px] text-[#B5A89C] font-bold">{order.booking_pets?.map(p=>p.pet_name).join(', ')}</div>
                                             </div>
                                         </div>
-                                        <div className="text-sm font-bold text-[#203B2A]">${order.total_price}</div>
                                     </div>
                                 ))}
                             </div>
@@ -1981,7 +1980,6 @@ const customers = useMemo(() => {
                     </div>
                 </div>
                 <div className="text-right">
-                    <div className="text-xs font-bold text-[#B8A088]">總額 ${c.totalSpent}</div>
                     <div className="text-[9px] text-[#DDD6CE] font-bold">查看紀錄 →</div>
                 </div>
             </div>
