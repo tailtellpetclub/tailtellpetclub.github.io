@@ -733,8 +733,17 @@ const handleDelete = () => {
                                 <div className="text-center pt-4 border-t border-dashed border-[#DDD6CE]">
                                     <label className="text-[10px] font-bold text-[#B5A89C]/50 block mb-2 uppercase tracking-widest">客戶簽署</label>
                                     <img src={order.signature} className="h-20 mx-auto opacity-80" />
-                                    <div className="text-[11px] text-[#B5A89C] font-bold mt-2">{formatDate(order.signature_time) || formatDate(order.created_at)}</div>
-                                </div>
+                                    <div className="text-[11px] text-[#B5A89C] font-bold mt-2">
+    {(() => {
+        const timeStr = order.signature_time || order.created_at;
+        if (!timeStr) return '無時間';
+        try {
+            const d = new Date(timeStr);
+            if (isNaN(d.getTime())) return timeStr;
+            return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        } catch (_) { return timeStr; }
+    })()}
+</div>                                </div>
                             )}
                         </div>
                     </div>
