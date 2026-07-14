@@ -2407,26 +2407,24 @@ const payload = {
 
             <nav className="fixed top-0 w-full z-40 bg-white/80 backdrop-blur-md border-b border-[#DDD6CE]/50 shadow-sm transition-all">
                 <div className="px-6 py-4 flex justify-between items-center max-w-5xl mx-auto">
-                    <div 
-                        className="flex items-center gap-4 cursor-pointer group" 
-                        onClick={() => window.location.reload()}
-                        onDoubleClick={() => {
-                            const adminUrl = window.location.origin + '/admin.html';
-                            window.location.href = adminUrl;
-                        }}
-                        style={{ touchAction: 'manipulation' }}
-                    >
-                        <img src="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png" alt="尾尾道來寵物俱樂部" className="w-14 h-14 md:w-16 md:h-16 object-contain rounded-xl shadow-sm" />
-                        <div className="text-left">
-                            <div className="logo-text text-xl md:text-2xl tracking-[0.25em] text-[#203B2A]">
-                                尾尾道來
-                            </div>
-                            <div className="logo-text-sub text-[10px] md:text-[11px] tracking-[0.4em] text-[#203B2A] mt-0.5">
-                                TAIL TELL PET CLUB
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
+<div 
+    className="flex items-center gap-4 cursor-pointer group" 
+    onDoubleClick={() => {
+        const adminUrl = window.location.origin + '/admin.html';
+        window.location.href = adminUrl;
+    }}
+    style={{ touchAction: 'manipulation' }}
+>
+    <img src="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png" alt="尾尾道來寵物俱樂部" className="w-14 h-14 md:w-16 md:h-16 object-contain rounded-xl shadow-sm" />
+    <div className="text-left">
+        <div className="logo-text text-xl md:text-2xl tracking-[0.25em] text-[#203B2A]">
+            尾尾道來
+        </div>
+        <div className="logo-text-sub text-[10px] md:text-[11px] tracking-[0.4em] text-[#203B2A] mt-0.5">
+            TAIL TELL PET CLUB
+        </div>
+    </div>
+</div>                    <div className="flex items-center gap-2">
                         <a href="tel:0424223481" className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#FAF8F5] border border-[#DDD6CE] flex items-center justify-center hover:bg-[#EDE8E0] hover:border-[#B8A088] transition-colors cursor-pointer" title="撥打電話">
                             <Icon name="phone" size={18} className="text-[#203B2A]" />
                         </a>
@@ -3569,26 +3567,94 @@ root.render(<App />);
     </script>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js?v=17').then(reg => {
-                    if (reg.waiting) showUpdateUI(reg.waiting);
-                    reg.addEventListener('updatefound', () => {
-                        const w = reg.installing;
+if ('serviceWorker' in navigator) {
+    let updatePromptShown = false;
+    let updatePromptTimeout = null;
+
+    const showUpdateUIWithDebounce = (worker) => {
+        // 如果已經顯示過更新提示，不再重複顯示
+        if (updatePromptShown) return;
+        // 如果已經有提示正在顯示，先清除
+        if (updatePromptTimeout) {
+            clearTimeout(updatePromptTimeout);
+            updatePromptTimeout = null;
+        }
+        // 延遲 3 秒後顯示，避免頁面載入時立即彈出
+        updatePromptTimeout = setTimeout(() => {
+            // 再次檢查是否已經顯示
+            if (updatePromptShown) return;
+            // 檢查是否已經存在更新橫幅
+            if (document.getElementById('pwa-update-banner')) return;
+            showUpdateUI(worker);
+            updatePromptShown = true;
+            // 5 分鐘後重置狀態，允許再次提示
+            setTimeout(() => {
+                updatePromptShown = false;
+            }, 300000);
+        }, 3000);
+    };
+
+    window.addEventListener('load', () => {
+        // 檢查是否已有註冊的 Service Worker
+        navigator.serviceWorker.getRegistration().then(reg => {
+            if (reg) {
+                // 檢查是否有 waiting 狀態的 worker
+                if (reg.waiting) {
+                    showUpdateUIWithDebounce(reg.waiting);
+                }
+                // 監聽更新事件
+                reg.addEventListener('updatefound', () => {
+                    const newWorker = reg.installing;
+                    if (newWorker) {
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showUpdateUIWithDebounce(newWorker);
+                            }
+                        });
+                    }
+                });
+            } else {
+                // 沒有註冊，執行註冊
+                navigator.serviceWorker.register('/sw.js?v=18').then(newReg => {
+                    if (newReg.waiting) {
+                        showUpdateUIWithDebounce(newReg.waiting);
+                    }
+                    newReg.addEventListener('updatefound', () => {
+                        const w = newReg.installing;
                         w.addEventListener('statechange', () => {
                             if (w.state === 'installed' && navigator.serviceWorker.controller) {
-                                showUpdateUI(w);
+                                showUpdateUIWithDebounce(w);
                             }
                         });
                     });
                 });
+            }
+        }).catch(() => {
+            // 如果 getRegistration 失敗，直接註冊
+            navigator.serviceWorker.register('/sw.js?v=17').then(reg => {
+                if (reg.waiting) {
+                    showUpdateUIWithDebounce(reg.waiting);
+                }
+                reg.addEventListener('updatefound', () => {
+                    const w = reg.installing;
+                    w.addEventListener('statechange', () => {
+                        if (w.state === 'installed' && navigator.serviceWorker.controller) {
+                            showUpdateUIWithDebounce(w);
+                        }
+                    });
+                });
             });
-            let refreshing = false;
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-                if (!refreshing) { window.location.reload();
-                    refreshing = true; }
-            });
+        });
+    });
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+            window.location.reload();
+            refreshing = true;
         }
+    });
+}
 
         function showUpdateUI(worker) {
             if (document.getElementById('pwa-update-banner')) return;
