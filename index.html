@@ -1420,12 +1420,16 @@ const generateContractHtml = (data, signatureUrl) => {
                 <div class="image-consent-box">
                   <div class="icon">📸</div>
                   <div class="content">
-                    <div class="title">📋 影像使用同意</div>
+                    <div class="title">邀請您與 TTPC 一起分享毛孩的美好日常！</div>
+                    <div style="font-size:12px; color:#4A6B55; margin-bottom:6px; font-weight:300; line-height:1.6;">
+                      是否同意乙方使用寵物照片／影片於官方網站、社群平台及品牌宣傳使用<br />
+                      <span style="font-size:11px; color:#B5A89C;">（僅公開寵物影像，不涉及飼主個資）</span>
+                    </div>
                     <div class="status">
                       甲方選擇：<span class="${data.image_consent === false ? 'disagree' : ''}">${getImageConsentDisplay(data.image_consent)}</span>
                     </div>
                     <div style="font-size:11px; color:#B5A89C; margin-top:4px;">
-                      ${data.image_consent === true ? '✅ 同意乙方於社群平台、官方網站或行銷素材中使用寵物照片與影片。' : '❌ 不同意公開使用，乙方僅將影像用於內部服務紀錄與照護回報。'}
+                      ${data.image_consent === true ? '✅ 同意，歡迎分享我家毛孩' : '❌ 不同意'}
                     </div>
                   </div>
                 </div>
@@ -3254,29 +3258,34 @@ onReset={() => {
 
                     {/* 影像使用同意欄位 */}
                     <div className="space-y-3 pt-6 border-t border-[#DDD6CE]">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex flex-col gap-2">
                             <label className="text-sm font-bold text-[#203B2A] flex items-center gap-2">
                                 <Icon name="image" size={18} />
-                                是否同意乙方使用寵物照片/影片於公開展示及行銷用途 <span className="text-[#DBA58B]">*</span>
+                                邀請您與 TTPC 一起分享毛孩的美好日常！
                             </label>
-                            <div className="flex gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => handleChange('image_consent', true)}
-                                    className={`px-5 py-2 rounded-full border-2 text-sm font-bold transition-all ${formData.image_consent === true ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#203B2A]/50'}`}
-                                >
-                                    ✅ 同意
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => handleChange('image_consent', false)}
-                                    className={`px-5 py-2 rounded-full border-2 text-sm font-bold transition-all ${formData.image_consent === false ? 'bg-[#DBA58B] text-white border-[#DBA58B] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#DBA58B]/50'}`}
-                                >
-                                    ❌ 不同意
-                                </button>
-                            </div>
+                            <p className="text-xs text-[#4A6B55] font-bold leading-relaxed">
+                                是否同意乙方使用寵物照片／影片於官方網站、社群平台及品牌宣傳使用<br />
+                                <span className="text-[#B5A89C] font-medium">（僅公開寵物影像，不涉及飼主個資）</span>
+                            </p>
                         </div>
-                        <p className="text-xs text-[#B5A89C] mt-1">若選擇「同意」，乙方將可能於社群平台、官方網站或行銷素材中使用寵物照片與影片；若選擇「不同意」，乙方僅將影像用於內部服務紀錄與照護回報。</p>
+                        <div className="flex flex-wrap items-center gap-4 pt-1">
+                            <button
+                                type="button"
+                                onClick={() => handleChange('image_consent', true)}
+                                className={`px-6 py-2.5 rounded-full border-2 text-sm font-bold transition-all flex items-center gap-2 ${formData.image_consent === true ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#203B2A]/50'}`}
+                            >
+                                <Icon name="check-circle" size={16} />
+                                同意，歡迎分享我家毛孩
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleChange('image_consent', false)}
+                                className={`px-6 py-2.5 rounded-full border-2 text-sm font-bold transition-all flex items-center gap-2 ${formData.image_consent === false ? 'bg-[#DBA58B] text-white border-[#DBA58B] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#DBA58B]/50'}`}
+                            >
+                                <Icon name="x-circle" size={16} />
+                                不同意
+                            </button>
+                        </div>
                     </div>
 
                     <div className="space-y-4 pt-6 border-t border-[#DDD6CE]" id="signature">
@@ -3673,7 +3682,7 @@ if ('serviceWorker' in navigator) {
             }
         }).catch(() => {
             // 如果 getRegistration 失敗，直接註冊
-            navigator.serviceWorker.register('/sw.js?v=20').then(reg => {
+            navigator.serviceWorker.register('/sw.js?v=21').then(reg => {
                 if (reg.waiting) {
                     showUpdateUIWithDebounce(reg.waiting);
                 }
