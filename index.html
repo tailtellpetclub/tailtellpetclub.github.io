@@ -1918,16 +1918,16 @@ const validate = () => {
             hasError = true; }
     }
 
-    if (serviceType === 'daycare') {
-        if (!formData.daycare_date) { newErrors.daycare_date = '請選擇安親日期';
-            hasError = true; }
-        if (!formData.pickup_time) { newErrors.pickup_time = '請選擇預計接回時間';
-            hasError = true; }
-        if ((!formData.room_type || formData.room_type.length === 0) && !formData.isFamilyRoom) { 
-            newErrors.room_type = '請至少選擇一項服務內容';
-            hasError = true; 
-        }
+if (serviceType === 'daycare') {
+    if (!formData.daycare_date) { newErrors.daycare_date = '請選擇安親日期';
+        hasError = true; }
+    if (!formData.pickup_time) { newErrors.pickup_time = '請選擇預計安親時間';
+        hasError = true; }
+    if ((!formData.room_type || formData.room_type.length === 0) && !formData.isFamilyRoom) { 
+        newErrors.room_type = '請至少選擇一項服務內容';
+        hasError = true; 
     }
+}
 
     if (serviceType === 'grooming' && (!formData.service_tags || formData.service_tags.length === 0)) {
         newErrors.service_tags = '請至少選擇一項美容服務';
@@ -2327,14 +2327,21 @@ const payload = {
             const completeData = { ...payload, service_type: serviceType };
             const emailBody = generateContractHtml(completeData, signatureUrl);
 
-            if (formData.email && formData.email.trim() !== '') {
-                try {
-                    await window.supabaseClient.functions.invoke('resend-email', {
-                        body: { to: formData.email, html: emailBody, petNames: formData.pet_name }
-                    });
-                } catch (mailErr) { console.error('寄信失敗:', mailErr); }
-            }
-
+// 無論是否有填寫 Email，都寄送契約副本
+// 有填 Email → 消費者 + 店家同時收到（由後端 BCC 處理）
+// 沒填 Email → 只寄給店家（後端會自動將 to 設為店家 Email）
+try {
+    await window.supabaseClient.functions.invoke('resend-email', {
+        body: { 
+            to: formData.email && formData.email.trim() !== '' ? formData.email : '', 
+            html: emailBody, 
+            petNames: formData.pet_name 
+        }
+    });
+} catch (mailErr) { 
+    console.error('寄信失敗:', mailErr);
+    // 寄信失敗不影響表單提交，只記錄錯誤
+}
             setSubmittedData({ ...completeData, htmlContent: emailBody });
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -3003,18 +3010,18 @@ onReset={() => {
                     {/* 安親專用 */}
                     {serviceType === 'daycare' && (
                         <div className="space-y-6 animate-slide-down border-b border-[#DDD6CE] pb-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FAF8F5] p-5 rounded-2xl border border-[#DDD6CE]">
-                                <div className="space-y-1"><label className="text-xs font-bold text-[#203B2A]">安親日期 *</label>
-                                    <input type="date" className="w-full cute-input text-sm" value={formData.daycare_date} onChange={e => handleChange('daycare_date', e.target.value)} />
-                                    {errors.daycare_date && <div className="text-xs text-red-400 font-bold">{errors
-                                            .daycare_date}</div>}
-                                </div>
-                                <div className="space-y-1"><label className="text-xs font-bold text-[#203B2A]">預計接回時間 *</label>
-                                    <input type="time" className="w-full cute-input text-sm" value={formData.pickup_time} onChange={e => handleChange('pickup_time', e.target.value)} />
-                                    {errors.pickup_time && <div className="text-xs text-red-400 font-bold">{errors
-                                            .pickup_time}</div>}
-                                </div>
-                            </div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FAF8F5] p-5 rounded-2xl border border-[#DDD6CE]">
+    <div className="space-y-1"><label className="text-xs font-bold text-[#203B2A]">安親日期 *</label>
+        <input type="date" className="w-full cute-input text-sm" value={formData.daycare_date} onChange={e => handleChange('daycare_date', e.target.value)} />
+        {errors.daycare_date && <div className="text-xs text-red-400 font-bold">{errors
+                .daycare_date}</div>}
+    </div>
+    <div className="space-y-1"><label className="text-xs font-bold text-[#203B2A]">預計安親時間 *</label>
+        <input type="time" className="w-full cute-input text-sm" value={formData.pickup_time} onChange={e => handleChange('pickup_time', e.target.value)} />
+        {errors.pickup_time && <div className="text-xs text-red-400 font-bold">{errors
+                .pickup_time}</div>}
+    </div>
+</div>
                             <div className="space-y-3">
                                 <label className="text-xs font-bold text-[#4A6B55] ml-1">服務內容 *</label>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -3666,7 +3673,7 @@ if ('serviceWorker' in navigator) {
             }
         }).catch(() => {
             // 如果 getRegistration 失敗，直接註冊
-            navigator.serviceWorker.register('/sw.js?v=19').then(reg => {
+            navigator.serviceWorker.register('/sw.js?v=20').then(reg => {
                 if (reg.waiting) {
                     showUpdateUIWithDebounce(reg.waiting);
                 }

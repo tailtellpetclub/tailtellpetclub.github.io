@@ -720,19 +720,19 @@ const handleDelete = () => {
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">服務項目</label>
                                         <div className="font-bold">{renderServiceTags()}</div>
                                     </div>
-                                    {isBoarding && (
-                                        <>
-                                            <div><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '安親日期' : '入住日期'}</label>
-                                                <div className="font-bold">{formatDate(order.check_in_date)}</div>
-                                            </div>
-                                            <div><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '接回時間' : '退房日期'}</label>
-                                                <div className="font-bold">{isDaycare ? order.check_out_date : formatDate(order.check_out_date)}</div>
-                                            </div>
-                                            <div className="md:col-span-2"><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '服務內容' : '房型'}</label>
-                                                <div className="font-bold">{order.room_type || '-'}</div>
-                                            </div>
-                                        </>
-                                    )}
+{isBoarding && (
+    <>
+        <div><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '安親日期' : '入住日期'}</label>
+            <div className="font-bold">{formatDate(order.check_in_date)}</div>
+        </div>
+        <div><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '安親時間' : '退房日期'}</label>
+            <div className="font-bold">{isDaycare ? order.check_out_date : formatDate(order.check_out_date)}</div>
+        </div>
+        <div className="md:col-span-2"><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '服務內容' : '房型'}</label>
+            <div className="font-bold">{order.room_type || '-'}</div>
+        </div>
+    </>
+)}
                                     <div className="hidden"></div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">狀態</label>
                                         <span className={`status-badge ${order.status === 'pending' ? 'status-pending' : order.status === 'confirmed' ? 'status-confirmed' : order.status === 'cancelled' ? 'status-cancelled' : 'status-completed'}`}>
