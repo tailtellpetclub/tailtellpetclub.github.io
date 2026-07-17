@@ -1845,6 +1845,7 @@ const [formData, setFormData] = useState({
         sex: { required: true, message: '請選擇性別' },
         fix: { required: true, message: '請選擇是否結紮' },
         chip_status: { required: true, message: '請選擇晶片狀態' },
+        chip_id: { required: true, message: '請輸入晶片號碼' },
         medical_history: { required: true, message: '請選擇過往病史' },
         deworming_monthly: { required: true, message: '請選擇是否每月定期驅蟲' },
         physical_check: { required: true, message: '請選擇外觀檢查項目' },
@@ -1899,6 +1900,10 @@ const validate = () => {
         // 非生日模式下，如果 age_type 已有值，則跳過其驗證（因為它是按鈕選擇，必填但不會為空）
         if (key === 'age_type' && !isBirthdayMode) {
             // age_type 預設為 'year'，不會為空，跳過驗證避免干擾
+            return;
+        }
+        // 晶片號碼：僅當晶片狀態為「有晶片」時才驗證
+        if (key === 'chip_id' && formData.chip_status !== '有晶片') {
             return;
         }
         const err = validateField(key, formData[key]);
@@ -2757,8 +2762,16 @@ onReset={() => {
                             ))}
                         </div>
                         {formData.chip_status === '有晶片' &&
-                            <InputWithError placeholder="請輸入晶片號碼" value={formData.chip_id} onChange={e =>
-                                handleChange('chip_id', e.target.value)} className="animate-slide-down mt-2" />}
+                            <div className="animate-slide-down mt-2">
+                                <InputWithError 
+                                    label="晶片號碼 *" 
+                                    placeholder="請輸入晶片號碼" 
+                                    value={formData.chip_id} 
+                                    onChange={e => handleChange('chip_id', e.target.value)} 
+                                    error={errors.chip_id}
+                                    className="mt-2" 
+                                />
+                            </div>}
                     </div>
 
                     <div className="space-y-3 pt-2 border-t border-[#DDD6CE]">
@@ -3706,7 +3719,7 @@ if ('serviceWorker' in navigator) {
             }
         }).catch(() => {
             // 如果 getRegistration 失敗，直接註冊
-            navigator.serviceWorker.register('/sw.js?v=23').then(reg => {
+            navigator.serviceWorker.register('/sw.js?v=24').then(reg => {
                 if (reg.waiting) {
                     showUpdateUIWithDebounce(reg.waiting);
                 }
