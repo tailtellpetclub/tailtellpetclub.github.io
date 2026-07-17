@@ -24,6 +24,67 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
 
     <style>
+                /* 頁面載入動畫 */
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .animate-fade-in-up-delay {
+            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
+            opacity: 0;
+        }
+        .animate-fade-in-up-delay-2 {
+            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+            opacity: 0;
+        }
+        
+        /* 懸浮飄浮動畫 */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-float-slow {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        /* 柔和脈衝 */
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+        .animate-pulse-soft {
+            animation: pulse-soft 3s ease-in-out infinite;
+        }
+        
+        /* 按鈕點擊漣漪效果 */
+        .btn-ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-ripple::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.2) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .btn-ripple:hover::after {
+            opacity: 1;
+        }
+        
+        /* 卡片懸浮上升 */
+        .card-hover-lift {
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .card-hover-lift:hover {
+            transform: translateY(-4px) scale(1.005);
+            box-shadow: 0 20px 60px rgba(32, 59, 42, 0.08);
+        }
         * { font-family: 'Noto Serif TC', serif !important; }
         body {
             font-weight: 200 !important;
@@ -47,6 +108,10 @@
             --brand-warm: #EDE8E0;
             --brand-muted: #8AA69B;
             --brand-red: #DBA58B;
+            --brand-cream: #FBF7F0;
+            --brand-rose: #F5EDE8;
+            --shadow-warm: 0 8px 32px rgba(184, 160, 136, 0.15);
+            --shadow-glow: 0 8px 40px rgba(32, 59, 42, 0.08);
         }
         
         .bg-brand { background-color: var(--brand-primary); }
@@ -63,29 +128,32 @@
         }
         
         .cute-card {
-            background: #FFFDF9;
-            border: 2px solid #EDE8E0;
+            background: rgba(255, 253, 249, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(237, 232, 224, 0.6);
             border-radius: 1.5rem;
-            box-shadow: 0 2px 8px rgba(32, 59, 42, 0.04);
-            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 2px 12px rgba(32, 59, 42, 0.04);
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
         .cute-card:hover { 
-            transform: translateY(-2px); 
-            border-color: #B8A088;
-            box-shadow: 0 8px 24px rgba(32, 59, 42, 0.08);
+            transform: translateY(-3px); 
+            border-color: rgba(184, 160, 136, 0.6);
+            box-shadow: 0 12px 40px rgba(32, 59, 42, 0.08), 0 4px 16px rgba(184, 160, 136, 0.06), 0 0 30px rgba(184, 160, 136, 0.04);
         }
         
         .status-badge { 
-            padding: 4px 14px; 
-            border-radius: 20px; 
+            padding: 6px 16px; 
+            border-radius: 9999px; 
             font-size: 11px; 
-            font-weight: 300;
-            letter-spacing: 0.04em;
+            font-weight: 400;
+            letter-spacing: 0.06em;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
         }
-        .status-pending { background: #FDF6F0; color: #B8A088; border: 1px solid #B8A088/30; }
-        .status-confirmed { background: #E8F0EC; color: #4A6B55; border: 1px solid #4A6B55/30; }
-        .status-completed { background: #EDE8E0; color: #8AA69B; border: 1px solid #EDE8E0; }
-        .status-cancelled { background: #FDF6F3; color: #DBA58B; border: 1px solid #DBA58B/30; }
+        .status-pending { background: #FDF6F0; color: #B8A088; border: 1px solid rgba(184, 160, 136, 0.25); }
+        .status-confirmed { background: #E8F0EC; color: #4A6B55; border: 1px solid rgba(74, 107, 85, 0.2); }
+        .status-completed { background: #EDE8E0; color: #8AA69B; border: 1px solid rgba(138, 166, 155, 0.2); }
+        .status-cancelled { background: #FDF6F3; color: #DBA58B; border: 1px solid rgba(219, 165, 139, 0.25); }
         
         .admin-input {
             width: 100%;
@@ -181,10 +249,26 @@
     -webkit-tap-highlight-color: transparent;
 }
 @media (min-width: 640px) {
-    .tab-btn {
-        padding: 0.7rem 1.8rem;
-        font-size: 0.95rem;
-    }
+        .tab-btn {
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            border-bottom: 3px solid transparent;
+            opacity: 0.5;
+            font-size: 0.85rem;
+            font-weight: 300;
+            letter-spacing: 0.12em;
+            background: transparent;
+            color: #203B2A;
+            position: relative;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            border-radius: 0;
+        }
+        .tab-btn:hover {
+            opacity: 0.8;
+            background: rgba(32, 59, 42, 0.03);
+        }
 }
         .tab-btn::after {
             content: '';
@@ -198,7 +282,6 @@
             border-radius: 4px;
             transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .tab-btn:hover { opacity: 0.8; }
         .tab-btn:hover::after { width: 40%; }
         .tab-btn.active {
             color: #203B2A;
@@ -284,6 +367,7 @@ body {
 #root {
     overflow-x: hidden;
 }
+
     </style>
 </head>
 <body>
@@ -417,9 +501,12 @@ body {
             };
 
             return (
-                <div className="min-h-screen flex items-center justify-center p-6">
-                    <div className="glass-card w-full max-w-md p-10 text-center">
-                        <img src="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png" className="w-40 mx-auto mb-6 drop-shadow-sm" alt="尾尾道來" />
+                <div className="min-h-screen flex items-center justify-center p-6 relative">
+                    {/* 背景裝飾圓圈 */}
+                    <div className="absolute w-64 h-64 bg-[#B8A088]/10 rounded-full blur-3xl top-20 left-10 animate-float-slow"></div>
+                    <div className="absolute w-48 h-48 bg-[#DBA58B]/10 rounded-full blur-3xl bottom-20 right-10 animate-float-slow" style={{ animationDelay: '2s' }}></div>
+                    <div className="w-full max-w-md p-10 text-center bg-white/90 backdrop-blur-md rounded-[2.5rem] shadow-2xl border border-white/50 relative z-10" style={{ boxShadow: '0 20px 60px rgba(32, 59, 42, 0.10), 0 8px 24px rgba(32, 59, 42, 0.04)' }}>
+                        <img src="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png" className="w-40 mx-auto mb-6 drop-shadow-sm animate-float-slow" alt="尾尾道來" />
                         {!loginEmail ? (
                             <div className="space-y-4">
                                 <h1 className="text-xl font-bold text-[#203B2A] mb-6 tracking-wider">尾尾道來</h1>
@@ -495,12 +582,16 @@ body {
 const [localNote, setLocalNote] = useState(order.admin_note || '');
 const [isEditing, setIsEditing] = useState(false);
 const [editData, setEditData] = useState(JSON.parse(JSON.stringify(order)));
+const [editLoading, setEditLoading] = useState(false);
+const [editError, setEditError] = useState('');
 const [isResending, setIsResending] = useState(false);
 const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 const [deletePwd, setDeletePwd] = useState('');
 const [showStatusConfirm, setShowStatusConfirm] = useState(false);
 const [statusPwd, setStatusPwd] = useState('');
 const [pendingStatus, setPendingStatus] = useState(null);
+const [showEditConfirm, setShowEditConfirm] = useState(false);
+const [editPwd, setEditPwd] = useState('');
 
 // 修復：確保 localNote 與資料庫一致，避免一打開就顯示「已修改」
 useEffect(() => {
@@ -524,6 +615,54 @@ const handleDelete = () => {
     }
 };
 
+// 儲存編輯內容 - 觸發密碼確認
+const handleSaveEdit = () => {
+    setEditError('');
+    setShowEditConfirm(true);
+};
+
+// 實際執行儲存
+const executeSaveEdit = async () => {
+    setEditLoading(true);
+    setEditError('');
+    try {
+        // 清理空值
+        const cleanData = {};
+        Object.keys(editData).forEach(key => {
+            if (editData[key] !== undefined && editData[key] !== null && editData[key] !== '') {
+                cleanData[key] = editData[key];
+            }
+        });
+        // 確保 service_type 不被修改
+        delete cleanData.service_type;
+        delete cleanData.id;
+        delete cleanData.created_at;
+        delete cleanData.booking_pets;
+        
+        const { error } = await supabase
+            .from('bookings')
+            .update(cleanData)
+            .eq('id', order.id);
+        if (error) throw error;
+        
+        window.showToast('✅ 訂單已更新', 'success');
+        setIsEditing(false);
+        setShowEditConfirm(false);
+        setEditPwd('');
+        // 刷新訂單列表
+        onUpdateStatus(order.id, order.status);
+        // 更新本地 data
+        setEditData(prev => ({ ...prev, ...cleanData }));
+        // 重新載入訂單
+        setTimeout(() => window.location.reload(), 500);
+    } catch (err) {
+        setEditError(err.message || '更新失敗');
+        window.showToast('❌ 更新失敗: ' + err.message, 'error');
+    } finally {
+        setEditLoading(false);
+    }
+};
+
             const confirmDelete = async () => {
                 try {
                     const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
@@ -538,6 +677,30 @@ const handleDelete = () => {
                     setDeletePwd('');
                 } catch (err) {
                     alert(err.message);
+                }
+            };
+
+            // 確認編輯 - 驗證管理員密碼
+            const confirmEdit = async () => {
+                if (!editPwd || editPwd.trim() === '') {
+                    window.showToast('請輸入管理員密碼', 'error');
+                    return;
+                }
+                try {
+                    const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+                    if (userError || !currentUser) throw new Error('驗證失敗');
+                    const { error: loginError } = await supabase.auth.signInWithPassword({
+                        email: currentUser.email,
+                        password: editPwd
+                    });
+                    if (loginError) throw new Error('密碼錯誤');
+                    // 密碼正確，執行儲存
+                    setShowEditConfirm(false);
+                    setEditPwd('');
+                    await executeSaveEdit();
+                } catch (err) {
+                    window.showToast('❌ ' + (err.message || '密碼錯誤，請重新輸入'), 'error');
+                    setEditPwd('');
                 }
             };
 
@@ -569,10 +732,10 @@ const handleDelete = () => {
             };
 
             return (
-<div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-[#203B2A]/60 backdrop-blur-sm animate-fade-in overflow-y-auto">
+<div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-[#203B2A]/50 backdrop-blur-md animate-fade-in overflow-y-auto">
     <div className="w-full max-w-4xl bg-[#FAF8F5] rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[95vh] sm:max-h-[90vh]">
                         {/* Header */}
-<div className="bg-white px-4 sm:px-8 py-3 sm:py-5 flex justify-between items-center border-b border-[#DDD6CE] shrink-0">
+<div className="bg-gradient-to-r from-[#FAF8F5] to-white px-4 sm:px-8 py-3 sm:py-5 flex justify-between items-center border-b border-[#EDE8E0] shrink-0">
     <div className="flex-1 min-w-0">
         <h3 className="font-bold text-base sm:text-xl text-[#203B2A] flex items-center gap-1.5 sm:gap-2">
             {isBoarding ? <Icon name="home" className="text-[#B8A088] shrink-0" size={16}/> : <Icon name="scissors" className="text-[#4A6B55] shrink-0" size={16}/>}
@@ -595,18 +758,28 @@ const handleDelete = () => {
     <div className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-[#DDD6CE]">
         <label className="text-xs font-bold text-[#B5A89C] mb-2 block">訂單狀態</label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
-            {['pending', 'confirmed', 'completed', 'cancelled'].map(status => (
-                <button key={status} 
-                    onClick={()=>handleStatusChange(status)} 
-                    className={`py-2 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-bold border transition-all active:scale-95 ${
-                        order.status === status 
-                        ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' 
-                        : 'bg-white text-[#B5A89C] border-[#DDD6CE] hover:border-[#203B2A]'
-                    }`}
-                >
-                    {getStatusText(status)}
-                </button>
-            ))}
+            {['pending', 'confirmed', 'completed', 'cancelled'].map(status => {
+                const statusIcons = {
+                    pending: 'clock',
+                    confirmed: 'check-circle',
+                    completed: 'check',
+                    cancelled: 'x-circle'
+                };
+                const isActive = order.status === status;
+                return (
+                    <button key={status} 
+                        onClick={()=>handleStatusChange(status)} 
+                        className={`py-2 sm:py-2.5 rounded-xl text-[9px] sm:text-[10px] font-bold border transition-all active:scale-95 flex items-center justify-center gap-1 ${
+                            isActive 
+                            ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' 
+                            : 'bg-white text-[#B5A89C] border-[#DDD6CE] hover:border-[#203B2A] hover:bg-[#FAF8F5]'
+                        }`}
+                    >
+                        <Icon name={statusIcons[status]} size={12} className={isActive ? 'text-white' : 'text-[#B5A89C]'} />
+                        {getStatusText(status)}
+                    </button>
+                );
+            })}
         </div>
         <button 
             onClick={handleDelete}
@@ -644,6 +817,193 @@ const handleDelete = () => {
             <span className="text-[#4A6B55]">{localNote !== (order.admin_note || '') ? '✏️ 已修改' : '✓ 已儲存'}</span>
         </div>
     </div>
+                                {/* 編輯模式 - 管理員專用 */}
+                            {user?.email === ADMIN_EMAIL && isEditing && (
+                                <div className="bg-[#FDF6F3] p-4 sm:p-6 rounded-2xl border-2 border-[#B8A088]/40 animate-fade-in">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h4 className="font-bold text-[#203B2A] flex items-center gap-2">
+                                            <Icon name="edit-2" size={18}/> 編輯訂單內容
+                                        </h4>
+                                        <button 
+                                            onClick={() => setIsEditing(false)}
+                                            className="text-[#B5A89C] hover:text-[#203B2A] transition-colors"
+                                        >
+                                            <Icon name="x" size={20}/>
+                                        </button>
+                                    </div>
+                                    {editError && (
+                                        <div className="bg-[#DBA58B]/10 text-[#DBA58B] p-2 rounded-xl text-xs font-bold mb-3">
+                                            ❌ {editError}
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {/* 飼主資料 */}
+                                        <div className="col-span-2">
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">飼主姓名</label>
+                                            <input 
+                                                type="text" 
+                                                value={editData.owner_name || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, owner_name: e.target.value}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">電話</label>
+                                            <input 
+                                                type="tel" 
+                                                value={editData.phone || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, phone: e.target.value}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">身分證</label>
+                                            <input 
+                                                type="text" 
+                                                value={editData.owner_id || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, owner_id: e.target.value}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">Email</label>
+                                            <input 
+                                                type="email" 
+                                                value={editData.email || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, email: e.target.value}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            />
+                                        </div>
+                                        <div className="col-span-2">
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">地址</label>
+                                            <input 
+                                                type="text" 
+                                                value={editData.address || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, address: e.target.value}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">緊急聯絡人</label>
+                                            <input 
+                                                type="text" 
+                                                value={editData.emergency_name || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, emergency_name: e.target.value}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">緊急電話</label>
+                                            <input 
+                                                type="tel" 
+                                                value={editData.emergency_phone || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, emergency_phone: e.target.value}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            />
+                                        </div>
+                                        {/* 寵物資料 */}
+                                        <div className="col-span-2 border-t border-[#DDD6CE] pt-3 mt-1">
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">寵物名字</label>
+                                            <input 
+                                                type="text" 
+                                                value={editData.pet_name || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, pet_name: e.target.value}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">品種</label>
+                                            <input 
+                                                type="text" 
+                                                value={editData.breed || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, breed: e.target.value}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">毛色</label>
+                                            <input 
+                                                type="text" 
+                                                value={editData.fur_color || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, fur_color: e.target.value}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">性別</label>
+                                            <select 
+                                                value={editData.sex || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, sex: e.target.value}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            >
+                                                <option value="">未選擇</option>
+                                                <option value="公">公</option>
+                                                <option value="母">母</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">結紮</label>
+                                            <select 
+                                                value={editData.fix || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, fix: e.target.value}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            >
+                                                <option value="">未選擇</option>
+                                                <option value="是">是</option>
+                                                <option value="否">否</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">體重 (kg)</label>
+                                            <input 
+                                                type="number" 
+                                                step="0.1"
+                                                value={editData.weight || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, weight: parseFloat(e.target.value) || 0}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">晶片狀態</label>
+                                            <select 
+                                                value={editData.chip_status || ''} 
+                                                onChange={e => setEditData(prev => ({...prev, chip_status: e.target.value}))}
+                                                className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                            >
+                                                <option value="">未選擇</option>
+                                                <option value="有晶片">有晶片</option>
+                                                <option value="有晶片(號碼不詳)">有晶片(號碼不詳)</option>
+                                                <option value="無晶片">無晶片</option>
+                                            </select>
+                                        </div>
+                                        {editData.chip_status === '有晶片' && (
+                                            <div>
+                                                <label className="text-[10px] font-bold text-[#B5A89C] block mb-1">晶片號碼</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={editData.chip_id || ''} 
+                                                    onChange={e => setEditData(prev => ({...prev, chip_id: e.target.value}))}
+                                                    className="w-full bg-white rounded-xl px-3 py-2 border border-[#DDD6CE] outline-none focus:border-[#203B2A] text-sm"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* 儲存按鈕 */}
+                                    <div className="flex gap-3 mt-4 pt-3 border-t border-[#DDD6CE]">
+                                        <button 
+                                            onClick={handleSaveEdit} 
+                                            disabled={editLoading}
+                                            className="flex-1 py-2.5 bg-[#203B2A] text-white rounded-xl text-sm font-bold shadow-lg hover:bg-[#162B1F] transition-all flex items-center justify-center gap-2"
+                                        >
+                                            {editLoading ? (
+                                                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/> 儲存中...</>
+                                            ) : (
+                                                <><Icon name="save" size={16}/> 儲存修改</>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 </div>
 
                             {/* 飼主資訊 */}
@@ -888,6 +1248,33 @@ const handleDelete = () => {
                                 <div className="flex gap-2">
                                     <button onClick={()=>{setShowStatusConfirm(false);setStatusPwd('');setPendingStatus(null);}} className="flex-1 py-2 bg-[#EDE8E0] rounded-lg text-xs font-bold text-[#8A7A6E]">取消</button>
                                     <button onClick={confirmStatusChange} className="flex-1 py-2 bg-[#203B2A] text-white rounded-lg text-xs font-bold">確認變更</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 編輯確認 Modal */}
+                    {showEditConfirm && (
+                        <div className="fixed inset-0 z-[200] bg-[#203B2A]/60 backdrop-blur-sm flex items-center justify-center p-4">
+                            <div className="bg-white rounded-2xl p-6 w-full max-w-xs">
+                                <h3 className="font-bold text-lg text-center mb-1 text-[#203B2A]">✏️ 確認修改訂單</h3>
+                                <p className="text-[10px] text-[#B5A89C] text-center mb-4">請輸入管理員密碼以確認修改</p>
+                                <input 
+                                    type="password" 
+                                    autoFocus 
+                                    placeholder="管理員密碼" 
+                                    className="w-full border-2 border-[#DDD6CE] rounded-xl p-3 text-center mb-4 outline-none focus:border-[#203B2A]" 
+                                    value={editPwd} 
+                                    onChange={e=>setEditPwd(e.target.value)} 
+                                    onKeyDown={(e)=> {
+                                        if (e.key === 'Enter') {
+                                            confirmEdit();
+                                        }
+                                    }} 
+                                />
+                                <div className="flex gap-2">
+                                    <button onClick={()=>{setShowEditConfirm(false);setEditPwd('');}} className="flex-1 py-2 bg-[#EDE8E0] rounded-lg text-xs font-bold text-[#8A7A6E]">取消</button>
+                                    <button onClick={confirmEdit} className="flex-1 py-2 bg-[#203B2A] text-white rounded-lg text-xs font-bold">確認修改</button>
                                 </div>
                             </div>
                         </div>
@@ -2192,13 +2579,14 @@ const customers = useMemo(() => {
                     <main className="max-w-4xl mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
                         {/* 搜尋 */}
                         <div className="relative group">
-                            <Icon name="search" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#DDD6CE] group-focus-within:text-[#203B2A] transition-colors" />
+                            <Icon name="search" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C5BAB0] group-focus-within:text-[#203B2A] transition-colors" />
 <input 
     type="text" 
     placeholder="搜尋主人、電話、毛孩..." 
     value={searchTerm}
     onChange={e => setSearchTerm(e.target.value)}
-    className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 rounded-2xl bg-white shadow-sm border-2 border-transparent focus:border-[#203B2A] outline-none font-bold text-xs sm:text-sm transition-all"
+    className="w-full pl-10 sm:pl-12 pr-3 sm:pr-4 py-3 sm:py-4 rounded-2xl bg-white/80 backdrop-blur-sm border border-[#EDE8E0] focus:border-[#203B2A] outline-none font-bold text-xs sm:text-sm transition-all shadow-sm hover:shadow-md focus:shadow-glow"
+    style={{ boxShadow: '0 2px 12px rgba(32, 59, 42, 0.04)', transition: 'all 0.3s ease' }}
 />
                         </div>
 
@@ -2268,15 +2656,20 @@ const customers = useMemo(() => {
 ) : activeTab === 'calendar' ? (
     <CalendarView orders={orders} onSelectOrder={setSelectedOrder} />
 ) : sortedOrders.length === 0 ? (
-    <div className="py-20 text-center">
-        <div className="w-16 h-16 bg-[#EDE8E0] rounded-full flex items-center justify-center mx-auto mb-3 text-[#DDD6CE]"><Icon name="inbox" size={32}/></div>
-        <p className="text-[#B5A89C] font-bold">暫無訂單 🍃</p>
+    <div className="py-20 text-center animate-fade-in-up">
+        <div className="w-20 h-20 bg-gradient-to-br from-[#EDE8E0] to-[#FAF8F5] rounded-full flex items-center justify-center mx-auto mb-4 text-[#B8A088] shadow-inner animate-float-slow">
+            <Icon name="inbox" size={36} />
+        </div>
+        <p className="text-[#B5A89C] font-bold text-lg">暫無訂單 🍃</p>
+        <p className="text-[#DDD6CE] text-sm font-bold mt-1">新訂單將會在這裡顯示</p>
     </div>
 ) : (
     <div className="space-y-4">
         {paginatedOrders.map(order => (
-            <div key={order.id} onClick={() => setSelectedOrder(order)} className="cute-card p-4 sm:p-6 bg-white cursor-pointer relative overflow-hidden active:scale-[0.98] transition-all">
-                <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${order.status === 'confirmed' ? 'bg-[#4A6B55]' : order.status === 'pending' ? 'bg-[#B8A088]' : order.status === 'cancelled' ? 'bg-[#DBA58B]' : 'bg-[#DDD6CE]'}`}></div>
+            <div key={order.id} onClick={() => setSelectedOrder(order)} className="cute-card p-4 sm:p-6 bg-white cursor-pointer relative overflow-hidden active:scale-[0.98] transition-all card-hover-lift group">
+                {/* 光影效果 - hover 時滑動 */}
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></div>
+                <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-r-full ${order.status === 'confirmed' ? 'bg-gradient-to-b from-[#4A6B55] to-[#5A7F68]' : order.status === 'pending' ? 'bg-gradient-to-b from-[#B8A088] to-[#C9B8A8]' : order.status === 'cancelled' ? 'bg-gradient-to-b from-[#DBA58B] to-[#C9A08B]' : 'bg-gradient-to-b from-[#DDD6CE] to-[#C5BAB0]'}`}></div>
                 
                 <div className="flex justify-between items-start">
                     <div>
@@ -2501,7 +2894,7 @@ const customers = useMemo(() => {
         };
 
         // --- Admin Service Worker 註冊 ---
-        const ADMIN_SW_VERSION = '20260717-5';
+        const ADMIN_SW_VERSION = '20260717-6';
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         // 檢查是否已有 admin-sw.js 的註冊

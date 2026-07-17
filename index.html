@@ -88,65 +88,128 @@
 
         /* 卡片 — 輕透米白，更精緻 */
         .glass-premium {
-            background: rgba(255, 252, 248, 0.78);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 252, 248, 0.5);
-            box-shadow: var(--shadow-md);
+            background: rgba(255, 252, 248, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 252, 248, 0.6);
+            box-shadow: 0 2px 12px rgba(30, 53, 39, 0.04), 0 8px 32px rgba(30, 53, 39, 0.06);
             border-radius: 2rem;
             transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        /* 不支援 backdrop-filter 的手機 fallback */
+        @supports not (backdrop-filter: blur(8px)) {
+            .glass-premium {
+                background: rgba(255, 252, 248, 0.95);
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
+            }
+            .service-tab-container {
+                background: rgba(255, 252, 248, 0.8);
+                backdrop-filter: none;
+                -webkit-backdrop-filter: none;
+            }
+        }
+        .glass-premium::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, transparent 60%);
+            pointer-events: none;
+            border-radius: inherit;
         }
         .glass-premium:hover {
-            box-shadow: var(--shadow-lg);
-            transform: translateY(-2px);
+            box-shadow: 0 4px 24px rgba(30, 53, 39, 0.08), 0 16px 48px rgba(30, 53, 39, 0.10);
+            transform: translateY(-4px) scale(1.002);
             background: rgba(255, 252, 248, 0.92);
+            border-color: rgba(196, 176, 154, 0.3);
         }
         .glass-premium:hover .icon-hover {
             transform: scale(1.08) rotate(-2deg);
             transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
         }
+        .glass-premium:hover .card-shimmer {
+            opacity: 1;
+            transform: translateX(100%);
+        }
         .icon-hover {
             transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        /* 卡片閃光效果 */
+        .card-shimmer {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: skewX(-25deg);
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: none;
+            border-radius: inherit;
         }
 
         /* 輸入框 — 更細緻 */
         .cute-input {
-            background: rgba(255, 252, 248, 0.6);
-            border: 1px solid #E0D8D0;
-            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-            color: #203B2A;
+            background: rgba(255, 252, 248, 0.5);
+            border: 1.5px solid #E8E2DA;
+            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            color: #1E3527;
             font-weight: 200;
             font-size: 0.95rem;
             backdrop-filter: blur(4px);
-            border-radius: 1rem;
-            padding: 0.9rem 1.2rem;
+            border-radius: 1.25rem;
+            padding: 0.9rem 1.4rem;
             caret-color: var(--brand-primary);
+            box-shadow: inset 0 1px 3px rgba(30, 53, 39, 0.03);
         }
         .cute-input:focus {
             background: #ffffff;
             border-color: var(--brand-primary);
             outline: none;
-            box-shadow: 0 0 0 5px rgba(32, 59, 42, 0.08);
-            transform: translateY(-1px);
+            box-shadow: 0 0 0 6px rgba(30, 53, 39, 0.06), inset 0 1px 3px rgba(30, 53, 39, 0.03);
+            transform: translateY(-2px);
         }
         /* 標籤裝飾 */
         .input-label {
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.5rem;
+            font-size: 0.7rem;
+            font-weight: 400;
+            letter-spacing: 0.06em;
+            color: #4A6B55;
         }
         .input-label::before {
             content: '';
             width: 3px;
-            height: 12px;
-            background: var(--brand-primary);
+            height: 14px;
+            background: linear-gradient(180deg, var(--brand-primary), var(--brand-gold));
             border-radius: 4px;
-            opacity: 0.6;
+            opacity: 0.5;
         }
         .cute-input::placeholder {
-            color: #C5BAB0;
+            color: #C9C0B6;
             font-weight: 200;
             letter-spacing: 0.02em;
+        }
+        /* 選項按鈕統一美化 */
+        .option-btn {
+            transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+            border-radius: 1rem;
+            font-weight: 300;
+        }
+        .option-btn:hover:not(.selected) {
+            border-color: #C4B09A;
+            background: rgba(255, 252, 248, 0.6);
+        }
+        .option-btn.selected {
+            background: #1E3527;
+            color: white;
+            border-color: #1E3527;
+            box-shadow: 0 4px 16px rgba(30, 53, 39, 0.18);
         }
 
         /* 選項卡片 — 更精緻 */
@@ -157,6 +220,14 @@
             border-radius: 1.25rem;
             position: relative;
             overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+            min-height: 56px;
+        }
+        .radio-card:active {
+            transform: scale(0.97);
+            transition: transform 0.1s ease;
         }
         .radio-card::before {
             content: '';
@@ -194,7 +265,7 @@
         .service-tab {
             padding: 0.7rem 1.8rem;
             cursor: pointer;
-            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
             border-bottom: 3px solid transparent;
             opacity: 0.45;
             font-size: 0.95rem;
@@ -204,6 +275,14 @@
             background: transparent;
             color: #203B2A;
             position: relative;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            min-height: 48px;
+            user-select: none;
+        }
+        .service-tab:active {
+            transform: scale(0.96);
+            transition: transform 0.1s ease;
         }
         .service-tab::after {
             content: '';
@@ -237,10 +316,32 @@
             justify-content: center;
             gap: 0.25rem;
             margin: 0 0 1.5rem 0;
-            border-bottom: 1px solid #E8E0D8;
-            padding: 0 0.5rem 0 0.5rem;
+            padding: 0.5rem;
             width: 100%;
-            background: transparent;
+            max-width: 100%;
+            background: rgba(255, 252, 248, 0.4);
+            border-radius: 1.5rem;
+            border: 1px solid rgba(232, 224, 216, 0.3);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .service-tab-container::-webkit-scrollbar {
+            display: none;
+        }
+        /* 手機上 tab 按鈕縮小 */
+        @media (max-width: 480px) {
+            .service-tab {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.8rem;
+                min-height: 44px;
+            }
+            .service-tab-container {
+                gap: 0.15rem;
+                padding: 0.3rem;
+            }
         }
 
         /* 純文字 Logo */
@@ -276,6 +377,8 @@
             background: white;
             display: flex;
             flex-direction: column;
+            height: 100dvh;
+            height: -webkit-fill-available;
         }
         .no-scrollbar::-webkit-scrollbar {
             display: none;
@@ -303,6 +406,33 @@
         .animate-fade-in {
             animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
+        @keyframes fadeInDown {
+            0% { opacity: 0; transform: translateY(-16px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-down {
+            animation: fadeInDown 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up-delay {
+            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
+            opacity: 0;
+        }
+        .animate-fade-in-up-delay-2 {
+            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+            opacity: 0;
+        }
+        .animate-fade-in-up-delay-3 {
+            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.45s forwards;
+            opacity: 0;
+        }
+        .animate-fade-in-up-delay-4 {
+            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.6s forwards;
+            opacity: 0;
+        }
         @keyframes slideUp {
             0% { opacity: 0; transform: translateY(100%); }
             100% { opacity: 1; transform: translateY(0); }
@@ -325,12 +455,43 @@
             animation: pulse-slow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
 
-        /* 安全區域 */
+        /* 安全區域 - 完整支援 */
         .safe-area-bottom {
             padding-bottom: env(safe-area-inset-bottom, 1rem);
         }
         .safe-area-top {
             padding-top: env(safe-area-inset-top, 0.5rem);
+        }
+        /* 底部固定元素安全區域 */
+        .fixed-bottom-safe {
+            padding-bottom: env(safe-area-inset-bottom, 0.5rem);
+        }
+        /* 所有底部按鈕確保安全區域 */
+        .btn-bottom-safe {
+            margin-bottom: env(safe-area-inset-bottom, 0.5rem);
+        }
+        /* 全螢幕覆蓋層安全區域 */
+        .fullscreen-safe {
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        /* 針對有瀏海的手機調整 */
+        @supports (padding: max(0px)) {
+            .safe-area-top {
+                padding-top: max(env(safe-area-inset-top, 0.5rem), 0.5rem);
+            }
+            .safe-area-bottom {
+                padding-bottom: max(env(safe-area-inset-bottom, 1rem), 1rem);
+            }
+            .btn-bottom-safe {
+                margin-bottom: max(env(safe-area-inset-bottom, 0.5rem), 0.5rem);
+            }
+        }
+        /* 針對 iphone 14 pro 等動態島 */
+        @supports (padding-top: env(safe-area-inset-top, 0px)) {
+            .safe-area-top-dynamic {
+                padding-top: env(safe-area-inset-top, 0.5rem);
+            }
         }
 
         /* 標題裝飾線 — 更細緻 */
@@ -362,11 +523,232 @@
             left: 0;
             width: 0;
             height: 3px;
-            background: linear-gradient(90deg, var(--brand-primary), var(--brand-gold));
+            background: linear-gradient(90deg, var(--brand-primary), var(--brand-gold), var(--brand-secondary));
             z-index: 999;
             transition: width 0.1s linear;
             border-radius: 0 4px 4px 0;
+            box-shadow: 0 0 12px rgba(30, 53, 39, 0.15);
         }
+        /* 背景光暈動畫增強 */
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.15;
+            animation: orbFloat 20s ease-in-out infinite alternate;
+        }
+        .bg-orb:nth-child(2) {
+            animation-delay: -7s;
+            animation-duration: 25s;
+        }
+        .bg-orb:nth-child(3) {
+            animation-delay: -14s;
+            animation-duration: 18s;
+        }
+        @keyframes orbFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 40px) scale(0.9); }
+            100% { transform: translate(30px, -10px) scale(1.05); }
+        }
+                /* 美化按鈕點擊 */
+        .btn-soft {
+            transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-soft:active {
+            transform: scale(0.96);
+        }
+        /* 按鈕漣漪效果 */
+        .btn-soft .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0);
+            animation: ripple-anim 0.6s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes ripple-anim {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        /* 自定義陰影 */
+        .shadow-soft {
+            box-shadow: 0 4px 20px rgba(30, 53, 39, 0.06);
+        }
+        /* 頁面整體淡入 */
+        .page-enter {
+            animation: pagefadein 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes pagefadein {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        /* 漸進式載入動畫 */
+        .stagger-children > * {
+            opacity: 0;
+            animation: fadeInUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+        .stagger-children > *:nth-child(2) { animation-delay: 0.10s; }
+        .stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+        .stagger-children > *:nth-child(4) { animation-delay: 0.20s; }
+        .stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+        .stagger-children > *:nth-child(6) { animation-delay: 0.30s; }
+        .stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+        .stagger-children > *:nth-child(8) { animation-delay: 0.40s; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Toast 彈性進入動畫 */
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(-20px); }
+            50% { opacity: 1; transform: scale(1.05) translateY(0); }
+            70% { transform: scale(0.97); }
+            100% { transform: scale(1); }
+        }
+        .animate-bounce-in {
+            animation: bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        /* 選項按鈕懸浮效果增強 */
+        .option-card {
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .option-card:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(30, 53, 39, 0.08);
+        }
+        .option-card:active {
+            transform: scale(0.97);
+        }
+        
+        /* ===== 手機觸控優化 ===== */
+        /* 增大觸控區域，同時保持視覺大小 */
+        .touch-target {
+            position: relative;
+        }
+        .touch-target::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: inherit;
+        }
+        /* 手機點擊反饋 - 輕微震動效果 */
+        @media (hover: none) and (pointer: coarse) {
+            .tap-highlight {
+                -webkit-tap-highlight-color: rgba(30, 53, 39, 0.08);
+            }
+            .tap-highlight:active {
+                transform: scale(0.97);
+                transition: transform 0.1s ease;
+            }
+            /* 按鈕觸控反饋 */
+            button, 
+            .clickable,
+            [role="button"],
+            .cursor-pointer {
+                -webkit-tap-highlight-color: rgba(30, 53, 39, 0.06);
+                touch-action: manipulation;
+            }
+            /* 卡片觸控反饋 */
+            .glass-premium:active {
+                transform: scale(0.99);
+                transition: transform 0.1s ease;
+            }
+            /* 輸入框在手機上字體不小於 16px 防止縮放 */
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+            /* 增加滾動流暢度 */
+            * {
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+        /* 手機上按鈕最小高度 */
+        @media (max-width: 640px) {
+            .min-tap-height {
+                min-height: 48px;
+            }
+        }
+        
+        /* ===== 手機觸控優化增強 ===== */
+        /* 觸控震動反饋 - 輕微 */
+        .haptic-feedback {
+            -webkit-tap-highlight-color: rgba(30, 53, 39, 0.08);
+        }
+        
+        /* 手機按鈕點擊波紋 */
+        .ripple-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple-effect .ripple-ring {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(0);
+            animation: ripple-ring 0.6s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes ripple-ring {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        
+        /* 手機卡片觸控反饋 - 輕微下沉 */
+        .card-touch {
+            transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .card-touch:active {
+            transform: scale(0.98);
+        }
+        
+        /* 手機選項按鈕觸控反饋 */
+        .option-touch {
+            transition: all 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+            -webkit-tap-highlight-color: rgba(30, 53, 39, 0.06);
+        }
+        .option-touch:active {
+            transform: scale(0.95);
+        }
+        
+        /* 手機上滑動提示淡化 */
+        .scroll-hint {
+            animation: scrollhint 2.5s ease-in-out infinite;
+        }
+        @keyframes scrollhint {
+            0%, 100% { opacity: 0.3; transform: translatey(0); }
+            50% { opacity: 0.9; transform: translatey(4px); }
+        }
+        
+        /* 手機鍵盤彈出時自動調整 */
+        .keyboard-aware {
+            transition: padding-bottom 0.3s ease;
+        }
+        
+        /* 手機上輸入框獲得焦點時高亮 */
+        .input-focus-ring:focus {
+            box-shadow: 0 0 0 4px rgba(30, 53, 39, 0.08), 0 0 0 2px rgba(30, 53, 39, 0.02);
+        }
+        
+        /* 手機 tab 底部指示器動畫 */
+        .tab-indicator {
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            height: 3px;
+            background: var(--brand-primary);
+            border-radius: 4px;
+            transition: left 0.3s cubic-bezier(0.22, 1, 0.36, 1), width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        
     </style>
 
     <script>
@@ -431,7 +813,7 @@
     <div class="bg-orb w-80 h-80 bottom-[-10%] right-[-10%] animate-float-delayed" style="background:#C4B8AA;"></div>
     <div class="bg-orb w-64 h-64 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse-slow" style="background:#B8A088;"></div>
 
-    <div id="root"></div>
+    <div id="root" class="page-enter"></div>
 
     <script>
         Babel.registerPreset("react-classic", {
@@ -506,12 +888,17 @@ const ToastItem = ({ id, message, type = 'info', duration = 4500, onClose }) => 
     const styleMap = { success: 'bg-[#4A6B55]', error: 'bg-[#DBA58B]', warning: 'bg-[#B8A088]', info: 'bg-[#203B2A]' };
     const iconMap = { success: 'check-circle', error: 'alert-circle', warning: 'alert-triangle', info: 'info' };
     return (
-        <div className={`pointer-events-auto transform transition-all duration-300 ${visible ? 'translate-y-0 opacity-100' : 'translate-y-[-20px] opacity-0'}`}>
-            <div className={`${styleMap[type] || 'bg-[#203B2A]'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-start gap-3 relative overflow-hidden`}>
-                <Icon name={iconMap[type] || 'info'} size={20} className="mt-0.5 shrink-0" />
+        <div className={`pointer-events-auto transform transition-all duration-500 ${visible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-[-40px] opacity-0 scale-95'}`}>
+            <div className={`${styleMap[type] || 'bg-[#203B2A]'} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-start gap-3 relative overflow-hidden backdrop-blur-sm border border-white/10`}>
+                <div className={`shrink-0 transition-all duration-500 delay-100 ${visible ? 'scale-100 rotate-0' : 'scale-50 rotate-45'}`}>
+                    <Icon name={iconMap[type] || 'info'} size={20} className="mt-0.5" />
+                </div>
                 <div className="flex-1 text-sm font-bold whitespace-pre-wrap text-left leading-relaxed">{message}</div>
-                <button onClick={handleClose} className="ml-2 p-1 hover:bg-white/20 rounded-full transition-colors"><Icon name="x" size={16} /></button>
-                <div className="absolute bottom-0 left-0 h-1 bg-white/30 transition-all duration-100" style={{ width: `${progress}%` }} />
+                <button onClick={handleClose} className="ml-2 p-1 hover:bg-white/20 rounded-full transition-all hover:scale-110 active:scale-90"><Icon name="x" size={16} /></button>
+                <div className="absolute bottom-0 left-0 h-1 bg-white/30 transition-all duration-100 rounded-full" style={{ width: `${progress}%` }} />
+                <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-white/5 via-transparent to-transparent"></div>
+                {/* 彈出動畫指示線 */}
+                <div className={`absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-white/40 to-transparent transition-all duration-700 ${visible ? 'opacity-100' : 'opacity-0'}`}></div>
             </div>
         </div>
     );
@@ -837,7 +1224,7 @@ const HistoryModal = ({ records, onClose, onSelect }) => {
                 </div>
 
                 {/* 底部按鈕 */}
-                <div className="p-4 bg-white border-t border-[#DDD6CE]">
+                <div className="p-4 bg-white border-t border-[#DDD6CE] safe-area-bottom" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 1rem) + 0.5rem)' }}>
                     <button onClick={onClose} className="w-full py-3 rounded-xl text-[#B5A89C] font-bold text-sm hover:bg-[#FAF8F5] transition-colors">
                         取消搜尋
                     </button>
@@ -2448,7 +2835,7 @@ onReset={() => {
     }
 
     return (
-        <div className="min-h-screen pb-32">
+        <div className="min-h-screen pb-32" style={{ minHeight: '100dvh', minHeight: '-webkit-fill-available' }}>
             <ToastContainer />
 
             {showHistoryModal && (
@@ -2456,40 +2843,73 @@ onReset={() => {
                     handleApplyHistory} />
             )}
 
-            <nav className="fixed top-0 w-full z-40 bg-white/80 backdrop-blur-md border-b border-[#DDD6CE]/50 shadow-sm transition-all">
-                <div className="px-6 py-4 flex justify-between items-center max-w-5xl mx-auto">
-<div 
-    className="flex items-center gap-4 cursor-pointer group" 
-    onDoubleClick={() => {
-        const adminUrl = window.location.origin + '/admin.html';
-        window.location.href = adminUrl;
-    }}
-    style={{ touchAction: 'manipulation' }}
->
-    <img src="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png" alt="尾尾道來寵物俱樂部" className="w-14 h-14 md:w-16 md:h-16 object-contain rounded-xl shadow-sm" />
-    <div className="text-left">
-        <div className="logo-text text-xl md:text-2xl tracking-[0.25em] text-[#203B2A]">
-            尾尾道來
-        </div>
-        <div className="logo-text-sub text-[10px] md:text-[11px] tracking-[0.4em] text-[#203B2A] mt-0.5">
-            TAIL TELL PET CLUB
-        </div>
-    </div>
-</div>                    <div className="flex items-center gap-2">
-                        <a href="tel:0424223481" className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#FAF8F5] border border-[#DDD6CE] flex items-center justify-center hover:bg-[#EDE8E0] hover:border-[#B8A088] transition-colors cursor-pointer" title="撥打電話">
-                            <Icon name="phone" size={18} className="text-[#203B2A]" />
+            <nav class="fixed top-0 w-full z-40 bg-white/70 backdrop-blur-xl border-b border-[#E2DCD4]/40 shadow-soft transition-all duration-300 animate-fade-in-down safe-area-top">
+                <div class="px-5 md:px-8 py-3 md:py-4 flex justify-between items-center max-w-5xl mx-auto">
+                    <div 
+                        className="flex items-center gap-3 md:gap-4 cursor-pointer group relative" 
+                        ref={(el) => {
+                            if (el && !el._clickHandler) {
+                                el._clickHandler = () => {
+                                    const now = Date.now();
+                                    if (!el._lastClickTime) el._lastClickTime = 0;
+                                    if (!el._clickCount) el._clickCount = 0;
+                                    
+                                    const timeDiff = now - el._lastClickTime;
+                                    el._lastClickTime = now;
+                                    
+                                    if (timeDiff < 400) {
+                                        el._clickCount++;
+                                        if (el._clickCount >= 2) {
+                                            el._clickCount = 0;
+                                            const adminUrl = window.location.origin + '/admin.html';
+                                            window.location.href = adminUrl;
+                                        }
+                                    } else {
+                                        el._clickCount = 1;
+                                    }
+                                    
+                                    // 1 秒後重置計數
+                                    clearTimeout(el._resetTimer);
+                                    el._resetTimer = setTimeout(() => {
+                                        el._clickCount = 0;
+                                    }, 1000);
+                                };
+                                el.addEventListener('click', el._clickHandler);
+                            }
+                        }}
+                        style={{ touchAction: 'manipulation' }}
+                    >
+                        <div class="relative">
+                            <img src="https://fcsmbnhnknwzdffcogwm.supabase.co/storage/v1/object/public/logo/logo2.png" alt="尾尾道來寵物俱樂部" class="w-12 h-12 md:w-16 md:h-16 object-contain rounded-2xl shadow-md ring-1 ring-[#E2DCD4]/30 group-hover:ring-[#C4B09A]/50 transition-all duration-300" />
+                            <div class="absolute -top-1 -right-1 w-3 h-3 bg-[#4A6B55] rounded-full border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </div>
+                        <div class="text-left">
+                            <div class="logo-text text-lg md:text-2xl tracking-[0.25em] text-[#1E3527] group-hover:text-[#4A6B55] transition-colors duration-300">
+                                尾尾道來
+                            </div>
+                            <div class="logo-text-sub text-[9px] md:text-[11px] tracking-[0.4em] text-[#7A9B85] mt-0.5 group-hover:text-[#1E3527] transition-colors duration-300">
+                                TAIL TELL PET CLUB
+                            </div>
+                        </div>
+                        <div class="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[6px] text-[#B5A89C] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap md:hidden">
+                            雙擊進入後台
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 md:gap-3">
+                        <a href="tel:0424223481" class="w-11 h-11 md:w-12 md:h-12 rounded-2xl bg-white/80 backdrop-blur-sm border border-[#E2DCD4]/60 flex items-center justify-center hover:bg-[#1E3527] hover:border-[#1E3527] hover:text-white transition-all duration-300 shadow-sm hover:shadow-md group" title="撥打電話">
+                            <Icon name="phone" size={18} className="text-[#4A6B55] group-hover:text-white transition-colors duration-300" />
                         </a>
-                        <a href="http://line.me/R/ti/p/@060zwrxi" target="_blank" rel="noopener noreferrer" className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-full bg-[#FAF8F5] border border-[#DDD6CE] flex items-center justify-center hover:bg-[#EDE8E0] hover:border-[#06C755] transition-colors cursor-pointer" title="加入 LINE 好友">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" className="w-5 h-5" />
+                        <a href="http://line.me/R/ti/p/@060zwrxi" target="_blank" rel="noopener noreferrer" class="w-11 h-11 md:w-12 md:h-12 rounded-2xl bg-white/80 backdrop-blur-sm border border-[#E2DCD4]/60 flex items-center justify-center hover:bg-[#06C755] hover:border-[#06C755] transition-all duration-300 shadow-sm hover:shadow-md group" title="加入 LINE 好友">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" class="w-5 h-5 md:w-6 md:h-6 group-hover:brightness-0 group-hover:invert transition-all duration-300" />
                         </a>
                     </div>
                 </div>
             </nav>
 
-            <main className="pt-28 px-4 md:px-8 max-w-4xl mx-auto space-y-6">
+            <main className="pt-28 px-4 md:px-8 max-w-4xl mx-auto space-y-6 animate-fade-in-up-delay">
 
                 {/* 步驟 1: LINE */}
-                <div className="glass-premium p-6 md:p-8 border-l-4 border-[#06C755] shadow-sm">
+                <div className="glass-premium p-6 md:p-8 border-l-4 border-[#06C755] shadow-sm animate-fade-in-up-delay-2">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                         <div>
                             <h3 className="font-bold text-[#203B2A] text-base flex items-center gap-2">
@@ -2512,16 +2932,19 @@ onReset={() => {
                     <button
                         type="button"
                         onClick={() => handleChange('lineAdded', !formData.lineAdded)}
-                        className={`w-full py-4 rounded-xl font-bold text-xs border transition-all ${formData.lineAdded ? 'bg-[#06C755] text-white border-[#06C755] shadow-md' : 'bg-white text-[#B5A89C] border-[#DDD6CE] hover:bg-[#FAF8F5]'}`}
+                        className={`w-full py-4 rounded-xl font-bold text-xs border transition-all min-tap-height tap-highlight active:scale-[0.97] ${formData.lineAdded ? 'bg-[#06C755] text-white border-[#06C755] shadow-md' : 'bg-white text-[#B5A89C] border-[#DDD6CE] hover:bg-[#FAF8F5]'}`}
+                        onTouchStart={(e) => {
+                            if (navigator.vibrate) navigator.vibrate(5);
+                        }}
                     >
                         {formData.lineAdded ? '✅ 我已完成上述兩步驟' : '確認：我已完成上述兩步驟'}
                     </button>
                 </div>
 
                 {/* 步驟 2: 飼主資料 */}
-                <section className="glass-premium p-6 md:p-8 space-y-6">
+                <section className="glass-premium p-6 md:p-8 space-y-6 animate-fade-in stagger-children">
                     <h3 className="section-title font-bold text-[#203B2A] text-lg flex items-center gap-3">
-                        <span className="w-8 h-8 rounded-full bg-[#203B2A]/10 flex items-center justify-center"><Icon name="user" size={16} className="text-[#203B2A]" /></span>
+                        <span className="w-8 h-8 rounded-full bg-[#203B2A]/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"><Icon name="user" size={16} className="text-[#203B2A]" /></span>
                         飼主基本資料
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2538,7 +2961,11 @@ onReset={() => {
                                     }} placeholder="請輸入手機號碼 (09xxxxxxxx)"
                                     className={`w-full cute-input ${errors.phone ? 'border-red-300 bg-red-50/40' : ''}`} />
                                 <button onClick={handleSearchHistory} disabled={isSearching}
-                                    className="bg-[#203B2A] text-white h-[50px] px-4 rounded-xl font-bold text-xs shadow-md hover:bg-[#162B1F] transition-colors whitespace-nowrap flex items-center justify-center gap-2 w-full sm:w-auto shrink-0">
+                                    className="bg-[#203B2A] text-white h-[50px] px-4 rounded-xl font-bold text-xs shadow-md hover:bg-[#162B1F] transition-colors whitespace-nowrap flex items-center justify-center gap-2 w-full sm:w-auto shrink-0 tap-highlight min-tap-height active:scale-[0.97]"
+                                    onTouchStart={(e) => {
+                                        if (!isSearching && navigator.vibrate) navigator.vibrate(5);
+                                    }}
+                                >
                                     {isSearching ? <Icon name="loader-2" size={16} className="animate-spin" /> :
                                         <Icon name="search" size={16} />}
                                     {isSearching ? '查詢中...' : '舊客查詢'}
@@ -2554,9 +2981,9 @@ onReset={() => {
                 </section>
 
                 {/* 步驟 3: 毛孩資料 */}
-                <section className="glass-premium p-6 md:p-8 space-y-6">
+                <section className="glass-premium p-6 md:p-8 space-y-6 animate-fade-in stagger-children" style={{ animationDelay: '0.1s' }}>
                     <h3 className="section-title font-bold text-[#203B2A] text-lg flex items-center gap-3">
-                        <span className="w-8 h-8 rounded-full bg-[#203B2A]/10 flex items-center justify-center"><Icon name="dog" size={16} className="text-[#203B2A]" /></span>
+                        <span className="w-8 h-8 rounded-full bg-[#203B2A]/10 flex items-center justify-center group-hover:rotate-12 transition-transform duration-300"><Icon name="dog" size={16} className="text-[#203B2A]" /></span>
                         毛孩資料
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2877,13 +3304,13 @@ onReset={() => {
                 </section>
 
                 {/* 步驟 4: 服務項目 */}
-                <section className="glass-premium p-6 md:p-8 space-y-6">
+                <section className="glass-premium p-6 md:p-8 space-y-6 animate-fade-in stagger-children" style={{ animationDelay: '0.2s' }}>
                     <h3 className="section-title font-bold text-[#203B2A] text-lg flex items-center gap-3">
-                        <span className="w-8 h-8 rounded-lg bg-[#203B2A]/10 flex items-center justify-center text-[#203B2A]"><Icon name="shopping-bag" size={18} /></span>
+                        <span className="w-8 h-8 rounded-lg bg-[#203B2A]/10 flex items-center justify-center text-[#203B2A] group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300"><Icon name="shopping-bag" size={18} /></span>
                         本次服務項目
                     </h3>
 
-                    <div className="service-tab-container flex flex-nowrap overflow-x-auto no-scrollbar gap-0.5">
+                    <div className="service-tab-container flex flex-nowrap overflow-x-auto no-scrollbar gap-0.5 animate-fade-in-up-delay-3">
                         <button
                             className={`service-tab flex-1 text-center px-3 py-2 whitespace-nowrap text-sm md:text-base ${serviceType === 'grooming' ? 'active' : ''}`}
                             onClick={() => { setServiceType('grooming');
@@ -3188,9 +3615,9 @@ onReset={() => {
                 </section>
 
                 {/* 步驟 5: 乙方資訊 + 條款 + 簽名 */}
-                <section className="glass-premium p-6 md:p-8 space-y-6">
+                <section className="glass-premium p-6 md:p-8 space-y-6 animate-fade-in stagger-children" style={{ animationDelay: '0.3s' }}>
                     <h3 className="section-title font-bold text-[#203B2A] text-base flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-full bg-[#203B2A]/10 flex items-center justify-center"><Icon name="store" size={14} className="text-[#203B2A]" /></span>
+                        <span className="w-7 h-7 rounded-full bg-[#203B2A]/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300"><Icon name="store" size={14} className="text-[#203B2A]" /></span>
                         乙方（店家資訊）
                     </h3>
                     <div className="space-y-2 bg-[#FAF8F5] p-5 rounded-2xl border border-[#DDD6CE]">
@@ -3226,7 +3653,11 @@ onReset={() => {
                     <h3 className="section-title font-bold text-[#203B2A] text-lg">法律條款與簽署</h3>
 
                     <button onClick={() => setActiveModal('beauty')}
-                        className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 transition-all group shadow-sm bg-white relative z-10 ${termsRead.beauty ? 'border-[#06C755]/50' : 'border-[#203B2A] hover:bg-[#203B2A]/5'}`}>
+                        className={`w-full flex items-center justify-between p-5 rounded-2xl border-2 transition-all group shadow-sm bg-white relative z-10 min-tap-height tap-highlight ${termsRead.beauty ? 'border-[#06C755]/50' : 'border-[#203B2A] hover:bg-[#203B2A]/5'}`}
+                        onTouchStart={(e) => {
+                            if (navigator.vibrate) navigator.vibrate(5);
+                        }}
+                    >
                         <div className="flex items-center gap-4">
                             <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${termsRead.beauty ? 'bg-[#06C755] text-white' : 'bg-[#203B2A]/10 text-[#203B2A]'}`}>
                                 <Icon name={termsRead.beauty ? "check" : "file-text"} size={24} />
@@ -3309,7 +3740,10 @@ onReset={() => {
                             <button
                                 type="button"
                                 onClick={() => handleChange('image_consent', true)}
-                                className={`px-6 py-2.5 rounded-full border-2 text-sm font-bold transition-all flex items-center gap-2 ${formData.image_consent === true ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#203B2A]/50'}`}
+                                className={`px-6 py-3 rounded-full border-2 text-sm font-bold transition-all flex items-center gap-2 min-tap-height tap-highlight ${formData.image_consent === true ? 'bg-[#203B2A] text-white border-[#203B2A] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#203B2A]/50'}`}
+                                onTouchStart={(e) => {
+                                    if (navigator.vibrate) navigator.vibrate(5);
+                                }}
                             >
                                 <Icon name="check-circle" size={16} />
                                 同意，歡迎分享我家毛孩
@@ -3317,7 +3751,10 @@ onReset={() => {
                             <button
                                 type="button"
                                 onClick={() => handleChange('image_consent', false)}
-                                className={`px-6 py-2.5 rounded-full border-2 text-sm font-bold transition-all flex items-center gap-2 ${formData.image_consent === false ? 'bg-[#DBA58B] text-white border-[#DBA58B] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#DBA58B]/50'}`}
+                                className={`px-6 py-3 rounded-full border-2 text-sm font-bold transition-all flex items-center gap-2 min-tap-height tap-highlight ${formData.image_consent === false ? 'bg-[#DBA58B] text-white border-[#DBA58B] shadow-md' : 'bg-white text-[#4A6B55] border-[#DDD6CE] hover:border-[#DBA58B]/50'}`}
+                                onTouchStart={(e) => {
+                                    if (navigator.vibrate) navigator.vibrate(5);
+                                }}
                             >
                                 <Icon name="x-circle" size={16} />
                                 不同意
@@ -3377,14 +3814,20 @@ onReset={() => {
                                         window.showToast(msg, 'error');
                                     }
                                 }}
-                                className={`w-full min-h-[180px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all group ${errors.signature ? 'border-red-300 bg-red-50/40' : (allTermsCompleted ? 'border-[#203B2A]/30 bg-white hover:border-[#203B2A] hover:bg-[#203B2A]/5 cursor-pointer' : 'border-[#DDD6CE] bg-[#FAF8F5] cursor-not-allowed opacity-60')}`}>
-                                <div className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${allTermsCompleted ? 'bg-[#203B2A]/5 text-[#203B2A] group-hover:scale-110 group-hover:bg-[#203B2A]/20' : 'bg-[#DDD6CE] text-[#B5A89C]'}`}>
-                                    <Icon name={allTermsCompleted ? "pen-tool" : "lock"} size={28} />
+                                className={`w-full min-h-[200px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-4 transition-all duration-300 group tap-highlight ${errors.signature ? 'border-red-300 bg-red-50/40' : (allTermsCompleted ? 'border-[#C4B09A]/40 bg-white/80 hover:border-[#1E3527] hover:bg-[#F8F5F0] cursor-pointer shadow-soft active:scale-[0.98]' : 'border-[#E2DCD4] bg-[#F8F5F0]/50 cursor-not-allowed opacity-50')}`}
+                                onTouchStart={(e) => {
+                                    if (allTermsCompleted && navigator.vibrate) navigator.vibrate(5);
+                                }}
+                            >
+                                <div className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${allTermsCompleted ? 'bg-gradient-to-br from-[#1E3527]/10 to-[#C4B09A]/10 text-[#1E3527] group-hover:scale-110 group-hover:from-[#1E3527]/20 group-hover:to-[#C4B09A]/20' : 'bg-[#E2DCD4]/50 text-[#B5A89C]'}`}>
+                                    <Icon name={allTermsCompleted ? "pen-tool" : "lock"} size={32} />
                                 </div>
-                                <span className={`text-sm font-bold ${allTermsCompleted ? 'text-[#203B2A]' : 'text-[#B5A89C]'}`}>{allTermsCompleted ? "點擊此處開始簽名" : "請先完成上方所有項目"}</span>
-                                <span className="text-xs text-[#B5A89C]">{allTermsCompleted ? "將開啟全螢幕簽名板" : "閱讀並同意所有條款後解鎖"}</span>
+                                <div className="text-center">
+                                    <span className={`text-base font-bold block ${allTermsCompleted ? 'text-[#1E3527]' : 'text-[#B5A89C]'}`}>{allTermsCompleted ? "✍️ 點擊此處開始簽名" : "🔒 請先完成上方所有項目"}</span>
+                                    <span className="text-xs text-[#9AAC9F] block mt-1">{allTermsCompleted ? "將開啟全螢幕簽名板" : "閱讀並同意所有條款後解鎖"}</span>
+                                </div>
                                 {!allTermsCompleted && (
-                                    <div className="mt-1 flex items-center gap-1 text-[10px] text-[#DBA58B] font-bold">
+                                    <div className="mt-1 flex items-center gap-1.5 text-[10px] text-[#DBA58B] font-bold bg-[#FDF6F3] px-3 py-1.5 rounded-full border border-[#DBA58B]/20">
                                         <Icon name="alert-circle" size={12} />
                                         尚有未完成的項目
                                     </div>
@@ -3395,8 +3838,8 @@ onReset={() => {
                     </div>
 
                     <button onClick={handleSubmit} disabled={isSubmitting}
-                        className={`w-full py-5 rounded-2xl font-black text-lg shadow-xl transition-all flex items-center justify-center gap-3 relative overflow-hidden group ${isSubmitting ? 'bg-[#B5A89C] cursor-not-allowed text-white' : 'bg-[#203B2A] text-white shadow-[#203B2A]/25 hover:shadow-2xl active:scale-[0.98] hover:-translate-y-1'}`}>
-                        <span className={`absolute inset-0 bg-gradient-to-r from-[#203B2A] to-[#4A6B55] opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${isSubmitting ? 'opacity-0' : ''}`}></span>
+                        className={`w-full py-5 rounded-2xl font-black text-lg shadow-xl transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden group ${isSubmitting ? 'bg-[#9AAC9F] cursor-not-allowed text-white' : 'bg-gradient-to-r from-[#1E3527] to-[#4A6B55] text-white shadow-[#1E3527]/30 hover:shadow-2xl active:scale-[0.97] hover:-translate-y-1'}`}>
+                        <span className={`absolute inset-0 bg-gradient-to-r from-[#4A6B55] to-[#7A9B85] opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${isSubmitting ? 'opacity-0' : ''}`}></span>
                         <span className="relative z-10 flex items-center justify-center gap-3">
                             {isSubmitting ? (
                                 <>
@@ -3404,7 +3847,10 @@ onReset={() => {
                                     <span>系統處理中，請稍候...</span>
                                 </>
                             ) : (
-                                <>確認並送出表單 <Icon name="send" size={20} className="group-hover:translate-x-1 transition-transform duration-300" /></>
+                                <>
+                                    <span>確認並送出表單</span>
+                                    <Icon name="send" size={20} className="group-hover:translate-x-1 group-hover:-translate-y-0.5 transition-transform duration-300" />
+                                </>
                             )}
                         </span>
                     </button>
@@ -3633,7 +4079,7 @@ onReset={() => {
                         <span className="font-bold text-lg flex items-center gap-3"><Icon name="pen-tool" size={24} /> 請在此簽名</span>
                         <button onClick={() => setShowFullSig(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><Icon name="x" size={28} /></button>
                     </div>
-                    <div className="flex-1 bg-[#FAF8F5] relative p-4">
+                    <div className="flex-1 bg-[#FAF8F5] relative p-4" style={{ height: '100dvh', height: '-webkit-fill-available' }}>
                         <div className="absolute inset-4 bg-white rounded-3xl shadow-xl border border-[#DDD6CE] overflow-hidden">
                             <canvas ref={fullSigCanvasRef} className="w-full h-full block cursor-crosshair"></canvas>
                         </div>
@@ -3719,7 +4165,7 @@ if ('serviceWorker' in navigator) {
             }
         }).catch(() => {
             // 如果 getRegistration 失敗，直接註冊
-            navigator.serviceWorker.register('/sw.js?v=24').then(reg => {
+            navigator.serviceWorker.register('/sw.js?v=25').then(reg => {
                 if (reg.waiting) {
                     showUpdateUIWithDebounce(reg.waiting);
                 }
