@@ -749,6 +749,122 @@
             transition: left 0.3s cubic-bezier(0.22, 1, 0.36, 1), width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
         }
         
+        /* ===== 簽名板控制 ===== */
+        /* 默認：電腦/直向時，底部按鈕顯示，標題列按鈕隱藏 */
+        .fullscreen-signature .portrait-only {
+            display: flex !important;
+        }
+        .fullscreen-signature .landscape-only {
+            display: none !important;
+        }
+        
+        /* 手機橫向模式（1024px 以下）：底部按鈕隱藏，標題列按鈕顯示 */
+        @media (max-width: 1024px) and (orientation: landscape) {
+            .fullscreen-signature .portrait-only {
+                display: none !important;
+            }
+            .fullscreen-signature .landscape-only {
+                display: flex !important;
+            }
+        }
+        
+        /* ===== 簽名板手機橫向優化 ===== */
+        /* 與上方控制邏輯使用相同斷點 (1024px) */
+        @media (max-width: 1024px) and (orientation: landscape) {
+            /* Header 更精簡 */
+            .fullscreen-signature .signature-header {
+                padding: 0.15rem 0.4rem !important;
+                gap: 0.3rem !important;
+                min-height: 40px !important;
+            }
+            .fullscreen-signature .signature-header .truncate {
+                font-size: 0.65rem !important;
+            }
+            .fullscreen-signature .signature-header svg {
+                width: 14px !important;
+                height: 14px !important;
+            }
+            
+            /* 畫布區域最大化 */
+            .fullscreen-signature .signature-canvas-wrapper {
+                padding: 0.15rem !important;
+                height: calc(100dvh - 40px) !important;
+                height: calc(-webkit-fill-available - 40px) !important;
+                min-height: 80px !important;
+            }
+            .fullscreen-signature .signature-canvas-wrapper .canvas-container {
+                inset: 0.15rem !important;
+                border-radius: 0.4rem !important;
+            }
+        }
+        
+        /* 手機橫向 + 小螢幕（< 500px）標題列按鈕只顯示圖示 */
+        @media (max-width: 500px) and (orientation: landscape) {
+            /* 按鈕文字隱藏 */
+            .fullscreen-signature .signature-header .landscape-only button span {
+                display: none !important;
+            }
+            /* 按鈕變為純圖示 */
+            .fullscreen-signature .signature-header .landscape-only button {
+                width: 32px !important;
+                min-width: 32px !important;
+                height: 32px !important;
+                padding: 0 !important;
+                justify-content: center !important;
+                border-radius: 0.5rem !important;
+            }
+            .fullscreen-signature .signature-header .landscape-only button svg {
+                width: 16px !important;
+                height: 16px !important;
+            }
+            /* 標題文字也隱藏，只留圖示 */
+            .fullscreen-signature .signature-header .landscape-only .flex-1 span {
+                display: none !important;
+            }
+            .fullscreen-signature .signature-header .landscape-only .flex-1 {
+                justify-content: center !important;
+            }
+        }
+        
+        /* 極小手機（< 380px）簽名板整體縮小 */
+        @media (max-width: 380px) {
+            .fullscreen-signature .signature-header {
+                padding: 0.1rem 0.25rem !important;
+                min-height: 30px !important;
+            }
+            .fullscreen-signature .signature-header .truncate {
+                font-size: 0.55rem !important;
+            }
+            .fullscreen-signature .signature-header svg {
+                width: 12px !important;
+                height: 12px !important;
+            }
+            .fullscreen-signature .signature-canvas-wrapper {
+                padding: 0.1rem !important;
+                height: calc(100dvh - 30px) !important;
+                height: calc(-webkit-fill-available - 30px) !important;
+                min-height: 60px !important;
+            }
+            .fullscreen-signature .signature-canvas-wrapper .canvas-container {
+                inset: 0.1rem !important;
+                border-radius: 0.25rem !important;
+            }
+        }
+        
+        /* 動態島 / 瀏海手機安全區域 */
+        @supports (padding-top: env(safe-area-inset-top)) {
+            .fullscreen-signature .signature-header {
+                padding-top: calc(env(safe-area-inset-top, 0.1rem) + 0.1rem) !important;
+            }
+        }
+        
+        /* 確保橫向按鈕默認隱藏，直向按鈕默認顯示 */
+        .fullscreen-signature .landscape-only {
+            display: none;
+        }
+        .fullscreen-signature .portrait-only {
+            display: flex;
+        }
     </style>
 
     <script>
@@ -4075,20 +4191,89 @@ onReset={() => {
 
             {showFullSig && (
                 <div className="fullscreen-signature animate-fade-in">
-                    <div className="p-4 bg-[#203B2A] text-white flex justify-between items-center shrink-0 shadow-md safe-area-top">
-                        <span className="font-bold text-lg flex items-center gap-3"><Icon name="pen-tool" size={24} /> 請在此簽名</span>
-                        <button onClick={() => setShowFullSig(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors"><Icon name="x" size={28} /></button>
-                    </div>
-                    <div className="flex-1 bg-[#FAF8F5] relative p-4" style={{ height: '100dvh', height: '-webkit-fill-available' }}>
-                        <div className="absolute inset-4 bg-white rounded-3xl shadow-xl border border-[#DDD6CE] overflow-hidden">
-                            <canvas ref={fullSigCanvasRef} className="w-full h-full block cursor-crosshair"></canvas>
+                    {/* ===== Header - 手機橫向時顯示按鈕在標題列 ===== */}
+                    <div className="signature-header bg-[#203B2A] text-white flex items-center justify-between shrink-0 shadow-md safe-area-top px-3 py-2 sm:px-4 sm:py-3 gap-2 min-h-[52px] sm:min-h-[64px]">
+                        {/* 左側：標題 + 圖示 (電腦/直向顯示) */}
+                        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 h-full portrait-only">
+                            <Icon name="pen-tool" size={18} className="sm:w-5 sm:h-5 shrink-0" />
+                            <span className="font-bold text-sm sm:text-lg truncate leading-none">請在此簽名</span>
                         </div>
-                        <div className="absolute bottom-6 right-6 text-[#DDD6CE] text-xs font-bold pointer-events-none">TAIL TELL RIDE ECHO</div>
+                        
+                        {/* ===== 手機橫向專用按鈕群組 (在標題列內) ===== */}
+                        <div className="flex items-center gap-1.5 sm:gap-2 h-full landscape-only w-full">
+                            {/* 左側：標題 (橫向時精簡) */}
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <Icon name="pen-tool" size={16} className="shrink-0" />
+                                <span className="font-bold text-xs sm:text-sm truncate leading-none">簽名</span>
+                            </div>
+                            
+                            {/* 右側：按鈕群組 */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {/* 重簽按鈕 - 圖示 + 文字 */}
+                                <button 
+                                    onClick={() => { if (padInstance.current) padInstance.current.clear(); }}
+                                    className="h-8 px-3 rounded-lg border border-white/40 bg-transparent hover:bg-white/20 transition-all active:scale-95 flex items-center gap-1.5 text-xs font-medium text-white whitespace-nowrap"
+                                    aria-label="清除簽名"
+                                >
+                                    <Icon name="rotate-ccw" size={14} />
+                                    <span>重簽</span>
+                                </button>
+                                
+                                {/* 確認按鈕 - 圖示 + 文字 */}
+                                <button 
+                                    onClick={saveSignature} 
+                                    className="h-8 px-4 rounded-lg bg-white text-[#203B2A] shadow-lg hover:bg-[#EDE8E0] transition-all active:scale-95 flex items-center gap-1.5 text-xs font-bold whitespace-nowrap"
+                                >
+                                    <Icon name="check" size={16} />
+                                    <span>確認</span>
+                                </button>
+                                
+                                {/* 關閉按鈕 */}
+                                <button 
+                                    onClick={() => setShowFullSig(false)} 
+                                    className="w-8 h-8 hover:bg-white/10 rounded-full transition-colors active:scale-90 flex items-center justify-center shrink-0"
+                                    aria-label="關閉"
+                                >
+                                    <Icon name="x" size={18} />
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {/* 關閉按鈕 - 電腦/直向顯示，橫向隱藏 (橫向已包含在上方群組) */}
+                        <button 
+                            onClick={() => setShowFullSig(false)} 
+                            className="w-8 h-8 sm:w-10 sm:h-10 hover:bg-white/10 rounded-full transition-colors active:scale-90 flex items-center justify-center shrink-0 portrait-only"
+                            aria-label="關閉"
+                        >
+                            <Icon name="x" size={20} className="sm:w-6 sm:h-6" />
+                        </button>
                     </div>
-                    <div className="p-6 bg-white border-t flex gap-4 shrink-0 safe-area-bottom">
-                        <button onClick={() => { if (padInstance.current) padInstance.current.clear(); }}
-                            className="flex-1 py-4 bg-[#FAF8F5] font-bold text-[#4A6B55] rounded-xl hover:bg-[#EDE8E0] transition-colors text-lg">清除重寫</button>
-                        <button onClick={saveSignature} className="flex-[2] py-4 bg-[#203B2A] font-bold text-white rounded-xl shadow-lg hover:bg-[#162B1F] transition-colors text-lg">確認簽名</button>
+                    
+                    {/* ===== 畫布區域 ===== */}
+                    <div className="signature-canvas-wrapper flex-1 bg-[#FAF8F5] relative p-2 sm:p-4" style={{ height: 'calc(100dvh - 52px)', height: 'calc(-webkit-fill-available - 52px)', minHeight: '160px' }}>
+                        <div className="canvas-container absolute inset-2 sm:inset-4 bg-white rounded-xl sm:rounded-3xl shadow-xl border border-[#DDD6CE] overflow-hidden">
+                            <canvas ref={fullSigCanvasRef} className="w-full h-full block cursor-crosshair" />
+                        </div>
+                        <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 text-[#DDD6CE] text-[8px] sm:text-xs font-bold pointer-events-none opacity-30">TAIL TELL RIDE ECHO</div>
+                    </div>
+                    
+                    {/* ===== Footer - 電腦/直向顯示按鈕 ===== */}
+                    <div className="signature-footer bg-white border-t flex items-center gap-3 shrink-0 safe-area-bottom px-3 py-2 sm:px-4 sm:py-3 portrait-only">
+                        <button 
+                            onClick={() => { if (padInstance.current) padInstance.current.clear(); }}
+                            className="flex-1 h-10 sm:h-12 rounded-xl bg-[#FAF8F5] hover:bg-[#EDE8E0] transition-all active:scale-95 flex items-center justify-center gap-2 border-2 border-[#DDD6CE]/50 font-bold text-sm sm:text-base text-[#4A6B55]"
+                            aria-label="清除簽名"
+                        >
+                            <Icon name="trash-2" size={16} className="sm:w-4 sm:h-4" />
+                            <span>清除</span>
+                        </button>
+                        <button 
+                            onClick={saveSignature} 
+                            className="flex-1 h-10 sm:h-12 bg-[#203B2A] text-white rounded-xl shadow-lg hover:bg-[#162B1F] transition-all active:scale-95 flex items-center justify-center gap-2 text-sm sm:text-base font-bold"
+                        >
+                            <Icon name="check" size={18} className="sm:w-5 sm:h-5" />
+                            <span>確認簽名</span>
+                        </button>
                     </div>
                 </div>
             )}
@@ -4165,7 +4350,7 @@ if ('serviceWorker' in navigator) {
             }
         }).catch(() => {
             // 如果 getRegistration 失敗，直接註冊
-            navigator.serviceWorker.register('/sw.js?v=25').then(reg => {
+            navigator.serviceWorker.register('/sw.js?v=26').then(reg => {
                 if (reg.waiting) {
                     showUpdateUIWithDebounce(reg.waiting);
                 }
