@@ -401,6 +401,7 @@ body {
             const [password, setPassword] = useState('');
             const [loading, setLoading] = useState(false);
             const [error, setError] = useState('');
+            const [showPassword, setShowPassword] = useState(false);
 
             const handleLogin = async (e) => {
                 e.preventDefault();
@@ -438,7 +439,23 @@ body {
                                         {loginEmail === ADMIN_EMAIL ? '管理員模式' : '員工模式'}
                                     </span>
                                 </div>
-                                <input type="password" placeholder="請輸入密碼" value={password} onChange={e=>setPassword(e.target.value)} className="w-full text-center py-4 rounded-2xl border-2 border-[#DDD6CE] focus:border-[#203B2A] outline-none font-bold text-lg tracking-widest transition-all" autoFocus />
+                                <div className="relative">
+                                    <input 
+                                        type={showPassword ? "text" : "password"} 
+                                        placeholder="請輸入密碼" 
+                                        value={password} 
+                                        onChange={e=>setPassword(e.target.value)} 
+                                        className="w-full text-center py-4 pr-12 rounded-2xl border-2 border-[#DDD6CE] focus:border-[#203B2A] outline-none font-bold text-lg tracking-widest transition-all" 
+                                        autoFocus 
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[#B5A89C] hover:text-[#203B2A] transition-colors p-1"
+                                    >
+                                        <Icon name={showPassword ? "eye-off" : "eye"} size={20} />
+                                    </button>
+                                </div>
                                 {error && <p className="text-[#DBA58B] text-xs font-bold">{error}</p>}
                                 <button disabled={loading} className="w-full bg-[#203B2A] text-white py-4 rounded-2xl font-bold text-lg shadow-lg hover:bg-[#162B1F] transition-all flex items-center justify-center gap-2">
                                     {loading ? <Icon name="loader-2" className="animate-spin" /> : '確認登入'}
@@ -1196,6 +1213,10 @@ const handleSave = () => {
             const [loading, setLoading] = useState(false);
             const [error, setError] = useState("");
             const [success, setSuccess] = useState(false);
+            const [resetMode, setResetMode] = useState(false);
+            const [showOldPwd, setShowOldPwd] = useState(false);
+            const [showNewPwd, setShowNewPwd] = useState(false);
+            const [showConfirmPwd, setShowConfirmPwd] = useState(false);
 
             useEffect(() => {
                 if (!isOpen) {
@@ -1205,6 +1226,10 @@ const handleSave = () => {
                     setError("");
                     setSuccess(false);
                     setLoading(false);
+                    setResetMode(false);
+                    setShowOldPwd(false);
+                    setShowNewPwd(false);
+                    setShowConfirmPwd(false);
                 }
             }, [isOpen]);
 
@@ -1302,7 +1327,7 @@ const handleSave = () => {
                             {/* 切換身份 */}
                             <div className="flex bg-[#EDE8E0] p-1 rounded-xl">
                                 <button 
-                                    onClick={() => { setTargetEmail(ADMIN_EMAIL); setError(''); }}
+                                    onClick={() => { setTargetEmail(ADMIN_EMAIL); setError(''); setResetMode(false); }}
                                     className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
                                         targetEmail === ADMIN_EMAIL 
                                             ? 'bg-white text-[#203B2A] shadow-sm' 
@@ -1312,7 +1337,7 @@ const handleSave = () => {
                                     👤 管理員
                                 </button>
                                 <button 
-                                    onClick={() => { setTargetEmail(STAFF_EMAIL); setError(''); }}
+                                    onClick={() => { setTargetEmail(STAFF_EMAIL); setError(''); setResetMode(false); }}
                                     className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
                                         targetEmail === STAFF_EMAIL 
                                             ? 'bg-white text-[#B8A088] shadow-sm' 
@@ -1322,6 +1347,39 @@ const handleSave = () => {
                                     👤 一般員工
                                 </button>
                             </div>
+
+                            {/* 重置模式切換 (僅管理員可見) */}
+                            {targetEmail === STAFF_EMAIL && (
+                                <div className="flex items-center justify-between bg-[#FDF6F3] p-2 rounded-xl border border-[#DBA58B]/30">
+                                    <div className="flex items-center gap-2">
+                                        <Icon name="refresh-cw" size={14} className="text-[#DBA58B]" />
+                                        <span className="text-[10px] font-bold text-[#DBA58B]">忘記員工密碼？</span>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            setResetMode(!resetMode);
+                                            setOldPwd("");
+                                            setError("");
+                                        }}
+                                        className={`px-3 py-1 rounded-lg text-[10px] font-bold transition-all ${
+                                            resetMode 
+                                                ? 'bg-[#DBA58B] text-white' 
+                                                : 'bg-white border border-[#DBA58B]/30 text-[#DBA58B] hover:bg-[#DBA58B]/10'
+                                        }`}
+                                    >
+                                        {resetMode ? '✅ 重置模式已開啟' : '🔑 點此重置密碼'}
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* 重置模式提示 */}
+                            {resetMode && (
+                                <div className="bg-[#DBA58B]/10 border border-[#DBA58B]/30 rounded-xl p-2 text-center animate-fade-in">
+                                    <p className="text-[10px] font-bold text-[#DBA58B]">
+                                        ⚠️ 重置模式：請輸入您的「管理員密碼」即可重設員工密碼
+                                    </p>
+                                </div>
+                            )}
 
                             {/* 成功狀態 */}
                             {success && (
@@ -1343,21 +1401,28 @@ const handleSave = () => {
                                 <div className="space-y-3">
                                     <div>
                                         <label className="text-[10px] font-bold text-[#B5A89C] ml-1 block mb-1">
-                                            🔑 請輸入該帳號目前的【舊密碼】
+                                            {resetMode ? '🔑 請輸入您的【管理員密碼】' : '🔑 請輸入該帳號目前的【舊密碼】'}
                                         </label>
                                         <div className="relative">
                                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#B5A89C]">
-                                                <Icon name="lock" size={16} />
+                                                <Icon name={resetMode ? "shield" : "lock"} size={16} />
                                             </div>
                                             <input 
-                                                type="password" 
-                                                placeholder="輸入舊密碼" 
+                                                type={showOldPwd ? "text" : "password"}
+                                                placeholder={resetMode ? "輸入管理員密碼" : "輸入舊密碼"}
                                                 value={oldPwd} 
                                                 onChange={e => { setOldPwd(e.target.value); setError(''); }}
-                                                className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 outline-none transition-all text-center tracking-widest text-base font-bold ${
+                                                className={`w-full pl-10 pr-12 py-3 rounded-xl border-2 outline-none transition-all text-center tracking-widest text-base font-bold ${
                                                     error ? 'border-[#DBA58B] bg-[#FDF6F3]' : 'border-[#DDD6CE] focus:border-[#203B2A] focus:shadow-[0_0_0_4px_rgba(32,59,42,0.06)]'
                                                 }`}
                                             />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowOldPwd(!showOldPwd)}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#B5A89C] hover:text-[#203B2A] transition-colors p-1"
+                                            >
+                                                <Icon name={showOldPwd ? "eye-off" : "eye"} size={18} />
+                                            </button>
                                         </div>
                                     </div>
 
@@ -1371,28 +1436,42 @@ const handleSave = () => {
                                                     <Icon name="key" size={16} />
                                                 </div>
                                                 <input 
-                                                    type="password" 
+                                                    type={showNewPwd ? "text" : "password"}
                                                     placeholder="輸入新密碼" 
                                                     value={newPwd} 
                                                     onChange={e => { setNewPwd(e.target.value); setError(''); }}
-                                                    className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 outline-none transition-all text-center tracking-widest text-base font-bold ${
+                                                    className={`w-full pl-10 pr-12 py-3 rounded-xl border-2 outline-none transition-all text-center tracking-widest text-base font-bold ${
                                                         error ? 'border-[#DBA58B] bg-[#FDF6F3]' : 'border-[#DDD6CE] focus:border-[#203B2A] focus:shadow-[0_0_0_4px_rgba(32,59,42,0.06)]'
                                                     }`}
                                                 />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowNewPwd(!showNewPwd)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#B5A89C] hover:text-[#203B2A] transition-colors p-1"
+                                                >
+                                                    <Icon name={showNewPwd ? "eye-off" : "eye"} size={18} />
+                                                </button>
                                             </div>
                                             <div className="relative">
                                                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[#B5A89C]">
                                                     <Icon name="check-circle" size={16} />
                                                 </div>
                                                 <input 
-                                                    type="password" 
+                                                    type={showConfirmPwd ? "text" : "password"}
                                                     placeholder="再次輸入新密碼" 
                                                     value={confirmPwd} 
                                                     onChange={e => { setConfirmPwd(e.target.value); setError(''); }}
-                                                    className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 outline-none transition-all text-center tracking-widest text-base font-bold ${
+                                                    className={`w-full pl-10 pr-12 py-3 rounded-xl border-2 outline-none transition-all text-center tracking-widest text-base font-bold ${
                                                         error ? 'border-[#DBA58B] bg-[#FDF6F3]' : 'border-[#DDD6CE] focus:border-[#203B2A] focus:shadow-[0_0_0_4px_rgba(32,59,42,0.06)]'
                                                     }`}
                                                 />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowConfirmPwd(!showConfirmPwd)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#B5A89C] hover:text-[#203B2A] transition-colors p-1"
+                                                >
+                                                    <Icon name={showConfirmPwd ? "eye-off" : "eye"} size={18} />
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -2191,7 +2270,7 @@ const customers = useMemo(() => {
         };
 
         // --- Admin Service Worker 註冊 ---
-        const ADMIN_SW_VERSION = '20260717-2';
+        const ADMIN_SW_VERSION = '20260717-3';
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         // 檢查是否已有 admin-sw.js 的註冊
