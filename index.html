@@ -1283,6 +1283,14 @@ const generateContractHtml = (data, signatureUrl) => {
                     <tr><td><span class="label">緊急聯絡人</span><span class="value">${show(data.emergency_name)}</span></td>
                         <td><span class="label">緊急電話</span><span class="value">${show(data.emergency_phone)}</span></td></tr>
                   </table>
+                  ${isBoarding ? `
+                  <div style="margin-top:12px; padding:10px 14px; background:#FDF6F3; border:2px solid #DBA58B; border-radius:10px; display:flex; align-items:flex-start; gap:8px;">
+                    <span style="color:#DBA58B; font-size:16px;">⚠️</span>
+                    <div>
+                      <span style="color:#DBA58B; font-weight:bold; font-size:12px;">依動保處防棄養規範，託管須填寫身份證核對身份證。</span>
+                    </div>
+                  </div>
+                  ` : ''}
                 </div>
 
                 <!-- 寵物資料 -->
@@ -2532,10 +2540,6 @@ onReset={() => {
                                 </button>
                             </div>
                         </div>
-                        <InputWithError label="身分證字號 *" name="owner_id" value={formData.owner_id} onChange={e => {
-                                const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
-                                handleChange('owner_id', val);
-                            }} error={errors.owner_id} placeholder="請輸入身分證字號 (範例: A123456789)" />
                     </div>
                     <InputWithError label="聯絡地址 *" name="address" value={formData.address} onChange={e => handleChange('address', e.target.value)} error={errors.address} />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2899,6 +2903,16 @@ onReset={() => {
                     {/* 住宿專用 */}
                     {serviceType === 'boarding' && (
                         <div className="space-y-6 animate-slide-down border-b border-[#DDD6CE] pb-6">
+                            <div className="space-y-2 bg-[#FAF8F5] p-5 rounded-2xl border border-[#DDD6CE]">
+                                <InputWithError label="身分證字號 *" name="owner_id" value={formData.owner_id} onChange={e => {
+                                        const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
+                                        handleChange('owner_id', val);
+                                    }} error={errors.owner_id} placeholder="請輸入身分證字號 (範例: A123456789)" />
+                                <div className="text-xs text-[#DBA58B] font-bold bg-[#FDF6F3] p-3 rounded-xl border border-[#DBA58B]/30 flex items-start gap-2">
+                                    <Icon name="alert-triangle" size={14} className="shrink-0 mt-0.5 text-[#DBA58B]" />
+                                    <span>依動保處防棄養規範，託管須填寫身份證核對身份證。</span>
+                                </div>
+                            </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FAF8F5] p-5 rounded-2xl border border-[#DDD6CE]">
                                 <div className="space-y-1"><label className="text-xs font-bold text-[#203B2A]">入住日期 *</label>
                                     <input type="date" className="w-full cute-input text-sm" value={formData.checkInDate} onChange={e => handleChange('checkInDate', e.target.value)} />
@@ -3014,6 +3028,16 @@ onReset={() => {
                     {/* 安親專用 */}
                     {serviceType === 'daycare' && (
                         <div className="space-y-6 animate-slide-down border-b border-[#DDD6CE] pb-6">
+                            <div className="space-y-2 bg-[#FAF8F5] p-5 rounded-2xl border border-[#DDD6CE]">
+                                <InputWithError label="身分證字號 *" name="owner_id" value={formData.owner_id} onChange={e => {
+                                        const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
+                                        handleChange('owner_id', val);
+                                    }} error={errors.owner_id} placeholder="請輸入身分證字號 (範例: A123456789)" />
+                                <div className="text-xs text-[#DBA58B] font-bold bg-[#FDF6F3] p-3 rounded-xl border border-[#DBA58B]/30 flex items-start gap-2">
+                                    <Icon name="alert-triangle" size={14} className="shrink-0 mt-0.5 text-[#DBA58B]" />
+                                    <span>⚠️ 依動保處防棄養規範，託管須填寫身份證核對身份證。</span>
+                                </div>
+                            </div>
 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#FAF8F5] p-5 rounded-2xl border border-[#DDD6CE]">
     <div className="space-y-1"><label className="text-xs font-bold text-[#203B2A]">安親日期 *</label>
         <input type="date" className="w-full cute-input text-sm" value={formData.daycare_date} onChange={e => handleChange('daycare_date', e.target.value)} />
@@ -3682,7 +3706,7 @@ if ('serviceWorker' in navigator) {
             }
         }).catch(() => {
             // 如果 getRegistration 失敗，直接註冊
-            navigator.serviceWorker.register('/sw.js?v=21').then(reg => {
+            navigator.serviceWorker.register('/sw.js?v=22').then(reg => {
                 if (reg.waiting) {
                     showUpdateUIWithDebounce(reg.waiting);
                 }

@@ -637,8 +637,8 @@ const handleDelete = () => {
 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
     <div className="col-span-2 md:col-span-1"><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">姓名</label><div className="font-bold text-sm sm:text-base break-words">{order.owner_name || '-'}</div></div>
     <div><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">電話</label><div className="font-bold text-sm sm:text-base">{order.phone || '-'}</div></div>
-    <div className="col-span-2 md:col-span-1"><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">Email</label><div className="font-bold text-xs sm:text-sm break-all">{order.email || '-'}</div></div>
     <div><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">身分證</label><div className="font-bold text-sm sm:text-base">{order.owner_id || '-'}</div></div>
+    <div className="col-span-2 md:col-span-1"><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">Email</label><div className="font-bold text-xs sm:text-sm break-all">{order.email || '-'}</div></div>
     <div className="col-span-2"><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">地址</label><div className="font-bold text-sm sm:text-base break-words">{order.address || '-'}</div></div>
     <div><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">緊急聯絡人</label><div className="font-bold text-sm sm:text-base">{order.emergency_name || '-'}</div></div>
     <div><label className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C]">緊急電話</label><div className="font-bold text-sm sm:text-base">{order.emergency_phone || '-'}</div></div>
@@ -730,6 +730,15 @@ const handleDelete = () => {
         </div>
         <div className="md:col-span-2"><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '服務內容' : '房型'}</label>
             <div className="font-bold">{order.room_type || '-'}</div>
+        </div>
+        {/* 住宿/安親專屬：身分證欄位 */}
+        <div className="md:col-span-2">
+            <label className="text-[10px] font-bold text-[#B5A89C]">身分證</label>
+            <div className="font-bold text-sm sm:text-base">{order.owner_id || '-'}</div>
+            <div className="text-[10px] text-[#B5A89C] bg-[#FAF8F5] p-2 rounded-lg border border-[#DDD6CE] mt-1 flex items-start gap-1.5">
+                <Icon name="info" size={12} className="shrink-0 mt-0.5 text-[#B8A088]" />
+                <span>依動保處防棄養規範，託管須填寫身份證核對身份證。</span>
+            </div>
         </div>
     </>
 )}
@@ -2156,7 +2165,7 @@ const customers = useMemo(() => {
         };
 
         // --- Admin Service Worker 註冊 ---
-        const ADMIN_SW_VERSION = '20260714-v5';
+        const ADMIN_SW_VERSION = '20260717';
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         // 檢查是否已有 admin-sw.js 的註冊
