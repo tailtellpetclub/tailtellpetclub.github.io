@@ -677,14 +677,63 @@ const handleDelete = () => {
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">品種</label><div className="font-bold">{pet.breed || order.breed || '-'}</div></div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">毛色</label><div className="font-bold">{pet.fur_color || order.fur_color || '-'}</div></div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">性別 / 結紮</label><div className="font-bold">{pet.sex || order.sex || '-'} / {pet.fix || order.fix || '-'}</div></div>
-                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">年齡</label><div className="font-bold">{pet.age || order.age_value || '-'} {order.age_type === 'month' ? '個月' : '歲'}</div></div>
+                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">年齡</label>
+                                        <div className="font-bold">{(() => {
+                                            // 如果有生日，從生日計算年齡並顯示生日
+                                            if (order.pet_birthday) {
+                                                try {
+                                                    const birthDate = new Date(order.pet_birthday);
+                                                    // 檢查日期是否有效
+                                                    if (isNaN(birthDate.getTime())) {
+                                                        return order.age_value ? order.age_value + (order.age_type === 'month' ? ' 個月' : ' 歲') : '-';
+                                                    }
+                                                    const today = new Date();
+                                                    let age = today.getFullYear() - birthDate.getFullYear();
+                                                    const monthDiff = today.getMonth() - birthDate.getMonth();
+                                                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                                                        age--;
+                                                    }
+                                                    // 格式化生日日期 YYYY/MM/DD
+                                                    const year = birthDate.getFullYear();
+                                                    const month = String(birthDate.getMonth() + 1).padStart(2, '0');
+                                                    const day = String(birthDate.getDate()).padStart(2, '0');
+                                                    const formattedBirthday = `${year}/${month}/${day}`;
+                                                    
+                                                    if (age >= 1) {
+                                                        return `${age} 歲 (${formattedBirthday})`;
+                                                    } else {
+                                                        const monthAge = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24 * 30.44));
+                                                        return `${monthAge} 個月 (${formattedBirthday})`;
+                                                    }
+                                                } catch (_) {
+                                                    return order.age_value ? order.age_value + (order.age_type === 'month' ? ' 個月' : ' 歲') : '-';
+                                                }
+                                            }
+                                            // 沒有生日，直接顯示 age_value + age_type
+                                            const val = order.age_value;
+                                            if (!val && val !== 0) return '-';
+                                            return val + (order.age_type === 'month' ? ' 個月' : ' 歲');
+                                        })()}</div>
+                                    </div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">體重</label><div className="font-bold">{pet.weight || order.weight || '-'} kg</div></div>
-                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">晶片</label><div className="font-bold text-sm">{pet.chip_status || order.chip_status || '-'}</div></div>
+                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">晶片</label>
+                                        <div className="font-bold text-sm">
+                                            {(() => {
+                                                const status = pet.chip_status || order.chip_status || '-';
+                                                const chipId = pet.chip_id || order.chip_id || '';
+                                                if (status === '有晶片' && chipId) {
+                                                    return `${chipId}`;
+                                                } else if (status === '有晶片' && !chipId) {
+                                                    return '⚠️ 有晶片 (號碼未填)';
+                                                }
+                                                return status;
+                                            })()}
+                                        </div>
+                                    </div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">驅蟲</label><div className="font-bold">{order.deworming_monthly || '-'}</div></div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">健檢日期</label><div className="font-bold">{formatDate(order.health_date) || '-'}</div></div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">外觀檢查</label><div className="font-bold">{safeParse(order.physical_check).join('、') || '-'}{order.physical_other ? ` (${order.physical_other})` : ''}</div></div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">個性補充</label><div className="font-bold">{order.personality_other || '-'}</div></div>
-                                    <div><label className="text-[10px] font-bold text-[#B5A89C]">性情</label><div className="font-bold">{order.temperament || '-'}</div></div>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-dashed border-[#DDD6CE]">
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">疫苗</label><div className="font-bold text-sm">{renderVaccines()}</div></div>
@@ -1815,7 +1864,11 @@ const [pendingOrderId, setPendingOrderId] = useState(null);
                             surgery_detail: booking.surgery_detail,
                             temperament: booking.temperament,
                             legal_agree: booking.legal_agree,
-                            room_price: booking.room_price
+                            room_price: booking.room_price,
+                            // ✅ 確保這些欄位被傳遞到 order 物件中
+                            pet_birthday: booking.pet_birthday,
+                            age_value: booking.age_value,
+                            age_type: booking.age_type
                         };
                         
                         return {
@@ -1825,7 +1878,11 @@ const [pendingOrderId, setPendingOrderId] = useState(null);
                             medical_tags: safeParse(booking.medical_tags),
                             physical_check: safeParse(booking.physical_check),
                             social_traits: safeParse(booking.social_traits),
-                            vaccines: safeParse(booking.vaccines)
+                            vaccines: safeParse(booking.vaccines),
+                            // ✅ 確保這些欄位被傳遞到 order 物件中
+                            pet_birthday: booking.pet_birthday,
+                            age_value: booking.age_value,
+                            age_type: booking.age_type
                         };
                     });
                     setOrders(processedData || []);
@@ -2270,7 +2327,7 @@ const customers = useMemo(() => {
         };
 
         // --- Admin Service Worker 註冊 ---
-        const ADMIN_SW_VERSION = '20260717-3';
+        const ADMIN_SW_VERSION = '20260717-4';
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         // 檢查是否已有 admin-sw.js 的註冊
