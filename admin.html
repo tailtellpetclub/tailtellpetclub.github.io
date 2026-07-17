@@ -729,16 +729,42 @@ const handleDelete = () => {
             <div className="font-bold">{isDaycare ? order.check_out_date : formatDate(order.check_out_date)}</div>
         </div>
         <div className="md:col-span-2"><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '服務內容' : '房型'}</label>
-            <div className="font-bold">{order.room_type || '-'}</div>
+            <div className="font-bold">{(() => {
+                const raw = order.room_type;
+                if (!raw) return '-';
+                if (Array.isArray(raw)) return raw.join('、');
+                if (typeof raw === 'string') {
+                    // 嘗試解析 JSON
+                    try {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) return parsed.join('、');
+                        return raw;
+                    } catch (_) {
+                        // 如果包含 + 家庭共宿，特殊處理
+                        if (raw.includes(' + 家庭共宿')) {
+                            const parts = raw.split(' + ');
+                            const normalPart = parts[0] || '';
+                            const familyPart = '家庭共宿';
+                            const roomNames = normalPart.split(/[、,，]\s*/).filter(n => n.trim() !== '');
+                            const result = [];
+                            if (roomNames.length > 0) result.push(roomNames.join('、'));
+                            result.push(familyPart);
+                            return result.join(' + ');
+                        }
+                        // 處理逗號分隔
+                        if (raw.includes('、') || raw.includes(',')) {
+                            return raw.split(/[、,，]\s*/).filter(n => n.trim() !== '').join('、');
+                        }
+                        return raw;
+                    }
+                }
+                return String(raw);
+            })()}</div>
         </div>
         {/* 住宿/安親專屬：身分證欄位 */}
         <div className="md:col-span-2">
             <label className="text-[10px] font-bold text-[#B5A89C]">身分證</label>
             <div className="font-bold text-sm sm:text-base">{order.owner_id || '-'}</div>
-            <div className="text-[10px] text-[#B5A89C] bg-[#FAF8F5] p-2 rounded-lg border border-[#DDD6CE] mt-1 flex items-start gap-1.5">
-                <Icon name="info" size={12} className="shrink-0 mt-0.5 text-[#B8A088]" />
-                <span>依動保處防棄養規範，託管須填寫身份證核對身份證。</span>
-            </div>
         </div>
     </>
 )}
@@ -2165,7 +2191,7 @@ const customers = useMemo(() => {
         };
 
         // --- Admin Service Worker 註冊 ---
-        const ADMIN_SW_VERSION = '20260717';
+        const ADMIN_SW_VERSION = '20260717-2';
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         // 檢查是否已有 admin-sw.js 的註冊
