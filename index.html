@@ -2395,6 +2395,12 @@ const validate = () => {
     // 如果使用生日模式，跳過 age_value 和 age_type 的驗證
     const isBirthdayMode = formData.use_birthday !== false && formData.pet_birthday && formData.pet_birthday.trim() !== '';
     
+    // 如果是生日模式，必須填寫生日（不能為空）
+    if (isBirthdayMode && !formData.pet_birthday) {
+        newErrors.pet_birthday = '請選擇出生日期';
+        hasError = true;
+    }
+    
     Object.keys(validationRules).forEach(key => {
         // 生日模式下跳過年齡相關欄位驗證
         if (isBirthdayMode && (key === 'age_value' || key === 'age_type')) {
@@ -2407,6 +2413,10 @@ const validate = () => {
         }
         // 晶片號碼：僅當晶片狀態為「有晶片」時才驗證
         if (key === 'chip_id' && formData.chip_status !== '有晶片') {
+            return;
+        }
+        // 美容模式：跳過身分證驗證（住宿/安親才需要）
+        if (key === 'owner_id' && serviceType === 'grooming') {
             return;
         }
         const err = validateField(key, formData[key]);
@@ -4350,7 +4360,7 @@ if ('serviceWorker' in navigator) {
             }
         }).catch(() => {
             // 如果 getRegistration 失敗，直接註冊
-            navigator.serviceWorker.register('/sw.js?v=26').then(reg => {
+            navigator.serviceWorker.register('/sw.js?v=27').then(reg => {
                 if (reg.waiting) {
                     showUpdateUIWithDebounce(reg.waiting);
                 }
