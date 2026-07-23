@@ -2012,11 +2012,19 @@ const SuccessView = ({ data, onReset }) => {
         
         const lineMessage = `🐾 尾尾道來預約完成通知%0A%0A👤 飼主：${encodeURIComponent(data.owner_name || '')}%0A🐶 寵物：${encodeURIComponent(data.pet_name || '')}%0A📋 服務：${serviceLabel}%0A📅 日期：${new Date().toLocaleDateString('zh-TW')}%0A%0A感謝您選擇尾尾道來寵物俱樂部 ❤️`;
         
-        const lineUrl = `https://line.me/R/msg/text/?${lineMessage}`;
+        // 優先使用 line:// 協定（手機 App 直接開啟官方帳號聊天室）
+        const lineAppUrl = `line://ti/p/@060zwrxi?message=${lineMessage}`;
+        // 備用：使用 https:// 網頁版（會先開啟 LINE 分享頁面）
+        const lineWebUrl = `https://line.me/R/ti/p/@060zwrxi?message=${lineMessage}`;
+        
+        // 檢查是否為手機裝置
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const lineUrl = isMobile ? lineAppUrl : lineWebUrl;
         
         // 延遲 1.5 秒後自動跳轉，讓客戶先看到成功訊息
         const timer = setTimeout(() => {
-            window.open(lineUrl, '_blank');
+            // 使用 window.location.href 避免被瀏覽器阻擋
+            window.location.href = lineUrl;
         }, 1500);
         
         return () => clearTimeout(timer);
@@ -2076,14 +2084,35 @@ const SuccessView = ({ data, onReset }) => {
                                     <p className="text-xs text-[#4A6B55] mt-0.5">
                                         請點擊下方按鈕，手動發送預約完成通知
                                     </p>
-                                    <a 
-                                        href={`https://line.me/R/msg/text/?🐾%20尾尾道來預約完成通知%0A%0A👤%20飼主：${encodeURIComponent(data.owner_name || '')}%0A🐶%20寵物：${encodeURIComponent(data.pet_name || '')}%0A📋%20服務：${data.service_type === 'grooming' ? '美容' : data.service_type === 'boarding' ? '住宿' : '安親'}%0A📅%20日期：${new Date().toLocaleDateString('zh-TW')}%0A%0A感謝您選擇尾尾道來寵物俱樂部 ❤️`}
-                                        target="_blank"
-                                        className="mt-2 inline-flex items-center gap-2 bg-[#06C755] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:scale-105 transition-all shadow-md"
-                                    >
-                                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" className="w-4 h-4 invert brightness-0" />
-                                        手動發送 LINE 通知
-                                    </a>
+<a 
+    href={`line://ti/p/@060zwrxi?message=${encodeURIComponent(`🐾 尾尾道來預約完成通知%0A%0A👤 飼主：${data.owner_name || ''}%0A🐶 寵物：${data.pet_name || ''}%0A📋 服務：${data.service_type === 'grooming' ? '美容' : data.service_type === 'boarding' ? '住宿' : '安親'}%0A📅 日期：${new Date().toLocaleDateString('zh-TW')}%0A%0A感謝您選擇尾尾道來寵物俱樂部 ❤️`)}`}
+    target="_blank"
+    className="mt-2 inline-flex items-center gap-2 bg-[#06C755] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:scale-105 transition-all shadow-md"
+    onClick={(e) => {
+        // 如果 line:// 協定無法開啟（例如桌面版），改用 https 版
+        e.preventDefault();
+        const message = `🐾 尾尾道來預約完成通知%0A%0A👤 飼主：${encodeURIComponent(data.owner_name || '')}%0A🐶 寵物：${encodeURIComponent(data.pet_name || '')}%0A📋 服務：${data.service_type === 'grooming' ? '美容' : data.service_type === 'boarding' ? '住宿' : '安親'}%0A📅 日期：${new Date().toLocaleDateString('zh-TW')}%0A%0A感謝您選擇尾尾道來寵物俱樂部 ❤️`;
+        // 先嘗試使用 line:// 協定（手機 App）
+        const lineAppUrl = `line://ti/p/@060zwrxi?message=${message}`;
+        // 備用方案：使用 https:// 網頁版（會先開啟 LINE，再跳轉到聊天室）
+        const lineWebUrl = `https://line.me/R/ti/p/@060zwrxi`;
+        
+        // 嘗試開啟 LINE App
+        const start = Date.now();
+        window.location.href = lineAppUrl;
+        
+        // 如果 2 秒後沒有切換到 LINE（表示手機沒有安裝 LINE App），跳轉到網頁版
+        setTimeout(() => {
+            const end = Date.now();
+            if (end - start < 2500) {
+                window.open(lineWebUrl, '_blank');
+            }
+        }, 2000);
+    }}
+>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" className="w-4 h-4 invert brightness-0" />
+    手動發送 LINE 通知
+</a>
                                 </div>
                             </div>
                         </div>
@@ -4422,7 +4451,7 @@ if ('serviceWorker' in navigator) {
             }
         }).catch(() => {
             // 如果 getRegistration 失敗，直接註冊
-            navigator.serviceWorker.register('/sw.js?v=27').then(reg => {
+            navigator.serviceWorker.register('/sw.js?v=28').then(reg => {
                 if (reg.waiting) {
                     showUpdateUIWithDebounce(reg.waiting);
                 }
