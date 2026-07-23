@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="description" content="尾尾道來寵物俱樂部 · 寵物美容 · 住宿 · 安親">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>(測試3)尾尾道來寵物俱樂部｜美容 · 住宿 · 安親</title>
+    <title>(測試4)尾尾道來寵物俱樂部｜美容 · 住宿 · 安親</title>
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
@@ -1989,7 +1989,6 @@ const generateContractHtml = (data, signatureUrl) => {
 const SuccessView = ({ data, onReset }) => {
     const hasEmail = data.email && data.email.trim() !== '';
     const hasAutoRedirected = useRef(false);
-    const [lineOpened, setLineOpened] = useState(false);
     
     const openContract = () => {
         const w = window.open('', '_blank');
@@ -1997,7 +1996,7 @@ const SuccessView = ({ data, onReset }) => {
             w.document.close(); } else alert('請允許彈出視窗以查看完整契約。');
     };
 
-    // 自動跳轉 LINE 的邏輯（穩定版本）
+    // 自動跳轉 LINE（保留）
     useEffect(() => {
         if (hasAutoRedirected.current) return;
         hasAutoRedirected.current = true;
@@ -2013,15 +2012,18 @@ const SuccessView = ({ data, onReset }) => {
         const lineUrl = `https://line.me/R/oaMessage/@060zwrxi/?${message}`;
         
         const timer = setTimeout(() => {
-            const newWindow = window.open(lineUrl, '_blank');
-            if (newWindow) {
-                setLineOpened(true);
-            }
-            // 不管成功或失敗，都讓客戶知道可以手動點擊（但 lineOpened 保持 false 時顯示「手動發送」）
+            // 使用模擬點擊繞過瀏覽器阻擋
+            const link = document.createElement('a');
+            link.href = lineUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }, 1500);
         
         return () => clearTimeout(timer);
-    }, []); // ← 空陣列，只執行一次，最穩定
+    }, []);
 
     return (
         <div className="fixed inset-0 z-[200] bg-[#203B2A]/40 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
@@ -2048,8 +2050,8 @@ const SuccessView = ({ data, onReset }) => {
                     </div>
                 </div>
                 <div className="p-6 md:p-8 space-y-6 bg-white/50">
-                    {/* LINE 狀態 + 常住手動按鈕 */}
-                    <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${lineOpened ? 'bg-[#4A6B55]/5 border-[#4A6B55]/30' : 'bg-[#06C755]/5 border-[#06C755]/20'}`}>
+                    {/* LINE 發送按鈕 - 固定顯示 */}
+                    <div className="flex items-center justify-between p-3 rounded-xl border border-[#06C755]/20 bg-[#06C755]/5">
                         <div className="flex items-center gap-2">
                             <svg viewBox="0 0 256 256" className="w-5 h-5 text-[#06C755] flex-shrink-0" fill="currentColor">
                                 <g transform="translate(1.4 1.4) scale(2.81)">
@@ -2060,18 +2062,14 @@ const SuccessView = ({ data, onReset }) => {
                                     <path d="M 70.245 35.597 c 0.407 0 0.736 -0.33 0.736 -0.737 v -2.655 c 0 -0.407 -0.329 -0.738 -0.736 -0.738 H 59.639 v 16.489 c 0 0.407 0.33 0.737 0.737 0.737 h 10.606 c 0.407 0 0.736 -0.33 0.736 -0.737 v -2.655 c 0 -0.407 -0.329 -0.737 -0.736 -0.737 h -7.213 v -2.788 h 7.213 c 0.407 0 0.736 -0.33 0.736 -0.737 v -2.655 c 0 -0.407 -0.329 -0.738 -0.736 -0.738 h -7.213 v -2.787 H 70.245 z"/>
                                 </g>
                             </svg>
-                            <span className="text-xs font-bold text-[#203B2A]">
-                                {lineOpened ? '✅ 已開啟 LINE 通知' : '⏳ 自動開啟 LINE 中⋯'}
-                            </span>
+                            <span className="text-xs font-bold text-[#203B2A]">📱 點擊發送 LINE 預約通知</span>
                         </div>
-                        {/* 手動按鈕 - 永遠顯示 */}
                         <a 
                             href={`https://line.me/R/oaMessage/@060zwrxi/?🐾%20尾尾道來預約完成通知%0A%0A👤%20飼主：${encodeURIComponent(data.owner_name || '')}%0A🐶%20寵物：${encodeURIComponent(data.pet_name || '')}%0A📋%20服務：${data.service_type === 'grooming' ? '美容' : data.service_type === 'boarding' ? '住宿' : '安親'}%0A📅%20日期：${new Date().toLocaleDateString('zh-TW')}%0A%0A感謝您選擇尾尾道來寵物俱樂部%20❤️`}
                             target="_blank"
-                            className="px-4 py-1.5 bg-[#06C755] text-white rounded-lg text-xs font-bold hover:scale-105 transition-all shrink-0"
-                            onClick={() => setLineOpened(true)}
+                            className="px-4 py-1.5 bg-[#06C755] text-white rounded-lg text-xs font-bold hover:scale-105 transition-all shrink-0 whitespace-nowrap"
                         >
-                            手動發送
+                            立即發送
                         </a>
                     </div>
 
@@ -2101,7 +2099,6 @@ const SuccessView = ({ data, onReset }) => {
         </div>
     );
 };
-
 const App = () => {
 const [serviceType, setServiceType] = useState('grooming');
 
