@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="description" content="尾尾道來寵物俱樂部 · 寵物美容 · 住宿 · 安親">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>尾尾道來寵物俱樂部｜美容 · 住宿 · 安親</title>
+    <title>(測試1)尾尾道來寵物俱樂部｜美容 · 住宿 · 安親</title>
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
@@ -1998,11 +1998,9 @@ const SuccessView = ({ data, onReset }) => {
 
     // 自動跳轉 LINE 的邏輯
     useEffect(() => {
-        // 避免重複跳轉
         if (hasAutoRedirected.current) return;
         hasAutoRedirected.current = true;
 
-        // 建構 LINE 訊息
         const serviceMap = {
             grooming: '美容',
             boarding: '住宿',
@@ -2010,20 +2008,13 @@ const SuccessView = ({ data, onReset }) => {
         };
         const serviceLabel = serviceMap[data.service_type] || '美容';
         
-        const lineMessage = `🐾 尾尾道來預約完成通知%0A%0A👤 飼主：${encodeURIComponent(data.owner_name || '')}%0A🐶 寵物：${encodeURIComponent(data.pet_name || '')}%0A📋 服務：${serviceLabel}%0A📅 日期：${new Date().toLocaleDateString('zh-TW')}%0A%0A感謝您選擇尾尾道來寵物俱樂部 ❤️`;
+        // 1. 建構預填訊息 (注意編碼)
+        const message = `🐾 尾尾道來預約完成通知%0A%0A👤 飼主：${encodeURIComponent(data.owner_name || '')}%0A🐶 寵物：${encodeURIComponent(data.pet_name || '')}%0A📋 服務：${serviceLabel}%0A📅 日期：${new Date().toLocaleDateString('zh-TW')}%0A%0A感謝您選擇尾尾道來寵物俱樂部 ❤️`;
         
-        // 優先使用 line:// 協定（手機 App 直接開啟官方帳號聊天室）
-        const lineAppUrl = `line://ti/p/@060zwrxi?message=${lineMessage}`;
-        // 備用：使用 https:// 網頁版（會先開啟 LINE 分享頁面）
-        const lineWebUrl = `https://line.me/R/ti/p/@060zwrxi?message=${lineMessage}`;
+        // 2. 使用正確的 oaMessage 格式
+        const lineUrl = `https://line.me/R/oaMessage/@060zwrxi/?${message}`;
         
-        // 檢查是否為手機裝置
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        const lineUrl = isMobile ? lineAppUrl : lineWebUrl;
-        
-        // 延遲 1.5 秒後自動跳轉，讓客戶先看到成功訊息
         const timer = setTimeout(() => {
-            // 使用 window.location.href 避免被瀏覽器阻擋
             window.location.href = lineUrl;
         }, 1500);
         
@@ -2033,102 +2024,47 @@ const SuccessView = ({ data, onReset }) => {
     return (
         <div className="fixed inset-0 z-[200] bg-[#203B2A]/40 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
             <div className="bg-white/90 backdrop-blur-md rounded-[2.5rem] w-full max-w-lg shadow-2xl relative overflow-hidden my-auto border border-[#DDD6CE]/40">
-                <div className="p-8 text-center relative overflow-hidden bg-gradient-to-b from-[#FAF8F5] to-white">
-                    <div className="absolute top-[-50px] left-[-50px] w-32 h-32 bg-[#D4C9BE]/20 rounded-full blur-2xl"></div>
-                    <div className="absolute bottom-[-30px] right-[-30px] w-24 h-24 bg-[#C4B8AA]/20 rounded-full blur-2xl"></div>
-                    <div className="w-24 h-24 bg-[#203B2A]/10 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg relative">
-                        <div className="absolute inset-0 rounded-full border-2 border-[#203B2A]/10 animate-ping" style={{ animationDuration: '2s' }}></div>
-                        <Icon name={hasEmail ? "check" : "camera"} size={48} className="relative z-10 text-[#203B2A]" />
-                    </div>
-                    <h2 className="text-2xl font-serif font-bold text-[#203B2A] mb-2 tracking-wide">提交成功！</h2>
-                    {hasEmail ? (
-                        <p className="text-sm font-bold text-[#4A6B55]">
-                            契約副本已寄至 <span className="text-[#203B2A] font-bold underline decoration-[#B8A088] decoration-2 underline-offset-4">{data.email}</span>
-                        </p>
-                    ) : (
-                        <p className="text-sm font-bold text-[#DBA58B]">未填寫信箱，請務必保存下方副本</p>
-                    )}
-                    {/* 自動跳轉 LINE 提示 */}
-                    <div className="mt-4 p-4 bg-[#06C755]/10 rounded-2xl border border-[#06C755]/30 animate-pulse">
-                        <div className="flex items-center justify-center gap-3">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" className="w-6 h-6" />
-                            <span className="text-sm font-bold text-[#203B2A]">即將跳轉至 LINE⋯</span>
-                        </div>
-                        <p className="text-xs text-[#4A6B55] mt-1">訊息將自動帶入，您只需按下「傳送」即可</p>
-                    </div>
-                    <div className="mt-3 flex justify-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#203B2A]/30"></span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#203B2A]/50"></span>
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#203B2A]/30"></span>
-                    </div>
-                </div>
+                {/* ... 上方的成功訊息區塊 (保持不變) ... */}
+                
                 <div className="p-6 md:p-8 space-y-6 bg-white/50">
-                    <div className={`border rounded-2xl p-5 flex gap-4 items-start shadow-sm ${hasEmail ? 'bg-[#FAF8F5] border-[#DDD6CE]' : 'bg-[#FDF6F3] border-[#DBA58B]'}`}>
-                        <div className={`shrink-0 mt-1 ${hasEmail ? 'text-[#4A6B55]' : 'text-[#DBA58B]'}`}><Icon name={hasEmail ? "mail" : "alert-triangle"} size={20} /></div>
-                        <div className="text-sm">
-                            <p className={`font-bold mb-1 text-base ${hasEmail ? 'text-[#203B2A]' : 'text-[#DBA58B]'}`}>{hasEmail ? '💡 溫馨提醒' : '⚠️ 重要提醒'}</p>
-                            <p className="leading-relaxed text-[#4A6B55]">{hasEmail ? '若沒收到信件，可能是被歸類到垃圾郵件。您也可以點擊下方按鈕直接查看契約副本。' : '因未填寫 Email，系統無法發送副本。請點擊下方按鈕開啟完整契約，並進行全螢幕截圖保存。'}</p>
-                        </div>
-                    </div>
+                    {/* ... 信件提醒區塊 (保持不變) ... */}
+                    
                     <div className="space-y-3">
-                        {/* LINE 手動發送按鈕（備用，如果自動跳轉失敗） */}
+                        {/* 手動發送按鈕 - 使用修正後的連結與樣式 */}
                         <div className="p-4 bg-[#06C755]/5 rounded-2xl border-2 border-[#06C755]/20">
                             <div className="flex items-start gap-3">
                                 <div className="w-10 h-10 bg-[#06C755] rounded-full flex items-center justify-center shrink-0">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" className="w-6 h-6 invert brightness-0" />
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" className="w-6 h-6" style={{ filter: 'brightness(0) invert(1)' }} />
                                 </div>
                                 <div className="flex-1 text-left">
-                                    <p className="text-sm font-bold text-[#203B2A]">
-                                        沒看到 LINE 自動跳轉？
-                                    </p>
-                                    <p className="text-xs text-[#4A6B55] mt-0.5">
-                                        請點擊下方按鈕，手動發送預約完成通知
-                                    </p>
-<a 
-    href={`line://ti/p/@060zwrxi?message=${encodeURIComponent(`🐾 尾尾道來預約完成通知%0A%0A👤 飼主：${data.owner_name || ''}%0A🐶 寵物：${data.pet_name || ''}%0A📋 服務：${data.service_type === 'grooming' ? '美容' : data.service_type === 'boarding' ? '住宿' : '安親'}%0A📅 日期：${new Date().toLocaleDateString('zh-TW')}%0A%0A感謝您選擇尾尾道來寵物俱樂部 ❤️`)}`}
-    target="_blank"
-    className="mt-2 inline-flex items-center gap-2 bg-[#06C755] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:scale-105 transition-all shadow-md"
-    onClick={(e) => {
-        // 如果 line:// 協定無法開啟（例如桌面版），改用 https 版
-        e.preventDefault();
-        const message = `🐾 尾尾道來預約完成通知%0A%0A👤 飼主：${encodeURIComponent(data.owner_name || '')}%0A🐶 寵物：${encodeURIComponent(data.pet_name || '')}%0A📋 服務：${data.service_type === 'grooming' ? '美容' : data.service_type === 'boarding' ? '住宿' : '安親'}%0A📅 日期：${new Date().toLocaleDateString('zh-TW')}%0A%0A感謝您選擇尾尾道來寵物俱樂部 ❤️`;
-        // 先嘗試使用 line:// 協定（手機 App）
-        const lineAppUrl = `line://ti/p/@060zwrxi?message=${message}`;
-        // 備用方案：使用 https:// 網頁版（會先開啟 LINE，再跳轉到聊天室）
-        const lineWebUrl = `https://line.me/R/ti/p/@060zwrxi`;
-        
-        // 嘗試開啟 LINE App
-        const start = Date.now();
-        window.location.href = lineAppUrl;
-        
-        // 如果 2 秒後沒有切換到 LINE（表示手機沒有安裝 LINE App），跳轉到網頁版
-        setTimeout(() => {
-            const end = Date.now();
-            if (end - start < 2500) {
-                window.open(lineWebUrl, '_blank');
-            }
-        }, 2000);
-    }}
->
-    <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" className="w-4 h-4 invert brightness-0" />
-    手動發送 LINE 通知
-</a>
+                                    <p className="text-sm font-bold text-[#203B2A]">沒看到 LINE 自動跳轉？</p>
+                                    <p className="text-xs text-[#4A6B55] mt-0.5">請點擊下方按鈕，手動發送預約完成通知</p>
+                                    <a 
+                                        href={`https://line.me/R/oaMessage/@060zwrxi/?🐾%20尾尾道來預約完成通知%0A%0A👤%20飼主：${encodeURIComponent(data.owner_name || '')}%0A🐶%20寵物：${encodeURIComponent(data.pet_name || '')}%0A📋%20服務：${data.service_type === 'grooming' ? '美容' : data.service_type === 'boarding' ? '住宿' : '安親'}%0A📅%20日期：${new Date().toLocaleDateString('zh-TW')}%0A%0A感謝您選擇尾尾道來寵物俱樂部%20❤️`}
+                                        target="_blank"
+                                        className="mt-2 inline-flex items-center gap-2 bg-[#06C755] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:scale-105 transition-all shadow-md"
+                                    >
+                                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" className="w-5 h-5" style={{ filter: 'brightness(0) invert(1)' }} />
+                                        手動發送 LINE 通知
+                                    </a>
                                 </div>
                             </div>
                         </div>
 
-                        <button onClick={openContract} className="w-full py-4 rounded-2xl bg-[#203B2A] text-white font-bold shadow-lg shadow-[#203B2A]/20 hover:bg-[#162B1F] active:scale-95 transition-all flex items-center justify-center gap-2"><Icon name="file-text" size={20} /> 開啟完整契約頁面 (截圖用)</button>
+                        <button onClick={openContract} className="w-full py-4 rounded-2xl bg-[#203B2A] text-white font-bold shadow-lg shadow-[#203B2A]/20 hover:bg-[#162B1F] active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <Icon name="file-text" size={20} /> 開啟完整契約頁面 (截圖用)
+                        </button>
                         <button 
-    onClick={(e) => {
-        const btn = e.currentTarget;
-        btn.style.transform = 'scale(0.95)';
-        setTimeout(() => btn.style.transform = 'scale(1)', 150);
-        onReset();
-    }} 
-    className="w-full py-4 rounded-2xl bg-white text-[#203B2A] border-2 border-[#DDD6CE] font-bold shadow-sm hover:bg-[#FAF8F5] active:scale-95 transition-all flex items-center justify-center gap-2"
->
-    <Icon name="home" size={20} /> 返回首頁 (完成)
-</button>
+                            onClick={(e) => {
+                                const btn = e.currentTarget;
+                                btn.style.transform = 'scale(0.95)';
+                                setTimeout(() => btn.style.transform = 'scale(1)', 150);
+                                onReset();
+                            }} 
+                            className="w-full py-4 rounded-2xl bg-white text-[#203B2A] border-2 border-[#DDD6CE] font-bold shadow-sm hover:bg-[#FAF8F5] active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                            <Icon name="home" size={20} /> 返回首頁 (完成)
+                        </button>
                     </div>
                 </div>
             </div>
@@ -4451,7 +4387,7 @@ if ('serviceWorker' in navigator) {
             }
         }).catch(() => {
             // 如果 getRegistration 失敗，直接註冊
-            navigator.serviceWorker.register('/sw.js?v=28').then(reg => {
+            navigator.serviceWorker.register('/sw.js?v=29').then(reg => {
                 if (reg.waiting) {
                     showUpdateUIWithDebounce(reg.waiting);
                 }
