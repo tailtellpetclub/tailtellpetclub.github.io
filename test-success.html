@@ -108,12 +108,24 @@ const SuccessView = ({ data, onReset }) => {
     const hasEmail = data.email && data.email.trim() !== '';
     const hasAutoRedirected = useRef(false);
     const [lineOpened, setLineOpened] = useState(false);
-    const [redirectCountdown, setRedirectCountdown] = useState(3);
+    const [showManualButton, setShowManualButton] = useState(false);
+    const fallbackTimerRef = useRef(null);
+    const autoTimerRef = useRef(null);
     
     const openContract = () => {
         const w = window.open('', '_blank');
         if (w) { w.document.write(data.htmlContent);
             w.document.close(); } else alert('請允許彈出視窗以查看完整契約。');
+    };
+
+    // 手動開啟 LINE 並更新狀態
+    const handleManualOpen = () => {
+        // 清除自動跳轉計時器
+        if (autoTimerRef.current) {
+            clearTimeout(autoTimerRef.current);
+            autoTimerRef.current = null;
+        }
+        setLineOpened(true);
     };
 
     useEffect(() => {
@@ -130,28 +142,22 @@ const SuccessView = ({ data, onReset }) => {
         const message = `🐾 尾尾道來預約完成通知%0A%0A👤 飼主：${encodeURIComponent(data.owner_name || '')}%0A🐶 寵物：${encodeURIComponent(data.pet_name || '')}%0A📋 服務：${serviceLabel}%0A📅 日期：${new Date().toLocaleDateString('zh-TW')}%0A%0A感謝您選擇尾尾道來寵物俱樂部 ❤️`;
         const lineUrl = `https://line.me/R/oaMessage/@060zwrxi/?${message}`;
         
-        const countdownInterval = setInterval(() => {
-            setRedirectCountdown(prev => {
-                if (prev <= 1) {
-                    clearInterval(countdownInterval);
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-        
-        const timer = setTimeout(() => {
+        // 1.5 秒後嘗試開啟 LINE
+        autoTimerRef.current = setTimeout(() => {
             const newWindow = window.open(lineUrl, '_blank');
+            // 如果視窗成功開啟，視為成功；否則顯示手動按鈕
             if (newWindow) {
                 setLineOpened(true);
             } else {
-                setLineOpened(false);
+                setShowManualButton(true);
             }
-        }, 2000);
+        }, 1500);
         
         return () => {
-            clearTimeout(timer);
-            clearInterval(countdownInterval);
+            if (autoTimerRef.current) {
+                clearTimeout(autoTimerRef.current);
+                autoTimerRef.current = null;
+            }
         };
     }, [data]);
 
@@ -180,6 +186,40 @@ const SuccessView = ({ data, onReset }) => {
                     </div>
                 </div>
                 <div className="p-6 md:p-8 space-y-6 bg-white/50">
+                    {/* LINE 智慧型按鈕 - 移到最上方 */}
+                    <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${lineOpened ? 'bg-[#4A6B55]/5 border-[#4A6B55]/30' : 'bg-[#06C755]/5 border-[#06C755]/20'}`}>
+                        <div className="flex items-center gap-2">
+                            <svg viewBox="0 0 256 256" className="w-5 h-5 text-[#06C755] flex-shrink-0" fill="currentColor">
+                                <g transform="translate(1.4 1.4) scale(2.81)">
+                                    <path d="M 42.685 88.018 c -0.944 0 -1.935 -0.233 -2.809 -0.929 c -2.075 -1.653 -1.61 -4.302 -1.435 -5.299 l 0.015 -0.085 c 0.097 -0.573 0.523 -3.138 0.589 -3.532 c 0.143 -1.106 0.122 -1.725 0.087 -2.032 c -0.248 -0.131 -0.736 -0.332 -1.527 -0.51 C 15.806 72.699 0 57.334 0 39.057 C 0 18.615 20.187 1.984 45 1.984 c 24.813 0 45 16.631 45 37.073 c 0 6.388 -1.921 12.34 -5.848 18.055 h 0.347 l -2.727 3.14 c -0.471 0.568 -0.964 1.135 -1.476 1.7 l -0.03 0.034 c -9.005 10.364 -29.164 23.109 -34.124 25.199 C 45.535 87.442 44.169 88.018 42.685 88.018 z M 45 7.872 c -21.566 0 -39.112 13.99 -39.112 31.185 c 0 15.321 13.716 28.255 32.614 30.754 l 0.234 0.04 c 3.099 0.668 5.056 1.964 5.817 3.853 c 0.524 1.311 0.625 2.988 0.324 5.285 l -0.015 0.099 c 0 0 -0.221 1.327 -0.399 2.397 c 5.106 -2.446 21.464 -12.945 29.972 -21.843 l 1.432 -1.571 c 5.626 -6.17 8.246 -12.212 8.246 -19.015 C 84.112 21.862 66.566 7.872 45 7.872 z"/>
+                                    <path d="M 37.309 31.467 h -2.655 c -0.407 0 -0.737 0.33 -0.737 0.736 v 16.492 c 0 0.406 0.33 0.735 0.737 0.735 h 2.655 c 0.407 0 0.737 -0.329 0.737 -0.735 V 32.203 C 38.047 31.797 37.716 31.467 37.309 31.467"/>
+                                    <path d="M 55.584 31.467 h -2.655 c -0.407 0 -0.737 0.33 -0.737 0.736 v 9.798 l -7.558 -10.207 c -0.017 -0.026 -0.037 -0.051 -0.057 -0.075 h -2.655 c -0.407 0 -0.737 0.33 -0.737 0.736 v 16.492 c 0 0.406 0.33 0.735 0.737 0.735 h 2.655 v -10.59 l 7.567 10.22 c 0.052 0.073 0.117 0.134 0.187 0.182 h 2.655 c 0.407 0 0.737 -0.329 0.737 -0.735 V 32.203 C 56.321 31.797 55.991 31.467 55.584 31.467"/>
+                                    <path d="M 30.91 45.302 h -7.214 V 32.204 c 0 -0.407 -0.33 -0.737 -0.737 -0.737 h -2.655 c -0.407 0 -0.737 0.33 -0.737 0.737 v 16.491 c 0 0.407 0.33 0.737 0.737 0.737 H 30.91 c 0.407 0 0.736 -0.33 0.736 -0.737 v -2.655 C 31.646 45.632 31.316 45.302 30.91 45.302"/>
+                                    <path d="M 70.245 35.597 c 0.407 0 0.736 -0.33 0.736 -0.737 v -2.655 c 0 -0.407 -0.329 -0.738 -0.736 -0.738 H 59.639 v 16.489 c 0 0.407 0.33 0.737 0.737 0.737 h 10.606 c 0.407 0 0.736 -0.33 0.736 -0.737 v -2.655 c 0 -0.407 -0.329 -0.737 -0.736 -0.737 h -7.213 v -2.788 h 7.213 c 0.407 0 0.736 -0.33 0.736 -0.737 v -2.655 c 0 -0.407 -0.329 -0.738 -0.736 -0.738 h -7.213 v -2.787 H 70.245 z"/>
+                                </g>
+                            </svg>
+                            <span className="text-xs font-bold text-[#203B2A]">
+                                {lineOpened ? '✅ 已開啟 LINE 通知' : '⏳ 自動開啟 LINE 中⋯'}
+                            </span>
+                        </div>
+                        {!lineOpened && !showManualButton && (
+                            <span className="px-3 py-1 bg-[#06C755]/20 text-[#06C755] rounded-lg text-[10px] font-bold animate-pulse">準備中</span>
+                        )}
+                        {!lineOpened && showManualButton && (
+                            <a 
+                                href={`https://line.me/R/oaMessage/@060zwrxi/?🐾%20尾尾道來預約完成通知%0A%0A👤%20飼主：${encodeURIComponent(data.owner_name || '')}%0A🐶%20寵物：${encodeURIComponent(data.pet_name || '')}%0A📋%20服務：${data.service_type === 'grooming' ? '美容' : data.service_type === 'boarding' ? '住宿' : '安親'}%0A📅%20日期：${new Date().toLocaleDateString('zh-TW')}%0A%0A感謝您選擇尾尾道來寵物俱樂部%20❤️`}
+                                target="_blank"
+                                className="px-4 py-1.5 bg-[#06C755] text-white rounded-lg text-xs font-bold hover:scale-105 transition-all shrink-0"
+                                onClick={handleManualOpen}
+                            >
+                                手動發送
+                            </a>
+                        )}
+                        {lineOpened && (
+                            <span className="px-3 py-1 bg-[#4A6B55] text-white rounded-lg text-[10px] font-bold">已完成</span>
+                        )}
+                    </div>
+
                     <div className={`border rounded-2xl p-5 flex gap-4 items-start shadow-sm ${hasEmail ? 'bg-[#FAF8F5] border-[#DDD6CE]' : 'bg-[#FDF6F3] border-[#DBA58B]'}`}>
                         <div className={`shrink-0 mt-1 ${hasEmail ? 'text-[#4A6B55]' : 'text-[#DBA58B]'}`}><Icon name={hasEmail ? "mail" : "alert-triangle"} size={20} /></div>
                         <div className="text-sm">
@@ -188,32 +228,6 @@ const SuccessView = ({ data, onReset }) => {
                         </div>
                     </div>
                     <div className="space-y-3">
-                        {/* LINE 智慧型按鈕 */}
-                        <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${lineOpened ? 'bg-[#4A6B55]/5 border-[#4A6B55]/30' : 'bg-[#06C755]/5 border-[#06C755]/20'}`}>
-                            <div className="flex items-center gap-2">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" className="w-5 h-5" style={{ filter: 'brightness(0) invert(1)' }} />
-                                <span className="text-xs font-bold text-[#203B2A]">
-                                    {lineOpened ? '✅ 已開啟 LINE 通知' : redirectCountdown > 0 ? `⏳ ${redirectCountdown} 秒後自動開啟 LINE⋯` : '📱 點擊手動發送 LINE 通知'}
-                                </span>
-                            </div>
-                            {!lineOpened && redirectCountdown === 0 && (
-                                <a 
-                                    href={`https://line.me/R/oaMessage/@060zwrxi/?🐾%20尾尾道來預約完成通知%0A%0A👤%20飼主：${encodeURIComponent(data.owner_name || '')}%0A🐶%20寵物：${encodeURIComponent(data.pet_name || '')}%0A📋%20服務：${data.service_type === 'grooming' ? '美容' : data.service_type === 'boarding' ? '住宿' : '安親'}%0A📅%20日期：${new Date().toLocaleDateString('zh-TW')}%0A%0A感謝您選擇尾尾道來寵物俱樂部%20❤️`}
-                                    target="_blank"
-                                    className="px-4 py-1.5 bg-[#06C755] text-white rounded-lg text-xs font-bold hover:scale-105 transition-all shrink-0"
-                                    onClick={() => setLineOpened(true)}
-                                >
-                                    手動發送
-                                </a>
-                            )}
-                            {lineOpened && (
-                                <span className="px-3 py-1 bg-[#4A6B55] text-white rounded-lg text-[10px] font-bold">已完成</span>
-                            )}
-                            {!lineOpened && redirectCountdown > 0 && (
-                                <span className="px-3 py-1 bg-[#06C755]/20 text-[#06C755] rounded-lg text-[10px] font-bold animate-pulse">準備中</span>
-                            )}
-                        </div>
-
                         <button onClick={openContract} className="w-full py-4 rounded-2xl bg-[#203B2A] text-white font-bold shadow-lg shadow-[#203B2A]/20 hover:bg-[#162B1F] active:scale-95 transition-all flex items-center justify-center gap-2"><Icon name="file-text" size={20} /> 開啟完整契約頁面 (截圖用)</button>
                         <button 
                             onClick={(e) => {
