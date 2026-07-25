@@ -407,7 +407,7 @@ body {
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjc21ibmhua253emRmZmNvZ3dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMzgwNTYsImV4cCI6MjA5NzYxNDA1Nn0.0E8x03Im9GWTZjQGzgQF5qhVkTW3sFRZ-Jm_ihUybLM';
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        const ADMIN_EMAIL = "wearegoodbones@gmail.com";
+        const ADMIN_EMAIL = "wearegoodbones@gamil.com";
         const STAFF_EMAIL = "wearegoodbones@staff.com";
 
         // --- 預設服務項目設定（與 index.html 同步）---
@@ -1146,49 +1146,53 @@ const executeSaveEdit = async () => {
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">服務項目</label>
                                         <div className="font-bold">{renderServiceTags()}</div>
                                     </div>
-{isBoarding && (
-    <>
-        <div><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '安親日期' : '入住日期'}</label>
-            <div className="font-bold">{formatDate(order.check_in_date)}</div>
-        </div>
-        <div><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '安親時間' : '退房日期'}</label>
-            <div className="font-bold">{isDaycare ? order.check_out_date : formatDate(order.check_out_date)}</div>
-        </div>
-        <div className="md:col-span-2"><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '服務內容' : '房型'}</label>
-            <div className="font-bold">{(() => {
-                const raw = order.room_type;
-                if (!raw) return '-';
-                if (Array.isArray(raw)) return raw.join('、');
-                if (typeof raw === 'string') {
-                    // 嘗試解析 JSON
-                    try {
-                        const parsed = JSON.parse(raw);
-                        if (Array.isArray(parsed)) return parsed.join('、');
-                        return raw;
-                    } catch (_) {
-                        // 如果包含 + 家庭共宿，特殊處理
-                        if (raw.includes(' + 家庭共宿')) {
-                            const parts = raw.split(' + ');
-                            const normalPart = parts[0] || '';
-                            const familyPart = '家庭共宿';
-                            const roomNames = normalPart.split(/[、,，]\s*/).filter(n => n.trim() !== '');
-                            const result = [];
-                            if (roomNames.length > 0) result.push(roomNames.join('、'));
-                            result.push(familyPart);
-                            return result.join(' + ');
-                        }
-                        // 處理逗號分隔
-                        if (raw.includes('、') || raw.includes(',')) {
-                            return raw.split(/[、,，]\s*/).filter(n => n.trim() !== '').join('、');
-                        }
-                        return raw;
-                    }
-                }
-                return String(raw);
-            })()}</div>
-        </div>
-    </>
-)}
+                                    {/* 美容專用 - 顯示預約日期 */}
+                                    {!isBoarding && (
+                                        <div>
+                                            <label className="text-[10px] font-bold text-[#B5A89C]">📅 預約日期</label>
+                                            <div className="font-bold text-[#4A6B55]">{formatDate(order.check_in_date) || '未填寫'}</div>
+                                        </div>
+                                    )}
+                                    {isBoarding && (
+                                        <>
+                                            <div><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '安親日期' : '入住日期'}</label>
+                                                <div className="font-bold">{formatDate(order.check_in_date)}</div>
+                                            </div>
+                                            <div><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '安親時間' : '退房日期'}</label>
+                                                <div className="font-bold">{isDaycare ? order.check_out_date : formatDate(order.check_out_date)}</div>
+                                            </div>
+                                            <div className="md:col-span-2"><label className="text-[10px] font-bold text-[#B5A89C]">{isDaycare ? '服務內容' : '房型'}</label>
+                                                <div className="font-bold">{(() => {
+                                                    const raw = order.room_type;
+                                                    if (!raw) return '-';
+                                                    if (Array.isArray(raw)) return raw.join('、');
+                                                    if (typeof raw === 'string') {
+                                                        try {
+                                                            const parsed = JSON.parse(raw);
+                                                            if (Array.isArray(parsed)) return parsed.join('、');
+                                                            return raw;
+                                                        } catch (_) {
+                                                            if (raw.includes(' + 家庭共宿')) {
+                                                                const parts = raw.split(' + ');
+                                                                const normalPart = parts[0] || '';
+                                                                const familyPart = '家庭共宿';
+                                                                const roomNames = normalPart.split(/[、,，]\s*/).filter(n => n.trim() !== '');
+                                                                const result = [];
+                                                                if (roomNames.length > 0) result.push(roomNames.join('、'));
+                                                                result.push(familyPart);
+                                                                return result.join(' + ');
+                                                            }
+                                                            if (raw.includes('、') || raw.includes(',')) {
+                                                                return raw.split(/[、,，]\s*/).filter(n => n.trim() !== '').join('、');
+                                                            }
+                                                            return raw;
+                                                        }
+                                                    }
+                                                    return String(raw);
+                                                })()}</div>
+                                            </div>
+                                        </>
+                                    )}
                                     <div className="hidden"></div>
                                     <div><label className="text-[10px] font-bold text-[#B5A89C]">狀態</label>
                                         <span className={`status-badge ${order.status === 'pending' ? 'status-pending' : order.status === 'confirmed' ? 'status-confirmed' : order.status === 'cancelled' ? 'status-cancelled' : 'status-completed'}`}>
@@ -1995,7 +1999,8 @@ const handleSave = () => {
                     if (o.status === 'cancelled') return false;
                     const date = selectedDate;
                     if (o.service_type === 'grooming') {
-                        const orderDate = o.booking_date || o.check_in_date || o.created_at?.slice(0, 10) || '';
+                        // 美容優先使用 check_in_date（預約日期）
+                        const orderDate = o.check_in_date || o.booking_date || o.created_at?.slice(0, 10) || '';
                         return orderDate === date;
                     } else {
                         if (!o.check_in_date || !o.check_out_date) return false;
@@ -2008,7 +2013,8 @@ const handleSave = () => {
                 return orders.filter(o => {
                     if (o.status === 'cancelled') return false;
                     if (o.service_type === 'grooming') {
-                        const date = o.booking_date || o.check_in_date || o.created_at?.slice(0, 10) || '';
+                        // 美容優先使用 check_in_date（預約日期）
+                        const date = o.check_in_date || o.booking_date || o.created_at?.slice(0, 10) || '';
                         return date === dateStr;
                     } else {
                         if (!o.check_in_date || !o.check_out_date) return false;
@@ -2050,7 +2056,7 @@ const handleSave = () => {
                                         <div className="space-y-0.5 overflow-hidden">
                                             {petsInDay.slice(0, 3).map(o => (
                                                 <div key={o.id} className={`text-[9px] font-bold px-1.5 py-0.5 rounded-sm truncate text-white shadow-sm ${o.service_type === 'grooming' ? 'bg-[#4A6B55]' : 'bg-[#B8A088]'}`}>
-                                                    {o.service_type === 'grooming' && (o.booking_time || o.check_out_date) && <span className="opacity-80">[{o.booking_time || o.check_out_date}] </span>}
+                                                    {o.service_type === 'grooming' && o.check_in_date && <span className="opacity-80">[{o.check_in_date}] </span>}
                                                     {o.booking_pets?.map(p => p.pet_name).join(',')}
                                                 </div>
                                             ))}
@@ -2542,8 +2548,8 @@ const customers = useMemo(() => {
                 if (order.service_type === 'boarding') {
                     return `${formatDate(order.check_in_date)} ~ ${formatDate(order.check_out_date)}`;
                 }
-                // 美容
-                const date = order.booking_date || order.check_in_date || order.created_at?.slice(0,10);
+                // 美容：優先使用 check_in_date（預約日期）
+                const date = order.check_in_date || order.booking_date || order.created_at?.slice(0,10);
                 return date ? formatDate(date) : '無日期';
             };
 
@@ -2894,11 +2900,11 @@ const customers = useMemo(() => {
         };
 
         // --- Admin Service Worker 註冊 ---
-        const ADMIN_SW_VERSION = '20260717-6';
+        const ADMIN_SW_VERSION = '20260725';
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         // 檢查是否已有 admin-sw.js 的註冊
-        navigator.serviceWorker.getRegistration(`/admin-sw.js?v=${ADMIN_SW_VERSION}`).then(reg => {
+        navigator.serviceWorker.getRegistration(`/admin-?v=${ADMIN_SW_VERSION}`).then(reg => {sw.js
             if (reg) {
                 console.log('[Admin] Service Worker 已註冊');
                 // 檢查是否有 waiting 的 worker
