@@ -1837,7 +1837,7 @@ const generateContractHtml = (data, signatureUrl) => {
                     <tr><td colspan="2"><span class="label">指定醫療院所</span><span class="value">${show(data.preferred_clinic_name)}${data.preferred_clinic_phone ? ' ('+data.preferred_clinic_phone+')' : ''}</span></td></tr>
                     ${isBoarding ? `<tr><td colspan="2"><span class="label">${isDaycare ? '安親日期' : '入住日期'}</span><span class="value">${show(data.check_in_date || data.checkInDate)}</span></td></tr>
                     <tr><td colspan="2"><span class="label">${isDaycare ? '接回時間' : '退房日期'}</span><span class="value">${show(data.check_out_date || data.checkOutDate)}</span></td></tr>` : ''}
-                    ${!isBoarding ? `<tr><td colspan="2"><span class="label">預計接回時間</span><span class="value">${show(data.pickup_time || data.check_out_date)}</span></td></tr>` : ''}
+                    ${!isBoarding ? `<tr><td colspan="2"><span class="label">📅 預約日期</span><span class="value">${show(data.check_in_date || data.checkInDate)}</span></td></tr>` : ''}
                   </table>
                 </div>
 
@@ -2082,32 +2082,32 @@ const SuccessView = ({ data, onReset }) => {
                             </p>
                         </div>
 
-                        {/* 步驟 2: 發送 LINE 通知 (在新分頁開啟) */}
-                        <div className="rounded-2xl border-2 border-[#06C755]/30 bg-gradient-to-br from-[#06C755]/5 to-[#06C755]/10 p-4 relative overflow-hidden">
-                            {/* 背景裝飾 - 閃爍警示光暈 */}
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-[#06C755]/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-[#06C755]/5 rounded-full blur-xl translate-y-1/2 -translate-x-1/2"></div>
+                        {/* 步驟 2: 發送 LINE 通知 (在新分頁開啟) - 紅色警示外框 */}
+                        <div className="rounded-2xl border-2 border-red-400 bg-red-50 p-4 relative overflow-hidden shadow-sm">
+                            {/* 背景裝飾 - 紅色警示光暈 */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-red-200/20 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                            <div className="absolute bottom-0 left-0 w-24 h-24 bg-red-200/10 rounded-full blur-xl translate-y-1/2 -translate-x-1/2"></div>
                             
                             <div className="flex items-center gap-2 mb-2 relative z-10">
-                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#06C755] text-white text-xs font-bold">2</span>
+                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold animate-pulse">2</span>
                                 <span className="font-bold text-[#203B2A] text-sm flex items-center gap-2">
                                     發送預約申請通知
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FF6B35]/10 text-[#FF6B35] text-[9px] font-bold animate-pulse">
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500 text-white text-[9px] font-bold animate-pulse">
                                         <Icon name="alert-triangle" size={12} />
                                         重要
                                     </span>
                                 </span>
                             </div>
                             
-                            <p className="text-xs text-[#4A6B55] text-center mb-3 relative z-10">
-                                <Icon name="alert-circle" size={14} className="inline-block mr-1 text-[#06C755]" />
+                            <p className="text-xs text-red-600 text-center mb-3 relative z-10 font-bold">
+                                <Icon name="alert-circle" size={14} className="inline-block mr-1 text-red-500" />
                                 請點擊下方按鈕，將預約資訊傳送給店家
                             </p>
                             
                             <div className="relative z-10">
                                 {/* 按鈕上方警示箭頭 - 吸引目光 */}
                                 <div className="flex justify-center mb-1.5 animate-bounce">
-                                    <Icon name="chevron-down" size={16} className="text-[#06C755]" />
+                                    <Icon name="chevron-down" size={16} className="text-red-500" />
                                 </div>
                                 
                                 <a 
@@ -2144,20 +2144,20 @@ const SuccessView = ({ data, onReset }) => {
                                     )}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="w-full py-3.5 bg-gradient-to-r from-[#06C755] to-[#05b04a] text-white rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-[#06C755]/30 border-2 border-[#06C755] flex items-center justify-center gap-2 group relative overflow-hidden"
+                                    className="w-full py-3.5 bg-white text-[#06C755] rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md border-2 border-[#06C755] flex items-center justify-center gap-2 group relative overflow-hidden"
                                 >
                                     {/* 按鈕波紋效果 */}
-                                    <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
+                                    <span className="absolute inset-0 bg-gradient-to-r from-[#06C755]/0 via-[#06C755]/5 to-[#06C755]/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></span>
                                     
                                     <span className="relative z-10 flex items-center gap-2">
                                         <img 
                                             src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" 
                                             alt="LINE" 
-                                            className="w-5 h-5 flex-shrink-0 brightness-0 invert" 
+                                            className="w-5 h-5 flex-shrink-0" 
                                         />
                                         <span className="flex items-center gap-2">
                                             發送預約申請通知
-                                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-white/20 text-white text-[9px] font-bold">
+                                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-[#06C755]/10 text-[#06C755] text-[9px] font-bold">
                                                 <Icon name="bell" size={10} />
                                                 點我
                                             </span>
@@ -2167,9 +2167,9 @@ const SuccessView = ({ data, onReset }) => {
                             </div>
                             
                             <div className="mt-3 text-center relative z-10">
-                                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#FF6B35]/10 border border-[#FF6B35]/20">
-                                    <Icon name="alert-triangle" size={12} className="text-[#FF6B35] animate-pulse" />
-                                    <span className="text-[10px] font-bold text-[#FF6B35]">請注意：收到店家的確認回覆後，才算正式預約成功</span>
+                                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-100 border border-red-300">
+                                    <Icon name="alert-triangle" size={12} className="text-red-500 animate-pulse" />
+                                    <span className="text-[10px] font-bold text-red-600">請注意：收到店家的確認回覆後，才算正式預約成功</span>
                                 </div>
                             </div>
                         </div>
@@ -2990,7 +2990,8 @@ const payload = {
     surgery_detail: formData.surgery_detail,
     preferred_clinic_name: formData.preferred_clinic_name,
     preferred_clinic_phone: formData.preferred_clinic_phone,
-    check_in_date: serviceType === 'boarding' ? (formData.checkInDate || null) : (serviceType === 'daycare' ? (formData.daycare_date || null) : null),
+    // 美容、住宿、安親統一使用 check_in_date
+    check_in_date: (formData.checkInDate || null) || (formData.daycare_date || null),
     check_out_date: serviceType === 'boarding' ? (formData.checkOutDate || null) : (serviceType === 'daycare' ? (formData.pickup_time || null) : null),
     room_type: formData.isFamilyRoom ? (formData.room_type ? `${formData.room_type} + 家庭共宿` : '家庭共宿') : formData.room_type,
     room_price: parseFloat(formData.room_price) || 0,
@@ -4583,7 +4584,7 @@ if ('serviceWorker' in navigator) {
             }
         }).catch(() => {
             // 如果 getRegistration 失敗，直接註冊
-            navigator.serviceWorker.register('/sw.js?v=32').then(reg => {
+            navigator.serviceWorker.register('/sw.js?v=33').then(reg => {
                 if (reg.waiting) {
                     showUpdateUIWithDebounce(reg.waiting);
                 }
