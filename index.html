@@ -2091,25 +2091,26 @@ const SuccessView = ({ data, onReset }) => {
                             <p className="text-xs text-[#4A6B55] text-center mb-3">
                                 💬 請點擊下方按鈕，將預約資訊傳送給店家
                             </p>
-                            <a 
-                                href={`https://line.me/R/oaMessage/@060zwrxi/?${encodeURIComponent(
-                                    '您好！我已申請預約寵物服務\n\n' +
-                                    '預約姓名：' + (data.owner_name || '') + '\n' +
-                                    '寵物姓名：' + (data.pet_name || '') + '\n' +
-                                    '預約項目：' + (data.service_type === 'grooming' ? '美容' : data.service_type === 'boarding' ? '住宿' : '安親') + '\n' +
-                                    '預約日期：' + new Date().toLocaleDateString('zh-TW') + '\n\n' +
-                                    '再麻煩協助確認是否預約成功，謝謝'
-                                )}`}
-                                target="_blank"
-                                className="w-full py-3.5 bg-white text-[#06C755] rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md border-2 border-[#06C755] flex items-center justify-center gap-2"
-                            >
-                                <img 
-                                    src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" 
-                                    alt="LINE" 
-                                    className="w-5 h-5 flex-shrink-0" 
-                                />
-                                發送預約申請通知
-                            </a>
+<a 
+    href={`https://line.me/R/oaMessage/@060zwrxi/?${encodeURIComponent(
+        '您好！我已申請預約寵物服務\n\n' +
+        '預約姓名：' + (data.owner_name || '') + '\n' +
+        '寵物姓名：' + (data.pet_name || '') + '\n' +
+        '預約項目：' + (data.service_type === 'grooming' ? '美容' : data.service_type === 'boarding' ? '住宿' : '安親') + '\n' +
+        '預約日期：' + new Date().toLocaleDateString('zh-TW') + '\n\n' +
+        '再麻煩協助確認是否預約成功，謝謝'
+    )}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="w-full py-3.5 bg-white text-[#06C755] rounded-xl text-sm font-bold hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md border-2 border-[#06C755] flex items-center justify-center gap-2"
+>
+    <img 
+        src="https://upload.wikimedia.org/wikipedia/commons/4/41/LINE_logo.svg" 
+        alt="LINE" 
+        className="w-5 h-5 flex-shrink-0" 
+    />
+    發送預約申請通知
+</a>
                             <div className="mt-2 text-center">
                                 <span className="text-[10px] text-[#B5A89C]">💡 請注意：收到店家的確認回覆後，才算正式預約成功</span>
                             </div>
@@ -2972,7 +2973,20 @@ try {
     console.error('寄信失敗:', mailErr);
     // 寄信失敗不影響表單提交，只記錄錯誤
 }
-            setSubmittedData({ ...completeData, htmlContent: emailBody });
+            // 保存到 state
+            const submitResult = { ...completeData, htmlContent: emailBody };
+            setSubmittedData(submitResult);
+            
+            // 保存到 sessionStorage 以便頁面重新載入後恢復
+            try {
+                sessionStorage.setItem('submittedData', JSON.stringify(submitResult));
+            } catch (_) {}
+            
+            // 添加 URL 參數標記
+            const url = new URL(window.location);
+            url.searchParams.set('submitted', 'true');
+            window.history.replaceState({}, '', url);
+            
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
         } catch (error) {
@@ -2982,12 +2996,36 @@ try {
         }
     };
 
-    if (submittedData) {
+    // 檢查 URL 參數是否有提交成功標記
+    const urlParams = new URLSearchParams(window.location.search);
+    const isSubmitted = urlParams.get('submitted') === 'true';
+    const savedData = useMemo(() => {
+        if (isSubmitted) {
+            try {
+                const dataStr = sessionStorage.getItem('submittedData');
+                if (dataStr) {
+                    return JSON.parse(dataStr);
+                }
+            } catch (_) {}
+        }
+        return null;
+    }, [isSubmitted]);
+
+    // 如果有 URL 參數且 sessionStorage 有資料，使用 savedData
+    const effectiveSubmittedData = submittedData || savedData;
+
+    if (effectiveSubmittedData) {
         return (
             <SuccessView
-                data={submittedData}
+                data={effectiveSubmittedData}
 onReset={() => {
     setSubmittedData(null);
+    // 清除 URL 參數
+    const url = new URL(window.location);
+    url.searchParams.delete('submitted');
+    window.history.replaceState({}, '', url);
+    // 清除 sessionStorage
+    sessionStorage.removeItem('submittedData');
     setIsSubmitting(false);
     setFormData({
         email: '',
