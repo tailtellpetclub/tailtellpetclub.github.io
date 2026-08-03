@@ -706,7 +706,7 @@ const executeSaveEdit = async () => {
 
             const renderServiceTags = () => {
                 const tags = safeParse(order.service_tags);
-                if (tags.length === 0) return <span className="text-[#B5A89C]">無</span>;
+                if (tags.length === 0) return <span className="text-[#8AA69B]">無</span>;
                 return tags.map((tag, i) => (
                     <span key={i} className="inline-block bg-[#EDE8E0] px-3 py-1 rounded-full text-xs font-bold mr-1 mb-1">{tag}</span>
                 ));
@@ -714,7 +714,7 @@ const executeSaveEdit = async () => {
 
             const renderMedicalTags = () => {
                 const tags = safeParse(order.medical_tags);
-                if (tags.length === 0) return <span className="text-[#B5A89C]">無</span>;
+                if (tags.length === 0) return <span className="text-[#8AA69B]">無</span>;
                 return tags.map((tag, i) => (
                     <span key={i} className="inline-block bg-[#DBA58B]/10 text-[#DBA58B] px-2 py-0.5 rounded-full text-xs font-bold mr-1 mb-1">{tag}</span>
                 ));
@@ -722,7 +722,7 @@ const executeSaveEdit = async () => {
 
             const renderVaccines = () => {
                 const tags = safeParse(order.vaccines);
-                if (tags.length === 0) return <span className="text-[#B5A89C]">無</span>;
+                if (tags.length === 0) return <span className="text-[#8AA69B]">無</span>;
                 return tags.join('、');
             };
 
@@ -2051,7 +2051,7 @@ const handleSave = () => {
                                     <div key={d} onClick={() => setSelectedDate(dateStr)} 
                                         className={`min-h-[100px] border-b border-r border-[#EDE8E0] p-1 cursor-pointer transition-all hover:bg-[#4A6B55]/5 ${isSelected ? 'bg-[#4A6B55]/10 ring-2 ring-inset ring-[#4A6B55] z-10' : ''}`}>
                                         <div className="flex justify-between items-start mb-1">
-                                            <span className={`text-[11px] font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-[#DBA58B] text-white' : isSelected ? 'text-[#4A6B55]' : 'text-[#B5A89C]'}`}>{d}</span>
+                                            <span className={`text-[11px] font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-[#DBA58B] text-white' : isSelected ? 'text-[#4A6B55]' : 'text-[#203B2A]'}`}>{d}</span>
                                         </div>
                                         <div className="space-y-0.5 overflow-hidden">
                                             {petsInDay.slice(0, 3).map(o => (
@@ -2223,22 +2223,22 @@ const handleSave = () => {
                                     </div>
                                 </div>
                             )}
-                            <div className="space-y-3">
-                                <h4 className="font-bold text-[#203B2A] flex items-center gap-2"><Icon name="history" size={18}/> 歷史服務紀錄</h4>
-                                {customer.history.map(order => (
-                                    <div key={order.id} onClick={() => { onSelectOrder(order); onClose(); }} className="bg-white p-4 rounded-2xl hover:border-[#203B2A] border-2 border-transparent cursor-pointer transition-all flex justify-between items-center group">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`p-2 rounded-lg ${order.service_type === 'grooming' ? 'bg-[#4A6B55]/10 text-[#4A6B55]' : 'bg-[#B8A088]/10 text-[#B8A088]'}`}>
-                                                <Icon name={order.service_type === 'grooming' ? 'scissors' : 'home'} size={16}/>
-                                            </div>
-                                            <div>
-                                                <div className="text-sm font-bold">{order.booking_date || order.check_in_date || order.created_at?.slice(0, 10) || '無日期'}</div>
-                                                <div className="text-[10px] text-[#B5A89C] font-bold">{order.booking_pets?.map(p=>p.pet_name).join(', ')}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+<div className="space-y-3">
+    <h4 className="font-bold text-[#203B2A] flex items-center gap-2"><Icon name="history" size={18}/> 歷史服務紀錄</h4>
+    {customer.history.map(order => (
+        <div key={order.id} onClick={() => { onSelectOrder(order); onClose(); }} className="bg-white p-4 rounded-2xl hover:border-[#203B2A] border-2 border-transparent cursor-pointer transition-all flex justify-between items-center group">
+            <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${order.service_type === 'grooming' ? 'bg-[#4A6B55]/10 text-[#4A6B55]' : 'bg-[#B8A088]/10 text-[#B8A088]'}`}>
+                    <Icon name={order.service_type === 'grooming' ? 'scissors' : 'home'} size={16}/>
+                </div>
+                <div>
+                    <div className="text-sm font-bold">{order.booking_date || order.check_in_date || order.created_at?.slice(0, 10) || '無日期'}</div>
+                    <div className="text-[10px] font-bold text-[#4A6B55]">{order.booking_pets?.map(p=>p.pet_name).join(', ')}</div>
+                </div>
+            </div>
+        </div>
+    ))}
+</div>
                         </div>
                     </div>
                 </div>
@@ -2536,6 +2536,17 @@ const customers = useMemo(() => {
     return Object.values(groups).sort((a, b) => b.visitCount - a.visitCount);
 }, [orders]);
 
+// 顧客搜尋過濾（必須放在 customers 之後）
+const filteredCustomers = useMemo(() => {
+    if (!searchTerm) return customers;
+    const term = searchTerm.toLowerCase().trim();
+    return customers.filter(c => 
+        c.name?.toLowerCase().includes(term) ||
+        c.phone?.includes(term) ||
+        [...c.pets].some(p => p.toLowerCase().includes(term))
+    );
+}, [customers, searchTerm]);
+
             const getPetName = (order) => {
                 const pets = Array.isArray(order.booking_pets) ? order.booking_pets : [];
                 return pets.map(p => p.pet_name || '未命名').join('、') || order.pet_name || '無毛孩資料';
@@ -2636,7 +2647,7 @@ const customers = useMemo(() => {
     <div className="py-20 text-center text-[#B5A89C] font-bold">載入資料中...</div>
 ) : activeTab === 'crm' ? (
     <div className="space-y-3">
-        {customers.map(c => (
+        {filteredCustomers.map(c => (
             <div key={c.phone} onClick={() => setSelectedCustomer(c)} className="cute-card p-5 bg-white flex justify-between items-center cursor-pointer hover:border-[#203B2A] transition-all">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-[#203B2A]/10 text-[#203B2A] rounded-xl flex items-center justify-center font-bold text-lg">{c.name[0]}</div>
@@ -2645,7 +2656,7 @@ const customers = useMemo(() => {
                         <div className="text-[10px] text-[#B5A89C] font-bold">
                             {c.phone} · {c.visitCount}次來訪 · <span className="text-[#4A6B55]">{c.pets.size} 隻毛孩</span>
                         </div>
-                        <div className="text-[9px] text-[#DDD6CE] font-bold mt-0.5">
+                        <div className="text-[10px] font-bold text-[#4a6b55] mt-0.5">
                             {[...c.pets].join(', ')}
                         </div>
                     </div>
@@ -2655,8 +2666,8 @@ const customers = useMemo(() => {
                 </div>
             </div>
         ))}
-        {customers.length === 0 && (
-            <div className="py-20 text-center text-[#DDD6CE] font-bold">尚無顧客資料 🍃</div>
+        {filteredCustomers.length === 0 && (
+            <div className="py-20 text-center text-[#DDD6CE] font-bold">尚無符合條件的顧客 🍃</div>
         )}
     </div>
 ) : activeTab === 'calendar' ? (
@@ -2679,9 +2690,9 @@ const customers = useMemo(() => {
                 
                 <div className="flex justify-between items-start">
                     <div>
-<div className="text-[9px] sm:text-[10px] font-bold text-[#B5A89C] uppercase tracking-widest mb-0.5 sm:mb-1 flex items-center gap-1.5 sm:gap-2 flex-wrap">
+<div className="text-[9px] sm:text-[10px] font-bold text-[#8AA69B] uppercase tracking-widest mb-0.5 sm:mb-1 flex items-center gap-1.5 sm:gap-2 flex-wrap">
     <span className="flex items-center gap-1">
-        <Icon name="calendar" size={10} className="sm:w-3 sm:h-3"/>
+        <Icon name="calendar" size={10} className="sm:w-3 sm:h-3 text-[#8AA69B]"/>
         {formatDisplayDate(order)}
     </span>
     {order.service_type === 'daycare' && (
@@ -2900,7 +2911,7 @@ const customers = useMemo(() => {
         };
 
         // --- Admin Service Worker 註冊 ---
-        const ADMIN_SW_VERSION = '20260725';
+        const ADMIN_SW_VERSION = '20260803';
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         // 檢查是否已有 admin-sw.js 的註冊
